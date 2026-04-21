@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>401(k) Pre-Retirement Withdrawal Planner</title>
+<style>
+  :root {
+    --bg: #0f1117; --bg2: #161b27; --bg3: #12161f; --bg4: #131720;
+    --border: #252b3a; --border2: #2a2f3e; --border3: #1e2535;
+    --gold: #c9a96e; --gold2: #e8dcc8; --gold3: #f0e6d0;
+    --blue: #5b8ecf; --green: #8fcf6a; --red: #e87070; --amber: #e8a84a;
+    --mid: #7c8a9a; --dim: #4a5568; --dimmer: #7c6f5a;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Georgia, serif; background: var(--bg); color: var(--gold2); min-height: 100vh; padding-bottom: 60px; }
+
+  /* ── Header ── */
+  .header { background: linear-gradient(135deg, #1a1f2e 0%, #0f1117 60%); border-bottom: 1px solid var(--border2); padding: 40px 40px 32px; }
+  .header-inner { max-width: 1100px; margin: 0 auto; }
+  .header-eyebrow { display: flex; align-items: baseline; gap: 16px; margin-bottom: 6px; }
+  .header-eyebrow span { font-size: 11px; letter-spacing: 0.3em; color: var(--dimmer); text-transform: uppercase; }
+  .header-eyebrow .line { width: 40px; height: 1px; background: var(--dimmer); display: inline-block; }
+  .header-eyebrow .accent { color: var(--gold); }
+  .header h1 { font-size: clamp(28px,4vw,44px); font-weight: 400; color: var(--gold3); letter-spacing: -0.02em; line-height: 1.1; }
+  .header h1 span { color: var(--gold); }
+  .header p { margin-top: 12px; color: var(--mid); font-size: 14px; font-family: sans-serif; max-width: 560px; }
+
+  /* ── Main ── */
+  .main { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+
+  /* ── Inputs ── */
+  .inputs-grid { margin-top: 36px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+  .input-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 16px 20px; }
+  .input-card label { display: block; font-size: 11px; letter-spacing: 0.08em; color: var(--mid); text-transform: uppercase; margin-bottom: 10px; font-family: sans-serif; }
+  .input-row { display: flex; align-items: center; gap: 6px; }
+  .input-prefix { color: var(--gold); font-size: 16px; font-weight: 600; }
+  .input-card input[type=number] { background: transparent; border: none; border-bottom: 1px solid #2e3650; color: var(--gold3); font-size: 22px; font-family: Georgia, serif; width: 100%; padding: 4px 0; outline: none; }
+  .input-suffix { color: var(--mid); font-size: 13px; white-space: nowrap; font-family: sans-serif; }
+
+  /* ── Growth Toggle ── */
+  .growth-toggle { margin-top: 20px; background: var(--bg3); border: 1px solid var(--border3); border-radius: 10px; padding: 16px 20px; display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
+  .growth-label { font-size: 11px; letter-spacing: 0.08em; color: var(--mid); text-transform: uppercase; font-family: sans-serif; margin-bottom: 10px; }
+  .growth-btns { display: flex; gap: 8px; }
+  .growth-btn { padding: 8px 20px; border-radius: 6px; border: 1px solid #2e3650; background: transparent; color: var(--mid); font-family: sans-serif; font-size: 13px; cursor: pointer; transition: all 0.15s; }
+  .growth-btn .sub { margin-left: 8px; font-size: 11px; opacity: 0.75; }
+  .growth-desc { flex: 1; font-size: 13px; color: var(--mid); font-family: sans-serif; line-height: 1.6; }
+
+  /* ── Info Banner ── */
+  .info-banner { margin-top: 12px; background: var(--bg3); border: 1px solid var(--border3); border-left: 3px solid var(--gold); border-radius: 8px; padding: 12px 20px; display: flex; flex-wrap: wrap; gap: 12px; }
+  .info-banner span { font-size: 12px; color: #9a9fa8; font-family: sans-serif; line-height: 1.7; }
+
+  /* ── Summary Cards ── */
+  .summary-cards { margin-top: 28px; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+  .card { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 16px 20px; }
+  .card.good { border-color: #2e3a28; }
+  .card.warn { border-color: #6b2c2c; }
+  .card-label { font-size: 11px; color: var(--mid); text-transform: uppercase; letter-spacing: 0.08em; font-family: sans-serif; margin-bottom: 8px; }
+  .card-value { font-size: 22px; font-weight: 600; color: var(--gold3); }
+  .card-value.good { color: var(--green); }
+  .card-value.warn { color: var(--red); }
+
+  /* ── Bar Chart ── */
+  .chart-wrap { margin-top: 36px; background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 28px 24px; }
+  .chart-header { font-family: sans-serif; margin-bottom: 20px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+  .chart-title { font-weight: 600; color: var(--gold3); font-size: 15px; }
+  .chart-legend { margin-left: auto; display: flex; flex-wrap: wrap; gap: 12px; font-size: 13px; color: var(--mid); }
+  .legend-dot { width: 12px; height: 12px; border-radius: 2px; display: inline-block; }
+  .chart-bars { display: flex; align-items: flex-end; gap: 3px; height: 180px; overflow-x: auto; }
+  .bar-col { display: flex; flex-direction: column; align-items: center; flex: 1 0 24px; min-width: 24px; }
+  .bar { width: 100%; border-radius: 3px 3px 0 0; opacity: 0.85; transition: height 0.3s ease; }
+  .bar-age { font-size: 9px; color: var(--dim); margin-top: 4px; font-family: sans-serif; }
+  .chart-footer { margin-top: 6px; font-size: 11px; color: var(--dim); font-family: sans-serif; text-align: center; }
+
+  /* ── Table ── */
+  .table-wrap { margin-top: 32px; background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .table-scroll { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-family: sans-serif; font-size: 13px; }
+  thead tr { background: #0f1117; border-bottom: 1px solid var(--border); }
+  th { padding: 12px 14px; text-align: right; color: var(--mid); font-weight: 500; letter-spacing: 0.04em; font-size: 11px; text-transform: uppercase; white-space: nowrap; }
+  th.center { text-align: center; }
+  td { padding: 10px 14px; text-align: right; border-bottom: 1px solid var(--border3); }
+  td.center { text-align: center; }
+  tr.even { background: var(--bg2); }
+  tr.odd  { background: var(--bg4); }
+  tr.depleted-row { background: rgba(107,44,44,0.15); }
+  tr.rmd-row-bg { background: rgba(176,104,32,0.08); }
+  tr.banner-rmd  { background: rgba(176,104,32,0.15); }
+  tr.banner-ss   { background: rgba(91,142,207,0.12); }
+  tr.banner-phase { background: rgba(201,169,110,0.08); }
+  td.banner-cell { padding: 7px 14px; font-size: 11px; text-align: center; letter-spacing: 0.08em; text-transform: uppercase; }
+
+  /* ── Footer ── */
+  .footer-row { margin-top: 20px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; }
+  .footer-legend { font-size: 12px; color: var(--dim); font-family: sans-serif; display: flex; flex-wrap: wrap; gap: 12px; }
+  .report-btn { display: flex; align-items: center; gap: 8px; padding: 10px 22px; background: linear-gradient(135deg, #c9a96e, #a87d42); border: none; border-radius: 8px; color: #0f1117; font-family: sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; letter-spacing: 0.03em; box-shadow: 0 2px 12px rgba(201,169,110,0.3); flex-shrink: 0; transition: transform 0.15s; }
+  .report-btn:hover { transform: translateY(-1px); }
+
+  /* ── Report Modal ── */
+  #report-modal { display: none; position: fixed; inset: 0; background: #000; z-index: 9999; flex-direction: column; }
+  #report-modal.open { display: flex; }
+  .modal-toolbar { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; background: var(--bg2); border-bottom: 2px solid var(--gold); flex-shrink: 0; }
+  .modal-title { color: var(--gold); font-family: sans-serif; font-weight: 700; font-size: 15px; }
+  .modal-actions { display: flex; gap: 8px; align-items: center; }
+  .modal-hint { color: var(--mid); font-family: sans-serif; font-size: 11px; max-width: 220px; line-height: 1.4; }
+  .modal-close { padding: 8px 16px; background: #2a2f3e; border: 1px solid #4a5568; border-radius: 6px; color: var(--gold2); font-family: sans-serif; font-size: 13px; cursor: pointer; }
+  #report-frame { flex: 1; width: 100%; border: none; background: #fff; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-inner">
+    <div class="header-eyebrow">
+      <span>Retirement</span>
+      <span class="line"></span>
+      <span class="accent">401(k) Planner</span>
+    </div>
+    <h1>Pre-Retirement<br><span>Withdrawal Projector</span></h1>
+    <p>Projects your 401(k) balance over 40 years — with market growth, Social Security offsets, RMD rules, and tiered withdrawal phases.</p>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- Inputs -->
+  <div class="inputs-grid" id="inputs-grid">
+    <!-- injected by JS -->
+  </div>
+
+  <!-- Market Growth Toggle -->
+  <div class="growth-toggle">
+    <div>
+      <div class="growth-label">Market Growth Scenario</div>
+      <div class="growth-btns" id="growth-btns"></div>
+    </div>
+    <div class="growth-desc" id="growth-desc"></div>
+  </div>
+
+  <!-- Info Banner -->
+  <div class="info-banner">
+    <span>ℹ️</span>
+    <span id="info-text"></span>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="summary-cards" id="summary-cards"></div>
+
+  <!-- Bar Chart -->
+  <div class="chart-wrap">
+    <div class="chart-header">
+      <span class="chart-title">401(k) Balance Over 40 Years</span>
+      <div class="chart-legend">
+        <span><span class="legend-dot" style="background:#c9a96e"></span> Before SS</span>
+        <span><span class="legend-dot" style="background:#5b8ecf"></span> After SS</span>
+        <span><span class="legend-dot" style="background:#b06820"></span> RMD Active</span>
+        <span><span class="legend-dot" style="background:#6b2c2c"></span> Depleted</span>
+      </div>
+    </div>
+    <div class="chart-bars" id="chart-bars"></div>
+    <div class="chart-footer">Age →</div>
+  </div>
+
+  <!-- Table -->
+  <div class="table-wrap">
+    <div class="table-scroll">
+      <table>
+        <thead id="table-head"></thead>
+        <tbody id="table-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer-row">
+    <div class="footer-legend">
+      <span><span style="color:#e8a84a">R</span> = RMD year · <span style="color:#e8a84a">▲</span> = RMD exceeded planned withdrawal</span>
+      <span>·</span>
+      <span>For illustrative purposes only · Consult a financial advisor</span>
+    </div>
+    <button class="report-btn" onclick="openReport()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+      </svg>
+      View / Save Report
+    </button>
+  </div>
+
+</div>
+
+<!-- Report Modal -->
+<div id="report-modal">
+  <div class="modal-toolbar">
+    <span class="modal-title">📄 Retirement Projection Report</span>
+    <div class="modal-actions">
+      <span class="modal-hint">Use your browser's Share / Print to save as PDF</span>
+      <button class="modal-close" onclick="closeReport()">✕ Close</button>
+    </div>
+  </div>
+  <iframe id="report-frame" title="Retirement Report"></iframe>
+</div>
+
+<script>
+// ── Constants ─────────────────────────────────────────────────────────────────
+const GROWTH_MODES = {
+  low:    { rate: 0.035, label: 'Low',    desc: '3.5% / yr', color: '#e87070' },
+  normal: { rate: 0.07,  label: 'Normal', desc: '7.0% / yr', color: '#8fcf6a' },
+};
+const RMD_AGE = 73;
+const RMD_TABLE = {
+  72:27.4,73:26.5,74:25.5,75:24.6,76:23.7,77:22.9,
+  78:22.0,79:21.1,80:20.2,81:19.4,82:18.5,83:17.7,
+  84:16.8,85:16.0,86:15.2,87:14.4,88:13.7,89:12.9,
+  90:12.2,91:11.5,92:10.8,93:10.1,94:9.5,95:8.9,
+  96:8.4,97:7.8,98:7.3,99:6.8,100:6.4,
+};
+const TAX_BRACKETS = [[23200,0.10],[94300,0.12],[201050,0.22],[383900,0.24],[487450,0.32],[731200,0.35],[Infinity,0.37]];
+const STD_DEDUCTION_BENEFIT = 29200 * 0.12;
+
+// ── State ─────────────────────────────────────────────────────────────────────
+const inputs = {
+  retirementAge: 59,
+  balance401k: 800000,
+  ssMonthly: 4500,
+  ssStartAge: 65,
+  ssColaRate: 2.6,
+  pretaxPct: 100,
+  withdraw1: 6000,
+  withdraw2: 5500,
+  withdraw3: 5000,
+  withdraw4: 4500,
+};
+let growthMode = 'normal';
+let projection = [];
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function getRMDFactor(age) {
+  if (age < RMD_AGE) return null;
+  return RMD_TABLE[Math.min(age, 100)] ?? 6.4;
+}
+function fmtCur(val) {
+  if (val < 0) return '-$' + Math.abs(Math.round(val)).toLocaleString();
+  return '$' + Math.round(val).toLocaleString();
+}
+function fmtK(val) {
+  if (val >= 1e6) return '$' + (val/1e6).toFixed(2) + 'M';
+  if (val >= 1e3) return '$' + (val/1e3).toFixed(1) + 'K';
+  return fmtCur(val);
+}
+function calcFedTax(taxableIncome) {
+  let tax = 0, prev = 0;
+  for (const [top, rate] of TAX_BRACKETS) {
+    if (taxableIncome <= prev) break;
+    tax += (Math.min(taxableIncome, top) - prev) * rate;
+    prev = top;
+  }
+  return Math.max(0, tax - STD_DEDUCTION_BENEFIT);
+}
+
+// ── Projection ────────────────────────────────────────────────────────────────
+function calcProjection() {
+  const { retirementAge, balance401k, ssMonthly, ssStartAge, ssColaRate,
+          pretaxPct, withdraw1, withdraw2, withdraw3, withdraw4 } = inputs;
+  const marketRate = GROWTH_MODES[growthMode].rate;
+  const rows = [];
+  let balance = balance401k;
+
+  for (let yr = 0; yr < 40; yr++) {
+    const age = retirementAge + yr;
+    const decade = yr < 10 ? 0 : yr < 20 ? 1 : yr < 30 ? 2 : 3;
+    const baseWithdraw = [withdraw1, withdraw2, withdraw3, withdraw4][decade];
+    const ssActive = age >= ssStartAge;
+    const yearsOfSS = ssActive ? age - ssStartAge : 0;
+    const ssAnnual = ssActive ? ssMonthly * 12 * Math.pow(1 + ssColaRate/100, yearsOfSS) : 0;
+    const ssMonthlyAdj = ssAnnual / 12;
+
+    const desiredMonthly = Math.max(0, baseWithdraw - (ssActive ? ssMonthlyAdj : 0));
+    const desiredAnnual = desiredMonthly * 12;
+
+    const startBalance = balance;
+    const growth = startBalance * marketRate;
+    const balanceAfterGrowth = startBalance + growth;
+
+    const rmdFactor = getRMDFactor(age);
+    const rmdRequired = rmdFactor ? startBalance / rmdFactor : 0;
+
+    const annual401k = Math.min(balanceAfterGrowth, Math.max(desiredAnnual, rmdRequired));
+    const rmdApplied = rmdRequired > desiredAnnual;
+
+    const taxable401k = annual401k * (pretaxPct / 100);
+    const taxableSS = ssAnnual * 0.85;
+    const fedTax = calcFedTax(taxable401k + taxableSS);
+
+    balance = balanceAfterGrowth - annual401k;
+    if (balance < 0) balance = 0;
+
+    rows.push({ year: yr+1, age, startBalance, growth, annual401k,
+      desiredAnnual401k: desiredAnnual, rmdRequired, rmdApplied,
+      ssAnnual, totalIncome: annual401k + ssAnnual,
+      fedTax, netIncome: annual401k + ssAnnual - fedTax,
+      endBalance: balance, depleted: balance <= 0 });
+
+    if (balance <= 0) {
+      for (let rest = yr+1; rest < 40; rest++) {
+        const ra = retirementAge + rest;
+        const ssYrs = ra >= ssStartAge ? ra - ssStartAge : 0;
+        const ssA = ra >= ssStartAge ? ssMonthly * 12 * Math.pow(1 + ssColaRate/100, ssYrs) : 0;
+        const ft = calcFedTax(ssA * 0.85);
+        rows.push({ year: rest+1, age: ra, startBalance:0, growth:0, annual401k:0,
+          desiredAnnual401k:0, rmdRequired:0, rmdApplied:false,
+          ssAnnual: ssA, totalIncome: ssA, fedTax: ft, netIncome: ssA - ft,
+          endBalance:0, depleted:true });
+      }
+      break;
+    }
+  }
+  return rows;
+}
+
+// ── Input Fields Definition ───────────────────────────────────────────────────
+const INPUT_FIELDS = [
+  { label:'Retirement Age',       key:'retirementAge', prefix:'',  suffix:' yrs', min:50,  max:80,    step:1 },
+  { label:'401(k) Balance',       key:'balance401k',   prefix:'$', suffix:'',     min:0,   max:5000000,step:1000 },
+  { label:'SS Monthly Benefit',   key:'ssMonthly',     prefix:'$', suffix:'/mo',  min:0,   max:10000, step:50 },
+  { label:'SS Start Age',         key:'ssStartAge',    prefix:'',  suffix:' yrs', min:62,  max:70,    step:1 },
+  { label:'SS COLA Rate',         key:'ssColaRate',    prefix:'',  suffix:'% / yr',min:0,  max:6,     step:0.1 },
+  { label:'401(k) Pre-Tax %',     key:'pretaxPct',     prefix:'',  suffix:'%',    min:0,   max:100,   step:1 },
+  { label:'Withdrawal — Yrs 1–10',key:'withdraw1',     prefix:'$', suffix:'/mo',  min:0,   max:20000, step:100 },
+  { label:'Withdrawal — Yrs 11–20',key:'withdraw2',    prefix:'$', suffix:'/mo',  min:0,   max:20000, step:100 },
+  { label:'Withdrawal — Yrs 21–30',key:'withdraw3',    prefix:'$', suffix:'/mo',  min:0,   max:20000, step:100 },
+  { label:'Withdrawal — Yrs 31–40',key:'withdraw4',    prefix:'$', suffix:'/mo',  min:0,   max:20000, step:100 },
+];
+
+// ── Build Inputs ──────────────────────────────────────────────────────────────
+function buildInputs() {
+  const grid = document.getElementById('inputs-grid');
+  grid.innerHTML = INPUT_FIELDS.map(f => `
+    <div class="input-card">
+      <label>${f.label}</label>
+      <div class="input-row">
+        ${f.prefix ? `<span class="input-prefix">${f.prefix}</span>` : ''}
+        <input type="number" id="inp-${f.key}" min="${f.min}" max="${f.max}" step="${f.step}" value="${inputs[f.key]}"
+          oninput="onInput('${f.key}', this.value)">
+        ${f.suffix ? `<span class="input-suffix">${f.suffix}</span>` : ''}
+      </div>
+    </div>`).join('');
+}
+
+function onInput(key, val) {
+  inputs[key] = Number(val);
+  render();
+}
+
+// ── Build Growth Toggle ───────────────────────────────────────────────────────
+function buildGrowthToggle() {
+  const btns = document.getElementById('growth-btns');
+  btns.innerHTML = Object.entries(GROWTH_MODES).map(([key, mode]) => `
+    <button class="growth-btn" id="gbtn-${key}" onclick="setGrowth('${key}')"
+      style="border-color:${key===growthMode?mode.color:'#2e3650'};
+             background:${key===growthMode?mode.color+'18':'transparent'};
+             color:${key===growthMode?mode.color:'#7c8a9a'};
+             font-weight:${key===growthMode?700:400}">
+      ${mode.label}<span class="sub">${mode.desc}</span>
+    </button>`).join('');
+
+  const gm = GROWTH_MODES[growthMode];
+  const desc = document.getElementById('growth-desc');
+  desc.innerHTML = `<strong style="color:${gm.color}">${gm.label} growth (${gm.desc})</strong> applied to 401(k) balance each year.
+    ${growthMode==='low' ? '<span style="color:#e87070"> Conservative — ~half of historical average returns.</span>'
+                         : '<span style="color:#8fcf6a"> Historical average — long-run S&P 500 average.</span>'}`;
+}
+
+function setGrowth(key) {
+  growthMode = key;
+  render();
+}
+
+// ── Info Banner ───────────────────────────────────────────────────────────────
+function buildInfoBanner() {
+  document.getElementById('info-text').innerHTML =
+    `Once Social Security begins at age <strong>${inputs.ssStartAge}</strong>, the benefit grows by
+     <strong style="color:#5b8ecf">${inputs.ssColaRate}% COLA annually</strong> — reducing 401(k) draws more over time.
+     After age <strong style="color:#e8a84a">73</strong>, IRS <strong style="color:#e8a84a">RMD</strong> rules apply.
+     Federal tax uses 2024 MFJ brackets on the pre-tax portion of 401(k) withdrawals + 85% of SS income, minus standard deduction.`;
+}
+
+// ── Summary Cards ─────────────────────────────────────────────────────────────
+function buildCards() {
+  const last = projection[projection.length - 1];
+  const depAt = projection.find(r => r.depleted);
+  const maxBal = Math.max(...projection.map(r => r.startBalance));
+  const gm = GROWTH_MODES[growthMode];
+  const finalBal = last ? Math.max(0, last.endBalance) : 0;
+
+  const cards = [
+    { label:'Final Balance (Yr 40)', value: fmtK(finalBal),
+      cls: finalBal > 100000 ? 'good' : finalBal <= 0 ? 'warn' : '' },
+    { label:'Growth Scenario', value:`${gm.label} — ${gm.desc}`,
+      cls: growthMode==='normal' ? 'good' : 'warn' },
+    { label:'SS Starts at Age', value:`${inputs.ssStartAge} (Yr ${inputs.ssStartAge - inputs.retirementAge + 1})`, cls:'good' },
+    { label:'Peak Balance', value: fmtK(maxBal), cls:'good' },
+    { label:'401(k) Status', value: depAt ? `Depleted Yr ${depAt.year}` : 'Sustained 40 yrs',
+      cls: depAt ? 'warn' : 'good' },
+  ];
+
+  document.getElementById('summary-cards').innerHTML = cards.map(c => `
+    <div class="card ${c.cls}">
+      <div class="card-label">${c.label}</div>
+      <div class="card-value ${c.cls}">${c.value}</div>
+    </div>`).join('');
+}
+
+// ── Bar Chart ─────────────────────────────────────────────────────────────────
+function buildChart() {
+  const maxBal = Math.max(...projection.map(r => r.endBalance), 1);
+  document.getElementById('chart-bars').innerHTML = projection.map(row => {
+    const pct = Math.max(0, row.endBalance) / maxBal;
+    const color = row.depleted ? '#6b2c2c' : row.rmdApplied ? '#b06820' : row.ssAnnual > 0 ? '#5b8ecf' : '#c9a96e';
+    const h = Math.max(2, pct * 160);
+    return `<div class="bar-col" title="Age ${row.age}: ${fmtCur(row.endBalance)}${row.rmdApplied?' (RMD)':''}">
+      <div class="bar" style="height:${h}px;background:${color}"></div>
+      <div class="bar-age">${row.age}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── Table ─────────────────────────────────────────────────────────────────────
+function buildTable() {
+  const rate = (GROWTH_MODES[growthMode].rate * 100).toFixed(1);
+  const heads = ['Yr','Age','Start Balance',`Growth (${rate}%)`,
+    'Planned Draw/yr','RMD Required','Actual 401k/yr',
+    'SS Income/yr (w/ COLA)','Total Income/yr','Fed Tax/yr','Net Income/yr','End Balance'];
+
+  document.getElementById('table-head').innerHTML = `<tr>${heads.map((h,i) =>
+    `<th class="${i<2?'center':''}">${h}</th>`).join('')}</tr>`;
+
+  let html = '';
+  projection.forEach((row, i) => {
+    const prev = projection[i-1];
+    const isSSStart = row.ssAnnual > 0 && (!prev || prev.ssAnnual === 0);
+    const isRMDStart = row.age === RMD_AGE && row.startBalance > 0;
+    const decade = Math.floor((row.year-1)/10);
+    const isPhase = [1,11,21,31].includes(row.year);
+    const phaseW = [inputs.withdraw1,inputs.withdraw2,inputs.withdraw3,inputs.withdraw4][decade];
+
+    if (isRMDStart)
+      html += `<tr class="banner-rmd"><td class="banner-cell" colspan="12" style="color:#e8a84a">
+        ⚠ IRS Required Minimum Distribution begins — Age ${RMD_AGE} · Withdrawals will be at least the RMD amount</td></tr>`;
+    if (isSSStart)
+      html += `<tr class="banner-ss"><td class="banner-cell" colspan="12" style="color:#5b8ecf">
+        ▶ Social Security begins — Age ${row.age}, Year ${row.year} · Starts at $${inputs.ssMonthly.toLocaleString()}/mo, grows ${inputs.ssColaRate}% annually (COLA)</td></tr>`;
+    if (isPhase)
+      html += `<tr class="banner-phase"><td class="banner-cell" colspan="12" style="color:#c9a96e">
+        Phase ${decade+1} — Planned Withdrawal: $${phaseW.toLocaleString()}/mo</td></tr>`;
+
+    const rowCls = row.depleted ? 'depleted-row' : row.rmdApplied ? 'rmd-row-bg' : i%2===0 ? 'even' : 'odd';
+    const rmdColor = row.rmdRequired > 0 ? (row.rmdApplied ? '#e8a84a' : '#6a7080') : '#4a5568';
+    const endColor = row.depleted ? '#e87070' : row.endBalance < 100000 ? '#e8a84a' : '#8fcf6a';
+    const endVal = row.depleted && row.endBalance <= 0
+      ? `<span style="color:#e87070;font-weight:700">DEPLETED</span>`
+      : `<span style="color:${endColor};font-weight:700">${fmtK(row.endBalance)}</span>`;
+    const rmdSup = row.age >= RMD_AGE && row.startBalance > 0
+      ? `<sup style="color:#e8a84a;font-size:10px">R</sup>` : '';
+
+    html += `<tr class="${rowCls}">
+      <td class="center" style="color:#7c8a9a">${row.year}</td>
+      <td class="center" style="color:#f0e6d0;font-weight:600">${row.age}${rmdSup}</td>
+      <td style="color:#c9a96e">${fmtK(row.startBalance)}</td>
+      <td style="color:#8fcf6a">${fmtK(row.growth)}</td>
+      <td style="color:#9a9fa8">${row.depleted ? '—' : fmtK(row.desiredAnnual401k)}</td>
+      <td style="color:${rmdColor}">${row.rmdRequired>0 ? fmtK(row.rmdRequired)+(row.rmdApplied?' ▲':'') : '—'}</td>
+      <td style="color:${row.annual401k===0?'#4a5568':row.rmdApplied?'#e8a84a':'#f0e6d0'};font-weight:${row.rmdApplied?600:400}">
+        ${row.annual401k===0?'—':fmtK(row.annual401k)}</td>
+      <td style="color:${row.ssAnnual===0?'#4a5568':'#5b8ecf'}">${row.ssAnnual===0?'—':fmtK(row.ssAnnual)}</td>
+      <td style="color:#f0e6d0;font-weight:500">${fmtK(row.totalIncome)}</td>
+      <td style="color:${row.fedTax>0?'#e87070':'#4a5568'};font-weight:${row.fedTax>0?600:400}">
+        ${row.fedTax>0?fmtK(row.fedTax):'—'}</td>
+      <td style="color:#8fcf6a;font-weight:600">${fmtK(row.netIncome)}</td>
+      <td>${endVal}</td>
+    </tr>`;
+  });
+
+  document.getElementById('table-body').innerHTML = html;
+}
+
+// ── Report HTML ───────────────────────────────────────────────────────────────
+function buildReportHTML() {
+  const gm = GROWTH_MODES[growthMode];
+  const depAt = projection.find(r => r.depleted);
+  const last = projection[projection.length-1];
+
+  const rowsHTML = projection.map((row, i) => {
+    const prev = projection[i-1];
+    const isSSStart = row.ssAnnual > 0 && (!prev || prev.ssAnnual === 0);
+    const isRMDStart = row.age === RMD_AGE && row.startBalance > 0;
+    const isPhase = [1,11,21,31].includes(row.year);
+    const phase = Math.floor((row.year-1)/10);
+    const phaseW = [inputs.withdraw1,inputs.withdraw2,inputs.withdraw3,inputs.withdraw4][phase];
+    let banners = '';
+    if (isRMDStart) banners += `<tr class="banner rmd"><td colspan="12">⚠ RMD begins — Age ${RMD_AGE}</td></tr>`;
+    if (isSSStart)  banners += `<tr class="banner ss"><td colspan="12">▶ SS begins Age ${row.age} · $${inputs.ssMonthly.toLocaleString()}/mo + ${inputs.ssColaRate}% COLA</td></tr>`;
+    if (isPhase)    banners += `<tr class="banner phase"><td colspan="12">Phase ${phase+1} — $${phaseW.toLocaleString()}/mo</td></tr>`;
+    const cls = row.depleted?'dep':row.rmdApplied?'rmd':i%2===0?'ev':'od';
+    const endCell = row.depleted&&row.endBalance<=0 ? '<span class="dt">DEPLETED</span>'
+      : `<span class="${row.endBalance<100000?'wn':'gd'}">${fmtK(row.endBalance)}</span>`;
+    return banners + `<tr class="${cls}">
+      <td>${row.year}</td><td><b>${row.age}${row.age>=RMD_AGE&&row.startBalance>0?'<sup>R</sup>':''}</b></td>
+      <td class="gol">${fmtK(row.startBalance)}</td>
+      <td class="grn">${fmtK(row.growth)}</td>
+      <td>${row.depleted?'—':fmtK(row.desiredAnnual401k)}</td>
+      <td class="${row.rmdApplied?'rhi':''}">${row.rmdRequired>0?fmtK(row.rmdRequired)+(row.rmdApplied?' ▲':''):'—'}</td>
+      <td class="${row.rmdApplied?'rhi':''}">${row.annual401k===0?'—':fmtK(row.annual401k)}</td>
+      <td class="blu">${row.ssAnnual===0?'—':fmtK(row.ssAnnual)}</td>
+      <td><b>${fmtK(row.totalIncome)}</b></td>
+      <td class="tax">${row.fedTax>0?fmtK(row.fedTax):'—'}</td>
+      <td class="gd">${fmtK(row.netIncome)}</td>
+      <td>${endCell}</td>
+    </tr>`;
+  }).join('');
+
+  const rate = (GROWTH_MODES[growthMode].rate*100).toFixed(1);
+  return `<!DOCTYPE html><html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>401(k) Retirement Projection</title>
+<style>
+  body{margin:0;font-family:Georgia,serif;background:#fff;color:#111;font-size:11px;}
+  .hdr{background:#1a1f2e;color:#f0e6d0;padding:18px 24px;}
+  .hdr h1{margin:0;font-size:20px;color:#c9a96e;}
+  .hdr p{margin:4px 0 0;color:#9a9fa8;font-family:sans-serif;font-size:12px;}
+  .sum{background:#f7f3ec;border-bottom:2px solid #c9a96e;padding:10px 24px;display:flex;flex-wrap:wrap;gap:14px;font-family:sans-serif;font-size:11px;}
+  .sum span{color:#555;} .sum b{color:#222;}
+  table{width:100%;border-collapse:collapse;}
+  th{background:#1a1f2e;color:#c9a96e;padding:7px 6px;font-family:sans-serif;font-size:9px;text-transform:uppercase;letter-spacing:.04em;text-align:right;white-space:nowrap;}
+  th:first-child,th:nth-child(2){text-align:center;}
+  td{padding:5px 6px;text-align:right;border-bottom:1px solid #e8e4dc;}
+  td:first-child,td:nth-child(2){text-align:center;}
+  .ev{background:#fff;}.od{background:#faf9f6;}.dep{background:#fff0f0;}.rmd{background:#fff8ee;}
+  .gol{color:#a07030;font-weight:600;}.grn{color:#2a7a2a;}.blu{color:#2255aa;}
+  .gd{color:#2a7a2a;font-weight:700;}.wn{color:#c07000;font-weight:700;}
+  .dt{color:#cc2200;font-weight:700;}.rhi{color:#c06000;font-weight:700;}
+  .tax{color:#cc2200;font-weight:600;}
+  .banner td{text-align:center!important;font-family:sans-serif;font-size:9px;padding:4px;letter-spacing:.06em;text-transform:uppercase;}
+  .banner.rmd td{background:#fff3dc;color:#c06000;}
+  .banner.ss td{background:#e8eeff;color:#2255aa;}
+  .banner.phase td{background:#f7f3ec;color:#a07030;}
+  .ftr{padding:10px 24px;font-family:sans-serif;font-size:10px;color:#888;text-align:center;border-top:1px solid #ddd;margin-top:8px;}
+  @media print{body{font-size:9px;}th{font-size:8px;}td{padding:3px 5px;}@page{margin:0.5in;size:landscape;}}
+</style></head><body>
+<div class="hdr">
+  <h1>401(k) Pre-Retirement Withdrawal Projection</h1>
+  <p>Generated ${new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})} &nbsp;·&nbsp; ${gm.label} growth (${gm.desc})</p>
+</div>
+<div class="sum">
+  <span>Retirement Age: <b>${inputs.retirementAge}</b></span>
+  <span>401(k) Balance: <b>$${inputs.balance401k.toLocaleString()}</b></span>
+  <span>SS Benefit: <b>$${inputs.ssMonthly.toLocaleString()}/mo</b></span>
+  <span>SS Start Age: <b>${inputs.ssStartAge}</b></span>
+  <span>COLA: <b>${inputs.ssColaRate}%/yr</b></span>
+  <span>Pre-Tax %: <b>${inputs.pretaxPct}%</b></span>
+  <span>Growth: <b>${gm.label} (${gm.desc})</b></span>
+  <span>Yr 1–10: <b>$${inputs.withdraw1.toLocaleString()}/mo</b></span>
+  <span>Yr 11–20: <b>$${inputs.withdraw2.toLocaleString()}/mo</b></span>
+  <span>Yr 21–30: <b>$${inputs.withdraw3.toLocaleString()}/mo</b></span>
+  <span>Yr 31–40: <b>$${inputs.withdraw4.toLocaleString()}/mo</b></span>
+  <span>Final Bal: <b>${last?fmtK(Math.max(0,last.endBalance)):'—'}</b></span>
+  ${depAt?`<span style="color:#cc2200">⚠ Depleted Yr ${depAt.year} (Age ${depAt.age})</span>`
+         :`<span style="color:#2a7a2a">✓ Sustained 40 years</span>`}
+</div>
+<table><thead><tr>
+  <th>Yr</th><th>Age</th><th>Start Bal</th><th>Growth (${rate}%)</th>
+  <th>Planned/yr</th><th>RMD Req</th><th>401k/yr</th>
+  <th>SS/yr</th><th>Total/yr</th><th>Fed Tax</th><th>Net Income</th><th>End Bal</th>
+</tr></thead><tbody>${rowsHTML}</tbody></table>
+<div class="ftr">For illustrative purposes only · Not financial advice · Consult a qualified financial advisor · R = RMD year · ▲ = RMD exceeded planned withdrawal</div>
+</body></html>`;
+}
+
+// ── Report Modal ──────────────────────────────────────────────────────────────
+function openReport() {
+  document.getElementById('report-frame').srcdoc = buildReportHTML();
+  document.getElementById('report-modal').classList.add('open');
+}
+function closeReport() {
+  document.getElementById('report-modal').classList.remove('open');
+}
+
+// ── Master Render ─────────────────────────────────────────────────────────────
+function render() {
+  projection = calcProjection();
+  buildGrowthToggle();
+  buildInfoBanner();
+  buildCards();
+  buildChart();
+  buildTable();
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+buildInputs();
+render();
+</script>
+</body>
+</html>
