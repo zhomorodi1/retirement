@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Monthly Budget Tool</title>
+    <title>Smart Monthly Budget Tool v2</title>
     <style>
         :root {
             --primary: #2563eb;
@@ -28,7 +28,7 @@
         .container {
             max-width: 900px;
             margin: 0 auto;
-            padding-bottom: 120px;
+            padding-bottom: 150px;
         }
 
         .card {
@@ -43,7 +43,7 @@
 
         .header-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 20px;
             margin-bottom: 20px;
         }
@@ -271,8 +271,15 @@
                 <label>Vehicle Status</label>
                 <div class="toggle-group" id="v-toggle">
                     <button class="toggle-btn" onclick="setToggle('v', 'none')">None</button>
-                    <button class="toggle-btn active" onclick="setToggle('v', 'lease')">Lease/Loan</button>
+                    <button class="toggle-btn active" onclick="setToggle('v', 'lease')">Lease</button>
                     <button class="toggle-btn" onclick="setToggle('v', 'own')">Own</button>
+                </div>
+            </div>
+            <div>
+                <label>Work Status</label>
+                <div class="toggle-group" id="w-toggle">
+                    <button class="toggle-btn active" onclick="setToggle('w', 'working')">Working</button>
+                    <button class="toggle-btn" onclick="setToggle('w', 'retired')">Retired</button>
                 </div>
             </div>
         </div>
@@ -297,18 +304,20 @@
             icon: '🏠', color: '#3b82f6',
             items: {
                 rent: { base: 1800, scale: 'fixed-housing' },
+                mortgage: { base: 2200, scale: 'fixed-housing' },
                 utilities: { base: 180, scale: 'shared-heavy' },
                 internet: { base: 80, scale: 'fixed' },
                 phone: { base: 70, scale: 'per-adult' },
-                insurance: { base: 30, scale: 'fixed' }
+                insurance: { base: 24, scale: 'fixed' } // Adjusted: 80% of 30
             }
         },
         transport: {
             icon: '🚗', color: '#6366f1',
             items: {
                 car_payment: { base: 450, scale: 'per-car' },
-                gas: { base: 150, scale: 'shared-light' },
-                insurance: { base: 120, scale: 'per-car' },
+                gas: { base: 150, scale: 'per-car' }, // Adjusted: 0 if no car
+                insurance: { base: 96, scale: 'per-car' }, // Adjusted: 80% of 120
+                public_transport: { base: 80, scale: 'per-adult' }, // New Entry
                 rideshare: { base: 60, scale: 'per-adult' }
             }
         },
@@ -316,7 +325,7 @@
             icon: '🛒', color: '#f59e0b',
             items: {
                 groceries: { base: 450, scale: 'shared-heavy' },
-                dining_out: { base: 300, scale: 'per-adult' },
+                dining_out: { base: 150, scale: 'per-adult' }, // Adjusted: 50% of 300
                 coffee: { base: 50, scale: 'per-adult' },
                 bars: { base: 100, scale: 'per-adult' }
             }
@@ -324,7 +333,7 @@
         health: {
             icon: '❤️', color: '#ef4444',
             items: {
-                insurance: { base: 400, scale: 'per-person' },
+                insurance: { base: 320, scale: 'per-person' }, // Adjusted: 80% of 400
                 gym: { base: 60, scale: 'per-adult' },
                 prescriptions: { base: 30, scale: 'shared-light' },
                 therapy: { base: 150, scale: 'fixed' }
@@ -351,9 +360,9 @@
         savings: {
             icon: '💰', color: '#10b981',
             items: {
-                emergency_fund: { base: 500, scale: 'per-adult' },
-                retirement: { base: 600, scale: 'per-adult' },
-                investments: { base: 300, scale: 'per-adult' },
+                emergency_fund: { base: 125, scale: 'per-adult' }, // Adjusted: 25% of 500
+                retirement: { base: 600, scale: 'work-dependent' }, // Adjusted: 0 if retired
+                investments: { base: 90, scale: 'per-adult' }, // Adjusted: 30% of 300
                 debt: { base: 250, scale: 'fixed' }
             }
         },
@@ -369,24 +378,29 @@
         misc: {
             icon: '🎲', color: '#64748b',
             items: {
-                travel: { base: 250, scale: 'shared-heavy' },
-                charity: { base: 100, scale: 'per-adult' },
+                travel: { base: 500, scale: 'shared-heavy' }, // Adjusted: 200% of 250
+                charity: { base: 10, scale: 'per-adult' }, // Adjusted: 10% of 100
                 courses: { base: 50, scale: 'fixed' }
             }
         }
     };
 
-    let overrides = JSON.parse(localStorage.getItem('budget_overrides')) || {};
-    let toggles = { h: 'rent', v: 'lease' };
+    let overrides = JSON.parse(localStorage.getItem('budget_overrides_v2')) || {};
+    let toggles = { h: 'rent', v: 'lease', w: 'working' };
 
-    function calculateVal(itemKey, item, adults, kids) {
+    function calculateVal(iKey, item, adults, kids) {
         const total = adults + kids;
         
-        // Handle Toggles first
-        if (itemKey === 'rent' && toggles.h !== 'rent') return 0;
-        if (itemKey === 'mortgage' && (toggles.h !== 'mortgage')) return (itemKey === 'mortgage' ? 2200 : 0);
-        if (itemKey === 'car_payment' && toggles.v !== 'lease') return 0;
-        if (itemKey === 'insurance' && item.scale === 'per-car' && toggles.v === 'none') return 0;
+        // Handle Logic Toggles
+        if (iKey === 'rent' && toggles.h !== 'rent') return 0;
+        if (iKey === 'mortgage' && toggles.h !== 'mortgage') return 0;
+        if (iKey === 'car_payment' && toggles.v !== 'lease') return 0;
+        
+        // Gas Logic: 0 if not owning/leasing a car
+        if (iKey === 'gas' && toggles.v === 'none') return 0;
+        
+        // Retirement Logic: 0 if retired
+        if (item.scale === 'work-dependent' && toggles.w === 'retired') return 0;
 
         switch(item.scale) {
             case 'fixed': return item.base;
@@ -394,6 +408,7 @@
             case 'per-child': return item.base * kids;
             case 'per-person': return item.base * total;
             case 'per-car': return item.base * (toggles.v === 'none' ? 0 : Math.ceil(adults/2));
+            case 'work-dependent': return item.base * adults;
             case 'shared-heavy': return item.base * (1 + (total - 1) * 0.7);
             case 'shared-light': return item.base * (1 + (total - 1) * 0.4);
             default: return item.base;
@@ -433,7 +448,10 @@
 
     function setToggle(g, v) {
         toggles[g] = v;
-        document.querySelectorAll(`#${g}-toggle .toggle-btn`).forEach(b => b.classList.toggle('active', b.innerText.toLowerCase().includes(v)));
+        document.querySelectorAll(`#${g}-toggle .toggle-btn`).forEach(b => {
+            const btnText = b.innerText.toLowerCase();
+            b.classList.toggle('active', btnText === v);
+        });
         updateUI(true);
     }
 
@@ -441,13 +459,13 @@
         const id = `${cat}-${item}`;
         const val = parseFloat(document.getElementById(`in-${id}`).value) || 0;
         overrides[id] = val;
-        localStorage.setItem('budget_overrides', JSON.stringify(overrides));
+        localStorage.setItem('budget_overrides_v2', JSON.stringify(overrides));
         updateUI(false);
     }
 
     function resetItem(cat, item) {
         delete overrides[`${cat}-${item}`];
-        localStorage.setItem('budget_overrides', JSON.stringify(overrides));
+        localStorage.setItem('budget_overrides_v2', JSON.stringify(overrides));
         updateUI(true);
     }
 
@@ -505,7 +523,7 @@
         
         data.sort((a,b) => b.total - a.total).forEach(d => {
             if (d.total <= 0) return;
-            const pct = (d.total / total) * 100;
+            const pct = (d.total / Math.max(total, 1)) * 100;
             const seg = document.createElement('div');
             seg.className = 'chart-segment';
             seg.style.width = `${pct}%`;
