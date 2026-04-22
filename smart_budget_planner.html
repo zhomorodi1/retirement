@@ -250,7 +250,7 @@
             </div>
             <div>
                 <label>Adults</label>
-                <input type="number" id="adults" min="1" value="1" onchange="scaleTrigger()">
+                <input type="number" id="adults" min="1" value="2" onchange="scaleTrigger()">
             </div>
             <div>
                 <label>Children</label>
@@ -262,16 +262,16 @@
             <div>
                 <label>Housing Status</label>
                 <div class="toggle-group" id="h-toggle">
-                    <button class="toggle-btn active" onclick="setToggle('h', 'rent')">Rent</button>
+                    <button class="toggle-btn" onclick="setToggle('h', 'rent')">Rent</button>
                     <button class="toggle-btn" onclick="setToggle('h', 'mortgage')">Mortgage</button>
-                    <button class="toggle-btn" onclick="setToggle('h', 'own')">Own</button>
+                    <button class="toggle-btn active" onclick="setToggle('h', 'own')">Own</button>
                 </div>
             </div>
             <div>
                 <label>Vehicle Status</label>
                 <div class="toggle-group" id="v-toggle">
-                    <button class="toggle-btn" onclick="setToggle('v', 'none')">None</button>
-                    <button class="toggle-btn active" onclick="setToggle('v', 'lease')">Lease</button>
+                    <button class="toggle-btn active" onclick="setToggle('v', 'none')">None</button>
+                    <button class="toggle-btn" onclick="setToggle('v', 'lease')">Lease</button>
                     <button class="toggle-btn" onclick="setToggle('v', 'own')">Own</button>
                 </div>
             </div>
@@ -305,10 +305,11 @@
             items: {
                 rent: { base: 1800, scale: 'fixed-housing' },
                 mortgage: { base: 2200, scale: 'fixed-housing' },
+                hoa: { base: 300, scale: 'fixed-housing' },
                 utilities: { base: 180, scale: 'shared-heavy' },
                 internet: { base: 80, scale: 'fixed' },
                 phone: { base: 70, scale: 'per-adult' },
-                insurance: { base: 24, scale: 'fixed' } // Adjusted: 80% of 30
+                insurance: { base: 80, scale: 'fixed' } // Adjusted: 80% of 30
             }
         },
         transport: {
@@ -326,24 +327,24 @@
             items: {
                 groceries: { base: 450, scale: 'shared-heavy' },
                 dining_out: { base: 150, scale: 'per-adult' }, // Adjusted: 50% of 300
-                coffee: { base: 50, scale: 'per-adult' },
+                coffee: { base: 100, scale: 'per-adult' },
                 bars: { base: 100, scale: 'per-adult' }
             }
         },
         health: {
             icon: '❤️', color: '#ef4444',
             items: {
-                insurance: { base: 320, scale: 'per-person' }, // Adjusted: 80% of 400
+                insurance: { base: 300, scale: 'per-person' }, // Adjusted: 80% of 400
                 gym: { base: 60, scale: 'per-adult' },
                 prescriptions: { base: 30, scale: 'shared-light' },
-                therapy: { base: 150, scale: 'fixed' }
+                therapy: { base: 50, scale: 'per-adult' }
             }
         },
         subs: {
             icon: '📱', color: '#8b5cf6',
             items: {
                 streaming: { base: 50, scale: 'fixed' },
-                software: { base: 30, scale: 'fixed' },
+                software: { base: 20, scale: 'fixed' },
                 gaming: { base: 20, scale: 'fixed' },
                 memberships: { base: 15, scale: 'fixed' }
             }
@@ -353,16 +354,16 @@
             items: {
                 clothing: { base: 150, scale: 'per-adult' },
                 beauty: { base: 80, scale: 'per-adult' },
-                hobbies: { base: 120, scale: 'per-adult' },
-                gifts: { base: 50, scale: 'shared-light' }
+                hobbies: { base: 100, scale: 'per-adult' },
+                gifts: { base: 60, scale: 'shared-light' }
             }
         },
         savings: {
             icon: '💰', color: '#10b981',
             items: {
-                emergency_fund: { base: 125, scale: 'per-adult' }, // Adjusted: 25% of 500
+                emergency_fund: { base: 100, scale: 'per-adult' }, // Adjusted: 25% of 500
                 retirement: { base: 600, scale: 'work-dependent' }, // Adjusted: 0 if retired
-                investments: { base: 90, scale: 'per-adult' }, // Adjusted: 30% of 300
+                investments: { base: 100, scale: 'per-adult' }, // Adjusted: 30% of 300
                 debt: { base: 250, scale: 'fixed' }
             }
         },
@@ -371,16 +372,16 @@
             items: {
                 childcare: { base: 1200, scale: 'per-child' },
                 school: { base: 100, scale: 'per-child' },
-                pets: { base: 80, scale: 'fixed' },
+                pets: { base: 100, scale: 'fixed' },
                 household: { base: 100, scale: 'shared-light' }
             }
         },
         misc: {
             icon: '🎲', color: '#64748b',
             items: {
-                travel: { base: 500, scale: 'shared-heavy' }, // Adjusted: 200% of 250
+                travel: { base: 600, scale: 'shared-heavy' }, // Adjusted: 200% of 250
                 charity: { base: 10, scale: 'per-adult' }, // Adjusted: 10% of 100
-                courses: { base: 50, scale: 'fixed' }
+                courses: { base: 0, scale: 'fixed' }
             }
         }
     };
