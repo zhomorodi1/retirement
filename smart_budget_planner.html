@@ -387,7 +387,7 @@
     };
 
     let overrides = JSON.parse(localStorage.getItem('budget_overrides_v2')) || {};
-    let toggles = { h: 'rent', v: 'lease', w: 'working' };
+    let toggles = { h: 'own', v: 'none', w: 'working' };
 
     function calculateVal(iKey, item, adults, kids) {
         const total = adults + kids;
