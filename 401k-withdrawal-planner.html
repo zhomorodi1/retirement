@@ -205,7 +205,8 @@
 <script>
 // ── Constants ─────────────────────────────────────────────────────────────────
 const GROWTH_MODES = {
-  low:    { rate: 0.035, label: 'Low',    desc: '3.5% / yr', color: '#e87070' },
+  low:    { rate: 0.025, label: 'Low',    desc: '2.5% / yr', color: '#e87070' },
+  median: { rate: 0.05,  label: 'Median', desc: '5.0% / yr', color: '#c9a96e' },
   normal: { rate: 0.07,  label: 'Normal', desc: '7.0% / yr', color: '#8fcf6a' },
 };
 const RMD_AGE = 73;
@@ -225,14 +226,17 @@ const inputs = {
   balance401k: 800000,
   ssMonthly: 4500,
   ssStartAge: 65,
-  ssColaRate: 2.6,
+  ssColaRate: 2.0,
   pretaxPct: 100,
+  extraTax401k: 0,
+  extraTaxSS: 0,
+  inflationRate: 3.0,
   withdraw1: 6000,
   withdraw2: 5500,
   withdraw3: 5000,
   withdraw4: 4500,
 };
-let growthMode = 'normal';
+let growthMode = 'median';
 let projection = [];
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -262,7 +266,7 @@ function calcFedTax(taxableIncome) {
 // ── Projection ────────────────────────────────────────────────────────────────
 function calcProjection() {
   const { retirementAge, balance401k, ssMonthly, ssStartAge, ssColaRate,
-          pretaxPct, withdraw1, withdraw2, withdraw3, withdraw4 } = inputs;
+          pretaxPct, extraTax401k, extraTaxSS, inflationRate, withdraw1, withdraw2, withdraw3, withdraw4 } = inputs;
   const marketRate = GROWTH_MODES[growthMode].rate;
   const rows = [];
   let balance = balance401k;
@@ -270,7 +274,7 @@ function calcProjection() {
   for (let yr = 0; yr < 40; yr++) {
     const age = retirementAge + yr;
     const decade = yr < 10 ? 0 : yr < 20 ? 1 : yr < 30 ? 2 : 3;
-    const baseWithdraw = [withdraw1, withdraw2, withdraw3, withdraw4][decade];
+    const baseWithdraw = [withdraw1, withdraw2, withdraw3, withdraw4][decade] * Math.pow(1 + (inflationRate / 2) / 100, yr);
     const ssActive = age >= ssStartAge;
     const yearsOfSS = ssActive ? age - ssStartAge : 0;
     const ssAnnual = ssActive ? ssMonthly * 12 * Math.pow(1 + ssColaRate/100, yearsOfSS) : 0;
@@ -291,7 +295,10 @@ function calcProjection() {
 
     const taxable401k = annual401k * (pretaxPct / 100);
     const taxableSS = ssAnnual * 0.85;
-    const fedTax = calcFedTax(taxable401k + taxableSS);
+    const baseFedTax = calcFedTax(taxable401k + taxableSS);
+    const extraOn401k = annual401k * (pretaxPct / 100) * (extraTax401k / 100);
+    const extraOnSS   = ssAnnual * (extraTaxSS / 100);
+    const fedTax = baseFedTax + extraOn401k + extraOnSS;
 
     balance = balanceAfterGrowth - annual401k;
     if (balance < 0) balance = 0;
@@ -307,7 +314,7 @@ function calcProjection() {
         const ra = retirementAge + rest;
         const ssYrs = ra >= ssStartAge ? ra - ssStartAge : 0;
         const ssA = ra >= ssStartAge ? ssMonthly * 12 * Math.pow(1 + ssColaRate/100, ssYrs) : 0;
-        const ft = calcFedTax(ssA * 0.85);
+        const ft = calcFedTax(ssA * 0.85) + ssA * (inputs.extraTaxSS / 100);
         rows.push({ year: rest+1, age: ra, startBalance:0, growth:0, annual401k:0,
           desiredAnnual401k:0, rmdRequired:0, rmdApplied:false,
           ssAnnual: ssA, totalIncome: ssA, fedTax: ft, netIncome: ssA - ft,
@@ -327,6 +334,9 @@ const INPUT_FIELDS = [
   { label:'SS Start Age',         key:'ssStartAge',    prefix:'',  suffix:' yrs', min:62,  max:70,    step:1 },
   { label:'SS COLA Rate',         key:'ssColaRate',    prefix:'',  suffix:'% / yr',min:0,  max:6,     step:0.1 },
   { label:'401(k) Pre-Tax %',     key:'pretaxPct',     prefix:'',  suffix:'%',    min:0,   max:100,   step:1 },
+  { label:'Extra Tax on 401(k)',   key:'extraTax401k',  prefix:'',  suffix:'%',    min:0,   max:50,    step:0.5 },
+  { label:'Extra Tax on SS',       key:'extraTaxSS',    prefix:'',  suffix:'%',    min:0,   max:50,    step:0.5 },
+  { label:'Inflation Rate',        key:'inflationRate', prefix:'',  suffix:'%',    min:0,   max:10,    step:0.1 },
   { label:'Withdrawal — Yrs 1–10',key:'withdraw1',     prefix:'$', suffix:'/mo',  min:0,   max:20000, step:100 },
   { label:'Withdrawal — Yrs 11–20',key:'withdraw2',    prefix:'$', suffix:'/mo',  min:0,   max:20000, step:100 },
   { label:'Withdrawal — Yrs 21–30',key:'withdraw3',    prefix:'$', suffix:'/mo',  min:0,   max:20000, step:100 },
@@ -367,9 +377,12 @@ function buildGrowthToggle() {
 
   const gm = GROWTH_MODES[growthMode];
   const desc = document.getElementById('growth-desc');
-  desc.innerHTML = `<strong style="color:${gm.color}">${gm.label} growth (${gm.desc})</strong> applied to 401(k) balance each year.
-    ${growthMode==='low' ? '<span style="color:#e87070"> Conservative — ~half of historical average returns.</span>'
-                         : '<span style="color:#8fcf6a"> Historical average — long-run S&P 500 average.</span>'}`;
+  const descText = growthMode==='low'
+    ? '<span style="color:#e87070"> Conservative scenario — below-average market returns.</span>'
+    : growthMode==='median'
+    ? '<span style="color:#c9a96e"> Median scenario — moderate long-term growth.</span>'
+    : '<span style="color:#8fcf6a"> Normal scenario — historical long-run S&P 500 average.</span>';
+  desc.innerHTML = `<strong style="color:${gm.color}">${gm.label} growth (${gm.desc})</strong> applied to 401(k) balance each year. ${descText}`;
 }
 
 function setGrowth(key) {
@@ -383,7 +396,7 @@ function buildInfoBanner() {
     `Once Social Security begins at age <strong>${inputs.ssStartAge}</strong>, the benefit grows by
      <strong style="color:#5b8ecf">${inputs.ssColaRate}% COLA annually</strong> — reducing 401(k) draws more over time.
      After age <strong style="color:#e8a84a">73</strong>, IRS <strong style="color:#e8a84a">RMD</strong> rules apply.
-     Federal tax uses 2024 MFJ brackets on the pre-tax portion of 401(k) withdrawals + 85% of SS income, minus standard deduction.`;
+     Withdrawals increase each year by half the inflation rate (compounded) to maintain purchasing power. Federal tax uses 2024 MFJ brackets on the pre-tax portion of 401(k) withdrawals + 85% of SS income, minus standard deduction. Additional tax rates apply on top for 401(k) and SS (e.g. state tax).`;
 }
 
 // ── Summary Cards ─────────────────────────────────────────────────────────────
@@ -398,7 +411,7 @@ function buildCards() {
     { label:'Final Balance (Yr 40)', value: fmtK(finalBal),
       cls: finalBal > 100000 ? 'good' : finalBal <= 0 ? 'warn' : '' },
     { label:'Growth Scenario', value:`${gm.label} — ${gm.desc}`,
-      cls: growthMode==='normal' ? 'good' : 'warn' },
+      cls: growthMode==='normal' ? 'good' : growthMode==='median' ? 'good' : 'warn' },
     { label:'SS Starts at Age', value:`${inputs.ssStartAge} (Yr ${inputs.ssStartAge - inputs.retirementAge + 1})`, cls:'good' },
     { label:'Peak Balance', value: fmtK(maxBal), cls:'good' },
     { label:'401(k) Status', value: depAt ? `Depleted Yr ${depAt.year}` : 'Sustained 40 yrs',
@@ -431,7 +444,7 @@ function buildTable() {
   const rate = (GROWTH_MODES[growthMode].rate * 100).toFixed(1);
   const heads = ['Yr','Age','Start Balance',`Growth (${rate}%)`,
     'Planned Draw/yr','RMD Required','Actual 401k/yr',
-    'SS Income/yr (w/ COLA)','Total Income/yr','Fed Tax/yr','Net Income/yr','End Balance'];
+    'SS Income/yr (w/ COLA)','Total Income/yr','Fed Tax/yr','Net Income/yr','Net/mo','End Balance'];
 
   document.getElementById('table-head').innerHTML = `<tr>${heads.map((h,i) =>
     `<th class="${i<2?'center':''}">${h}</th>`).join('')}</tr>`;
@@ -446,13 +459,13 @@ function buildTable() {
     const phaseW = [inputs.withdraw1,inputs.withdraw2,inputs.withdraw3,inputs.withdraw4][decade];
 
     if (isRMDStart)
-      html += `<tr class="banner-rmd"><td class="banner-cell" colspan="12" style="color:#e8a84a">
+      html += `<tr class="banner-rmd"><td class="banner-cell" colspan="13" style="color:#e8a84a">
         ⚠ IRS Required Minimum Distribution begins — Age ${RMD_AGE} · Withdrawals will be at least the RMD amount</td></tr>`;
     if (isSSStart)
-      html += `<tr class="banner-ss"><td class="banner-cell" colspan="12" style="color:#5b8ecf">
+      html += `<tr class="banner-ss"><td class="banner-cell" colspan="13" style="color:#5b8ecf">
         ▶ Social Security begins — Age ${row.age}, Year ${row.year} · Starts at $${inputs.ssMonthly.toLocaleString()}/mo, grows ${inputs.ssColaRate}% annually (COLA)</td></tr>`;
     if (isPhase)
-      html += `<tr class="banner-phase"><td class="banner-cell" colspan="12" style="color:#c9a96e">
+      html += `<tr class="banner-phase"><td class="banner-cell" colspan="13" style="color:#c9a96e">
         Phase ${decade+1} — Planned Withdrawal: $${phaseW.toLocaleString()}/mo</td></tr>`;
 
     const rowCls = row.depleted ? 'depleted-row' : row.rmdApplied ? 'rmd-row-bg' : i%2===0 ? 'even' : 'odd';
@@ -478,6 +491,7 @@ function buildTable() {
       <td style="color:${row.fedTax>0?'#e87070':'#4a5568'};font-weight:${row.fedTax>0?600:400}">
         ${row.fedTax>0?fmtK(row.fedTax):'—'}</td>
       <td style="color:#8fcf6a;font-weight:600">${fmtK(row.netIncome)}</td>
+      <td style="color:#c9a96e;font-weight:700">${fmtK(row.netIncome/12)}</td>
       <td>${endVal}</td>
     </tr>`;
   });
@@ -499,9 +513,9 @@ function buildReportHTML() {
     const phase = Math.floor((row.year-1)/10);
     const phaseW = [inputs.withdraw1,inputs.withdraw2,inputs.withdraw3,inputs.withdraw4][phase];
     let banners = '';
-    if (isRMDStart) banners += `<tr class="banner rmd"><td colspan="12">⚠ RMD begins — Age ${RMD_AGE}</td></tr>`;
-    if (isSSStart)  banners += `<tr class="banner ss"><td colspan="12">▶ SS begins Age ${row.age} · $${inputs.ssMonthly.toLocaleString()}/mo + ${inputs.ssColaRate}% COLA</td></tr>`;
-    if (isPhase)    banners += `<tr class="banner phase"><td colspan="12">Phase ${phase+1} — $${phaseW.toLocaleString()}/mo</td></tr>`;
+    if (isRMDStart) banners += `<tr class="banner rmd"><td colspan="13">⚠ RMD begins — Age ${RMD_AGE}</td></tr>`;
+    if (isSSStart)  banners += `<tr class="banner ss"><td colspan="13">▶ SS begins Age ${row.age} · $${inputs.ssMonthly.toLocaleString()}/mo + ${inputs.ssColaRate}% COLA</td></tr>`;
+    if (isPhase)    banners += `<tr class="banner phase"><td colspan="13">Phase ${phase+1} — $${phaseW.toLocaleString()}/mo</td></tr>`;
     const cls = row.depleted?'dep':row.rmdApplied?'rmd':i%2===0?'ev':'od';
     const endCell = row.depleted&&row.endBalance<=0 ? '<span class="dt">DEPLETED</span>'
       : `<span class="${row.endBalance<100000?'wn':'gd'}">${fmtK(row.endBalance)}</span>`;
@@ -516,6 +530,7 @@ function buildReportHTML() {
       <td><b>${fmtK(row.totalIncome)}</b></td>
       <td class="tax">${row.fedTax>0?fmtK(row.fedTax):'—'}</td>
       <td class="gd">${fmtK(row.netIncome)}</td>
+      <td class="gol">${fmtK(row.netIncome/12)}</td>
       <td>${endCell}</td>
     </tr>`;
   }).join('');
@@ -559,6 +574,9 @@ function buildReportHTML() {
   <span>SS Start Age: <b>${inputs.ssStartAge}</b></span>
   <span>COLA: <b>${inputs.ssColaRate}%/yr</b></span>
   <span>Pre-Tax %: <b>${inputs.pretaxPct}%</b></span>
+  <span>Extra 401k Tax: <b>${inputs.extraTax401k}%</b></span>
+  <span>Extra SS Tax: <b>${inputs.extraTaxSS}%</b></span>
+  <span>Inflation: <b>${inputs.inflationRate}% (withdraw adj: ${(inputs.inflationRate/2).toFixed(1)}%/yr)</b></span>
   <span>Growth: <b>${gm.label} (${gm.desc})</b></span>
   <span>Yr 1–10: <b>$${inputs.withdraw1.toLocaleString()}/mo</b></span>
   <span>Yr 11–20: <b>$${inputs.withdraw2.toLocaleString()}/mo</b></span>
@@ -571,7 +589,7 @@ function buildReportHTML() {
 <table><thead><tr>
   <th>Yr</th><th>Age</th><th>Start Bal</th><th>Growth (${rate}%)</th>
   <th>Planned/yr</th><th>RMD Req</th><th>401k/yr</th>
-  <th>SS/yr</th><th>Total/yr</th><th>Fed Tax</th><th>Net Income</th><th>End Bal</th>
+  <th>SS/yr</th><th>Total/yr</th><th>Fed Tax</th><th>Net Income</th><th>Net/mo</th><th>End Bal</th>
 </tr></thead><tbody>${rowsHTML}</tbody></table>
 <div class="ftr">For illustrative purposes only · Not financial advice · Consult a qualified financial advisor · R = RMD year · ▲ = RMD exceeded planned withdrawal</div>
 </body></html>`;
