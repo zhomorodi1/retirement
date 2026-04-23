@@ -320,16 +320,30 @@ function calcFedTax(taxableIncome) {
 
 // ── Stress Test ───────────────────────────────────────────────────────────────
 function generateCrashYears() {
-  // Pick 1 or 2 random crash years, not in first 2 years, spaced at least 5 years apart
+  // Always pick at least one crash before age 72 (year = 72 - retirementAge)
+  const preRmdYears = Math.max(1, 72 - inputs.retirementAge); // years before age 72
   const numCrashes = Math.random() < 0.5 ? 1 : 2;
-  const pool = Array.from({length: 36}, (_, i) => i + 3); // years 3-38
-  const picks = [];
-  while (picks.length < numCrashes && pool.length > 0) {
-    const idx = Math.floor(Math.random() * pool.length);
-    const yr = pool[idx];
-    if (picks.every(p => Math.abs(p - yr) >= 5)) picks.push(yr);
-    pool.splice(idx, 1);
+
+  // Early crash: years 3 up to the year before age 72, at least year 3
+  const earlyPool = [];
+  for (let y = 3; y <= Math.min(preRmdYears, 38); y++) earlyPool.push(y);
+  const earlyIdx = Math.floor(Math.random() * earlyPool.length);
+  const earlyCrash = earlyPool[earlyIdx];
+
+  const picks = [earlyCrash];
+
+  if (numCrashes === 2) {
+    // Second crash anywhere else in years 3-38, spaced at least 5 years from first
+    const latePool = [];
+    for (let y = 3; y <= 38; y++) {
+      if (Math.abs(y - earlyCrash) >= 5) latePool.push(y);
+    }
+    if (latePool.length > 0) {
+      const lateIdx = Math.floor(Math.random() * latePool.length);
+      picks.push(latePool[lateIdx]);
+    }
   }
+
   return picks;
 }
 
