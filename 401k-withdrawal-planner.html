@@ -563,13 +563,18 @@ function buildCards() {
   const gm = GROWTH_MODES[growthMode];
   const finalBal = last ? Math.max(0, last.endBalance) : 0;
 
+  const finalReinvest = last ? (last.reinvestBal || 0) : 0;
+  const totalFinal = finalBal + finalReinvest;
   const cards = [
-    { label:'Final Balance (Yr 40)', value: fmtK(finalBal),
+    { label:'Final 401(k) Balance', value: fmtK(finalBal),
       cls: finalBal > 100000 ? 'good' : finalBal <= 0 ? 'warn' : '' },
+    { label:'Final RMD Reinvestment', value: finalReinvest > 0 ? fmtK(finalReinvest) : '—',
+      cls: finalReinvest > 0 ? 'good' : '' },
+    { label:'Total Final Balance', value: fmtK(totalFinal),
+      cls: totalFinal > 100000 ? 'good' : totalFinal <= 0 ? 'warn' : '' },
     { label:'Growth Scenario', value:`${gm.label} — ${gm.desc}`,
       cls: growthMode==='normal' ? 'good' : growthMode==='median' ? 'good' : 'warn' },
     { label:'SS Starts at Age', value:`${inputs.ssStartAge} (Yr ${inputs.ssStartAge - inputs.retirementAge + 1})`, cls:'good' },
-    { label:'Peak Balance', value: fmtK(maxBal), cls:'good' },
     { label:'401(k) Status', value: depAt ? `Depleted Yr ${depAt.year}` : 'Sustained 40 yrs',
       cls: depAt ? 'warn' : 'good' },
   ];
