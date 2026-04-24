@@ -360,6 +360,7 @@ const inputs = {
 let growthMode = 'median';
 let stressTest = false;
 let crashYears = [];
+let crashImpacts = {}; // year -> loss rate
 let projection = [];
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -429,15 +430,24 @@ function generateCrashYears() {
   return picks;
 }
 
+function generateCrashImpacts(years) {
+  const impacts = {};
+  years.forEach(y => {
+    // Random loss between -10% and -18%
+    impacts[y] = -(0.10 + Math.random() * 0.08);
+  });
+  return impacts;
+}
+
 function toggleStress() {
   stressTest = !stressTest;
-  if (stressTest) crashYears = generateCrashYears();
-  else crashYears = [];
+  if (stressTest) { crashYears = generateCrashYears(); crashImpacts = generateCrashImpacts(crashYears); }
+  else { crashYears = []; crashImpacts = {}; }
   const track = document.getElementById('stress-track');
   const desc  = document.getElementById('stress-desc');
   track.classList.toggle('on', stressTest);
   desc.textContent = stressTest
-    ? 'ON — ' + crashYears.length + ' crash year(s) injected (3=50%, 4=45%, 5=5% chance) · -15% each'
+    ? 'ON — ' + crashYears.length + ' random crash year(s) injected · each hits -10% to -18% market loss'
     : 'Off — using steady market growth';
   render();
 }
@@ -447,90 +457,179 @@ function calcProjection() {
   const { retirementAge, balance401k, ssMonthly, ssStartAge, ssColaRate,
           pretaxPct, extraTax401k, extraTaxSS, inflationRate, regularSavings, stockPct,
           withdraw1, withdraw2, withdraw3, withdraw4 } = inputs;
+  // Safety: if any critical input is NaN, abort
+  const safeW = [withdraw1, withdraw2, withdraw3, withdraw4].map(w => (isNaN(w) || !w) ? 0 : w);
+  const [w1, w2, w3, w4] = safeW;
   const MM_RATE = 0.008; // money market 0.8%
-  const blendedSavingsRate = (yr, crash) => {
-    const mktRate = crash ? -0.15 : GROWTH_MODES[growthMode].rate;
-    return (stockPct/100) * mktRate + (1 - stockPct/100) * MM_RATE;
+  const blendedSavingsRate = (crashRateOrFalse) => {
+    const isCrashYear = crashRateOrFalse !== false;
+    const mktRate = isCrashYear ? crashRateOrFalse : GROWTH_MODES[growthMode].rate;
+    const mmRate = isCrashYear ? 0 : MM_RATE; // MM earns 0% in crash years
+    return (stockPct/100) * mktRate + (1 - stockPct/100) * mmRate;
   };
   const baseMarketRate = GROWTH_MODES[growthMode].rate;
   const rows = [];
   let balance = balance401k;
   let reinvestBal = 0; // RMD reinvestment account
+  let prevSsAnnual = 0;  // carry forward SS from prior year
   let savingsBal = regularSavings; // regular savings account
 
   for (let yr = 0; yr < 40; yr++) {
     const age = retirementAge + yr;
     const decade = yr < 10 ? 0 : yr < 20 ? 1 : yr < 30 ? 2 : 3;
-    const baseWithdraw = [withdraw1, withdraw2, withdraw3, withdraw4][decade] * Math.pow(1 + (inflationRate / 2) / 100, yr);
-    const ssActive = age >= ssStartAge;
-    const yearsOfSS = ssActive ? age - ssStartAge : 0;
-    const ssAnnual = ssActive ? ssMonthly * 12 * Math.pow(1 + ssColaRate/100, yearsOfSS) : 0;
-    const ssMonthlyAdj = ssAnnual / 12;
 
-    const desiredMonthly = Math.max(0, baseWithdraw - (ssActive ? ssMonthlyAdj : 0));
-    const desiredAnnual = desiredMonthly * 12;
+    // ── Monthly gross need (inflation-adjusted) ─────────────────────────────
+    const yrInPhase = yr % 10; // reset compounding at each phase boundary
+    const grossMonthlyNeed = [w1, w2, w3, w4][decade]
+      * Math.pow(1 + (inflationRate / 2) / 100, yrInPhase);
+    const grossAnnualNeed = grossMonthlyNeed * 12;
 
-    // Apply crash year: -15% instead of normal rate
+    // ── Social Security (COLA-adjusted) ────────────────────────────────────
+    // ── Crash / market rate (must be defined before SS COLA) ─────────────────
     const isCrash = stressTest && crashYears.includes(yr + 1);
-    const marketRate = isCrash ? -0.15 : baseMarketRate;
+    const crashRate = isCrash ? (crashImpacts[yr + 1] !== undefined ? crashImpacts[yr + 1] : -0.15) : null;
+    const marketRate = isCrash ? crashRate : baseMarketRate;
 
+    // ── Social Security (COLA = 0% in crash years → freeze at prior year value) ─
+    const ssActive = age >= ssStartAge;
+    let ssAnnual;
+    if (!ssActive) {
+      ssAnnual = 0;
+    } else if (isCrash && prevSsAnnual > 0) {
+      ssAnnual = prevSsAnnual; // freeze at last year's value
+    } else {
+      const yearsOfSS = age - ssStartAge;
+      ssAnnual = ssMonthly * 12 * Math.pow(1 + ssColaRate / 100, yearsOfSS);
+    }
+    prevSsAnnual = ssAnnual;
+
+    // ── How much 401k needs to cover after SS ───────────────────────────────
+    const neededFrom401k = Math.max(0, grossAnnualNeed - ssAnnual);
+
+    // ── 401k growth ─────────────────────────────────────────────────────────
     const startBalance = balance;
-    const growth = startBalance * marketRate;
+    const growth = yr === 0 ? 0 : startBalance * marketRate;
     const balanceAfterGrowth = Math.max(0, startBalance + growth);
 
+    // ── RMD calculation ─────────────────────────────────────────────────────
     const rmdFactor = getRMDFactor(age);
     const rmdRequired = rmdFactor ? startBalance / rmdFactor : 0;
 
-    const annual401k = Math.min(balanceAfterGrowth, Math.max(desiredAnnual, rmdRequired));
-    const rmdApplied = rmdRequired > desiredAnnual && rmdRequired > 0;
+    // ── Actual 401k withdrawal = max(needed, RMD), capped at available ──────
+    const annual401k = Math.min(balanceAfterGrowth, Math.max(neededFrom401k, rmdRequired));
+    const rmdApplied = rmdRequired > neededFrom401k && rmdRequired > 0;
 
-    // Excess RMD = amount forced out beyond what you wanted to spend
-    const rmdExcess = rmdApplied ? Math.max(0, rmdRequired - desiredAnnual) : 0;
+    // ── RMD excess: forced out beyond spending → reinvested, not spent ──────
+    const rmdExcess = rmdApplied ? Math.max(0, rmdRequired - neededFrom401k) : 0;
+    // What you actually spend from 401k
+    const spendable401k = annual401k - rmdExcess; // = neededFrom401k when no depletion
 
-    // Reinvestment account: excess RMD grows at blended rate
-    const reinvestRate = blendedSavingsRate(yr, isCrash);
-    const reinvestGrowth = reinvestBal * reinvestRate;
+    // ── Shortfall: if 401k can't fully cover neededFrom401k ─────────────────
+    // (only happens when balance is nearly gone and 401k < neededFrom401k)
+    const shortfall = Math.max(0, neededFrom401k - spendable401k);
+    let drawnFromReinvest = 0, drawnFromSavings = 0;
+
+    // ── Grow reinvest + savings accounts ────────────────────────────────────
+    const blendRate = blendedSavingsRate(isCrash ? crashRate : false);
+    const reinvestGrowth = reinvestBal * blendRate;
     reinvestBal = Math.max(0, reinvestBal + reinvestGrowth + rmdExcess);
-    // Regular savings: grows at blended rate, never drawn down
-    const savingsRate = blendedSavingsRate(yr, isCrash);
-    const savingsGrowth = savingsBal * savingsRate;
+    const savingsGrowth = savingsBal * blendRate;
     savingsBal = Math.max(0, savingsBal + savingsGrowth);
 
+    // ── Draw from reinvest/savings to cover shortfall ────────────────────────
+    if (shortfall > 0) {
+      drawnFromReinvest = Math.min(reinvestBal, shortfall);
+      reinvestBal = Math.max(0, reinvestBal - drawnFromReinvest);
+      const rem = shortfall - drawnFromReinvest;
+      if (rem > 0) {
+        drawnFromSavings = Math.min(savingsBal, rem);
+        savingsBal = Math.max(0, savingsBal - drawnFromSavings);
+      }
+    }
+
+    // ── Total gross income = what you actually receive to spend ─────────────
+    // = SS + 401k spendable + any shortfall covered by reinvest/savings
+    // This should never exceed grossAnnualNeed (unless RMD forces more — but
+    // that excess goes to reinvest, not income)
+    const totalGrossIncome = ssAnnual + spendable401k + drawnFromReinvest + drawnFromSavings;
+
+    // ── Federal tax (on full 401k withdrawal + SS, IRS requires this) ────────
     const taxable401k = annual401k * (pretaxPct / 100);
     const taxableSS = ssAnnual * 0.85;
     const baseFedTax = calcFedTax(taxable401k + taxableSS);
-    // Extra tax on FULL amounts regardless of pre-tax status
     const extraOn401k = annual401k * (extraTax401k / 100);
-    const extraOnSS   = ssAnnual * (extraTaxSS / 100);
+    const extraOnSS = ssAnnual * (extraTaxSS / 100);
     const fedTax = baseFedTax + extraOn401k + extraOnSS;
+    const netIncome = Math.max(0, totalGrossIncome - fedTax);
 
     balance = balanceAfterGrowth - annual401k;
     if (balance < 0) balance = 0;
 
-    rows.push({ year: yr+1, age, startBalance, growth, annual401k,
-      desiredAnnual401k: desiredAnnual, rmdRequired, rmdApplied, rmdExcess,
-      reinvestBal, reinvestGrowth,
-      ssAnnual, totalIncome: annual401k + ssAnnual,
-      fedTax, netIncome: annual401k + ssAnnual - fedTax,
-      savingsBal, endBalance: balance, depleted: balance <= 0, isCrash });
+    rows.push({ year: yr+1, age,
+      grossMonthlyNeed, grossAnnualNeed,
+      startBalance, growth, annual401k, spendable401k,
+      desiredAnnual401k: neededFrom401k, rmdRequired, rmdApplied, rmdExcess,
+      reinvestBal, reinvestGrowth, drawnFromReinvest, drawnFromSavings,
+      ssAnnual, totalIncome: totalGrossIncome,
+      fedTax, netIncome,
+      savingsBal, endBalance: balance, depleted: balance <= 0, isCrash, crashRate });
 
     if (balance <= 0) {
       for (let rest = yr+1; rest < 40; rest++) {
         const ra = retirementAge + rest;
-        const ssYrs = ra >= ssStartAge ? ra - ssStartAge : 0;
-        const ssA = ra >= ssStartAge ? ssMonthly * 12 * Math.pow(1 + ssColaRate/100, ssYrs) : 0;
-        const ft = calcFedTax(ssA * 0.85) + ssA * (inputs.extraTaxSS / 100);
+        const decade = rest < 10 ? 0 : rest < 20 ? 1 : rest < 30 ? 2 : 3;
+        const yrInPhaseD = rest % 10;
+        const grossMonthlyD = [w1, w2, w3, w4][decade]
+          * Math.pow(1 + (inflationRate / 2) / 100, yrInPhaseD);
+        const grossAnnualD = grossMonthlyD * 12;
+
+        // isCr must be defined before SS (COLA freeze in crash years)
         const isCr = stressTest && crashYears.includes(rest + 1);
-        const rRate = blendedSavingsRate(rest, isCr);
-        const rg = reinvestBal * rRate;
+        const crRate = isCr ? (crashImpacts[rest + 1] !== undefined ? crashImpacts[rest + 1] : -0.15) : false;
+
+        const ssActiveD = ra >= ssStartAge;
+        let ssA;
+        if (!ssActiveD) {
+          ssA = 0;
+        } else if (isCr && prevSsAnnual > 0) {
+          ssA = prevSsAnnual; // freeze at prior year in crash
+        } else {
+          const ssYrs = ra - ssStartAge;
+          ssA = ssMonthly * 12 * Math.pow(1 + ssColaRate/100, ssYrs);
+        }
+        prevSsAnnual = ssA;
+        // After SS, how much still needed from reinvest/savings
+        const desiredD = Math.max(0, grossAnnualD - ssA);
+        const blendRate = blendedSavingsRate(crRate);
+
+        // Grow accounts first
+        const rg = reinvestBal * blendRate;
         reinvestBal = Math.max(0, reinvestBal + rg);
-        const sg = savingsBal * blendedSavingsRate(rest, isCr);
+        const sg = savingsBal * blendRate;
         savingsBal = Math.max(0, savingsBal + sg);
+
+        // Draw shortfall from reinvest then savings to cover monthly need
+        let drawnReinvestD = 0, drawnSavingsD = 0;
+        if (desiredD > 0) {
+          drawnReinvestD = Math.min(reinvestBal, desiredD);
+          reinvestBal = Math.max(0, reinvestBal - drawnReinvestD);
+          const remD = desiredD - drawnReinvestD;
+          if (remD > 0) {
+            drawnSavingsD = Math.min(savingsBal, remD);
+            savingsBal = Math.max(0, savingsBal - drawnSavingsD);
+          }
+        }
+
+        const totalIncomeD = ssA + drawnReinvestD + drawnSavingsD;
+        const ft = calcFedTax(ssA * 0.85) + ssA * (inputs.extraTaxSS / 100);
+        const netD = Math.max(0, totalIncomeD - ft);
         rows.push({ year: rest+1, age: ra, startBalance:0, growth:0, annual401k:0,
-          desiredAnnual401k:0, rmdRequired:0, rmdApplied:false, rmdExcess:0,
-          reinvestBal, reinvestGrowth: rg, savingsBal,
-          ssAnnual: ssA, totalIncome: ssA, fedTax: ft, netIncome: ssA - ft,
-          endBalance:0, depleted:true, isCrash: isCr });
+          desiredAnnual401k: desiredD, rmdRequired:0, rmdApplied:false, rmdExcess:0,
+          reinvestBal, reinvestGrowth: rg, drawnFromReinvest: drawnReinvestD,
+          drawnFromSavings: drawnSavingsD, savingsBal,
+          ssAnnual: ssA, totalIncome: totalIncomeD,
+          fedTax: ft, netIncome: netD,
+          endBalance:0, depleted:true, isCrash: isCr, crashRate: crRate || null });
       }
       break;
     }
@@ -648,7 +747,9 @@ function buildInputs() {
 }
 
 function onInput(key, val) {
-  inputs[key] = Number(val);
+  const n = Number(val);
+  if (val === '' || isNaN(n)) return; // ignore empty/partial input
+  inputs[key] = n;
   render();
 }
 
@@ -728,7 +829,7 @@ function buildChart() {
     const pct = Math.max(0, row.endBalance) / maxBal;
     const color = row.depleted ? '#6b2c2c' : row.isCrash ? '#e87070' : row.rmdApplied ? '#b06820' : row.ssAnnual > 0 ? '#5b8ecf' : '#c9a96e';
     const h = Math.max(2, pct * 160);
-    const tip = 'Age ' + row.age + ': ' + fmtCur(row.endBalance) + (row.isCrash ? ' ⚡ CRASH YEAR' : row.rmdApplied ? ' (RMD)' : '');
+    const tip = 'Age ' + row.age + ': ' + fmtCur(row.endBalance) + (row.isCrash ? ' ⚡ CRASH -' + Math.round(Math.abs(row.crashRate !== null ? row.crashRate : -0.15)*100) + '%' : row.rmdApplied ? ' (RMD)' : '');
     return '<div class="bar-col" title="' + tip + '">'
       + '<div class="bar" style="height:' + h + 'px;background:' + color + (row.isCrash?';opacity:1;box-shadow:0 0 6px #e87070':'') + '"></div>'
       + (row.isCrash ? '<div style="font-size:8px;color:#e87070;margin-top:2px">⚡</div>' : '<div class="bar-age">' + row.age + '</div>')
@@ -752,7 +853,8 @@ function buildTable() {
     { icon:'💼', title:'Total Income/yr',tip:'Gross annual income: 401(k) withdrawal plus SS income. This is your pre-tax income for the year.' },
     { icon:'🏷️', title:'Fed Tax/yr',    tip:'Estimated federal tax using 2024 MFJ brackets on: (401k x pre-tax%) plus (SS x 85%), minus standard deduction benefit. Your extra tax rates for 401(k) and SS are added on top.' },
     { icon:'✅', title:'Net Income/yr',  tip:'Spendable annual income after federal taxes: Total Income minus Fed Tax.' },
-    { icon:'📆', title:'Net/mo',         tip:'Monthly take-home: Net Annual Income divided by 12. Compare directly to your monthly budget.' },
+    { icon:'💵', title:'Gross/mo',        tip:'Your total gross monthly income before taxes: Total Income divided by 12. This should match your monthly need target (adjusted for inflation). Includes SS, 401k draw, and any drawn from reinvestment or savings.' },
+    { icon:'📆', title:'Net/mo',         tip:'Monthly take-home after all taxes: Net Annual Income divided by 12. Compare directly to your monthly budget.' },
     { icon:'🏦', title:'End Balance',    tip:'401(k) balance at end of year: Start Balance plus Growth minus Withdrawal. Green = healthy, amber = below $100K, red = depleted.' },
     { icon:'♻️', title:'RMD Reinvest',   tip:'A separate taxable account holding excess RMD amounts — money the IRS forced you to withdraw beyond your spending need. This surplus is reinvested using the blended stock/money market rate.' },
     { icon:'🏦', title:'Savings Bal',     tip:'Your regular savings account balance, growing each year at the blended rate (stocks x market rate + money market x 0.8%). Never drawn down — pure compounding. Included in Total Final Balance.' },
@@ -784,13 +886,13 @@ function buildTable() {
     const phaseW = [inputs.withdraw1,inputs.withdraw2,inputs.withdraw3,inputs.withdraw4][decade];
 
     if (isRMDStart)
-      html += `<tr class="banner-rmd"><td class="banner-cell" colspan="15" style="color:#e8a84a">
+      html += `<tr class="banner-rmd"><td class="banner-cell" colspan="17" style="color:#e8a84a">
         ⚠ IRS Required Minimum Distribution begins — Age ${RMD_AGE} · Withdrawals will be at least the RMD amount</td></tr>`;
     if (isSSStart)
-      html += `<tr class="banner-ss"><td class="banner-cell" colspan="15" style="color:#5b8ecf">
+      html += `<tr class="banner-ss"><td class="banner-cell" colspan="17" style="color:#5b8ecf">
         ▶ Social Security begins — Age ${row.age}, Year ${row.year} · Starts at $${inputs.ssMonthly.toLocaleString()}/mo, grows ${inputs.ssColaRate}% annually (COLA)</td></tr>`;
     if (isPhase)
-      html += `<tr class="banner-phase"><td class="banner-cell" colspan="15" style="color:#c9a96e">
+      html += `<tr class="banner-phase"><td class="banner-cell" colspan="17" style="color:#c9a96e">
         Phase ${decade+1} — Planned Withdrawal: $${phaseW.toLocaleString()}/mo</td></tr>`;
 
     const rowCls = row.depleted ? 'depleted-row' : row.rmdApplied ? 'rmd-row-bg' : i%2===0 ? 'even' : 'odd';
@@ -802,7 +904,7 @@ function buildTable() {
     const rmdSup = row.age >= RMD_AGE && row.startBalance > 0
       ? `<sup style="color:#e8a84a;font-size:10px">R</sup>` : '';
 
-    const crashBadge = row.isCrash ? '<span class="crash-badge">CRASH -15%</span>' : '';
+    const crashBadge = row.isCrash ? '<span class="crash-badge">CRASH -' + Math.round(Math.abs(row.crashRate !== null ? row.crashRate : -0.15)*100) + '%</span>' : '';
 
     // Repeat header every 10 data rows
     if (i > 0 && i % 10 === 0) html += makeHeaderRow('repeat-header');
@@ -814,15 +916,16 @@ function buildTable() {
       + '<td style="color:' + (row.isCrash?'#e87070':'#8fcf6a') + '">' + fmtK(row.growth) + '</td>'
       + '<td style="color:#9a9fa8">' + (row.depleted?'—':fmtK(row.desiredAnnual401k)) + '</td>'
       + '<td style="color:' + rmdColor + '">' + (row.rmdRequired>0?fmtK(row.rmdRequired)+(row.rmdApplied?' ▲':''):'—') + '</td>'
-      + '<td style="color:' + (row.annual401k===0?'#4a5568':row.rmdApplied?'#e8a84a':'#f0e6d0') + ';font-weight:' + (row.rmdApplied?600:400) + '">' + (row.annual401k===0?'—':fmtK(row.annual401k)) + '</td>'
+      + '<td style="color:' + (row.annual401k===0?'#4a5568':row.rmdApplied?'#e8a84a':'#f0e6d0') + ';font-weight:' + (row.rmdApplied?600:400) + '">' + (row.annual401k===0?'—':fmtK(row.spendable401k||row.annual401k) + (row.rmdExcess>0?' <span style="color:#b06820;font-size:10px">(+'+fmtK(row.rmdExcess)+' reinv)</span>':'')) + '</td>'
       + '<td style="color:' + (row.ssAnnual===0?'#4a5568':'#5b8ecf') + '">' + (row.ssAnnual===0?'—':fmtK(row.ssAnnual)) + '</td>'
       + '<td style="color:#f0e6d0;font-weight:500">' + fmtK(row.totalIncome) + '</td>'
       + '<td style="color:' + (row.fedTax>0?'#e87070':'#4a5568') + ';font-weight:' + (row.fedTax>0?600:400) + '">' + (row.fedTax>0?fmtK(row.fedTax):'—') + '</td>'
       + '<td style="color:#8fcf6a;font-weight:600">' + fmtK(row.netIncome) + '</td>'
+      + '<td style="color:#f0e6d0;font-weight:600">' + fmtK(row.totalIncome/12) + '</td>'
       + '<td style="color:#c9a96e;font-weight:700">' + fmtK(row.netIncome/12) + '</td>'
       + '<td>' + endVal + '</td>'
-      + '<td class="reinvest-col">' + (row.reinvestBal>0?fmtK(row.reinvestBal):'—') + '</td>'
-      + '<td style="color:#7ec8e8;font-weight:600">' + fmtK(row.savingsBal||0) + '</td>'
+      + '<td class="reinvest-col">' + (row.reinvestBal>0?fmtK(row.reinvestBal):'—') + (row.drawnFromReinvest>0?' <span style="color:#e87070;font-size:10px">(−'+fmtK(row.drawnFromReinvest)+')</span>':'') + '</td>'
+      + '<td style="color:#7ec8e8;font-weight:600">' + fmtK(row.savingsBal||0) + (row.drawnFromSavings>0?' <span style="color:#e87070;font-size:10px">(−'+fmtK(row.drawnFromSavings)+')</span>':'') + '</td>'
       + '</tr>';
   });
 
@@ -846,9 +949,9 @@ function buildReportHTML() {
     const phase = Math.floor((row.year-1)/10);
     const phaseW = [inputs.withdraw1,inputs.withdraw2,inputs.withdraw3,inputs.withdraw4][phase];
     let banners = '';
-    if (isRMDStart) banners += `<tr class="banner rmd"><td colspan="15">⚠ RMD begins — Age ${RMD_AGE}</td></tr>`;
-    if (isSSStart)  banners += `<tr class="banner ss"><td colspan="15">▶ SS begins Age ${row.age} · $${inputs.ssMonthly.toLocaleString()}/mo + ${inputs.ssColaRate}% COLA</td></tr>`;
-    if (isPhase)    banners += `<tr class="banner phase"><td colspan="15">Phase ${phase+1} — $${phaseW.toLocaleString()}/mo</td></tr>`;
+    if (isRMDStart) banners += `<tr class="banner rmd"><td colspan="17">⚠ RMD begins — Age ${RMD_AGE}</td></tr>`;
+    if (isSSStart)  banners += `<tr class="banner ss"><td colspan="17">▶ SS begins Age ${row.age} · $${inputs.ssMonthly.toLocaleString()}/mo + ${inputs.ssColaRate}% COLA</td></tr>`;
+    if (isPhase)    banners += `<tr class="banner phase"><td colspan="17">Phase ${phase+1} — $${phaseW.toLocaleString()}/mo</td></tr>`;
     const cls = row.depleted?'dep':row.rmdApplied?'rmd':i%2===0?'ev':'od';
     const endCell = row.depleted&&row.endBalance<=0 ? '<span class="dt">DEPLETED</span>'
       : `<span class="${row.endBalance<100000?'wn':'gd'}">${fmtK(row.endBalance)}</span>`;
@@ -863,6 +966,8 @@ function buildReportHTML() {
       <td><b>${fmtK(row.totalIncome)}</b></td>
       <td class="tax">${row.fedTax>0?fmtK(row.fedTax):'—'}</td>
       <td class="gd">${fmtK(row.netIncome)}</td>
+      <td class="gol">${fmtK(row.totalIncome/12)}</td>
+      <td class="gol">${fmtK(row.totalIncome/12)}</td>
       <td class="gol">${fmtK(row.netIncome/12)}</td>
       <td>${endCell}</td>
       <td style="color:#7ec8c8">${row.reinvestBal>0?fmtK(row.reinvestBal):'—'}</td>
@@ -987,7 +1092,7 @@ function buildReportHTML() {
 <table><thead><tr>
   <th>Yr</th><th>Age</th><th>Start Bal</th><th>Growth (${rate}%)</th>
   <th>Planned/yr</th><th>RMD Req</th><th>401k/yr</th>
-  <th>SS/yr</th><th>Total/yr</th><th>Fed Tax</th><th>Net Income</th><th>Net/mo</th><th>End Bal</th><th>RMD Reinvest</th><th>Savings</th>
+  <th>SS/yr</th><th>Total/yr</th><th>Fed Tax</th><th>Net Income</th><th>Gross/mo</th><th>Net/mo</th><th>End Bal</th><th>RMD Reinvest</th><th>Savings</th>
 </tr></thead><tbody>${rowsHTML}</tbody></table>
 <div class="ftr">For illustrative purposes only · Not financial advice · Consult a qualified financial advisor · R = RMD year · ▲ = RMD exceeded planned withdrawal</div>
 
@@ -1014,12 +1119,16 @@ function closeReport() {
 
 // ── Master Render ─────────────────────────────────────────────────────────────
 function render() {
-  projection = calcProjection();
-  buildGrowthToggle();
-  buildInfoBanner();
-  buildCards();
-  buildChart();
-  buildTable();
+  try {
+    projection = calcProjection();
+    buildGrowthToggle();
+    buildInfoBanner();
+    buildCards();
+    buildChart();
+    buildTable();
+  } catch(e) {
+    console.error('Render error:', e);
+  }
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
