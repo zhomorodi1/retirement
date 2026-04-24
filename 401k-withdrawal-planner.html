@@ -370,13 +370,13 @@
     <div class="share-meta" id="share-meta"></div>
   </div>
 
-  <!-- Scroll hint -->
-  <div class="scroll-hint" id="scroll-hint" style="display:none">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 12h14M15 7l5 5-5 5"/></svg>
-    <span>Scroll right for more columns</span>
-  </div>
   <!-- Table -->
   <div class="table-wrap">
+    <!-- Scroll hint inside table-wrap, right above the scrollable area -->
+    <div class="scroll-hint" id="scroll-hint" style="display:none;padding:8px 16px 0;margin-bottom:0">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 12h14M15 7l5 5-5 5"/></svg>
+      <span>Scroll right for more columns</span>
+    </div>
     <div class="table-scroll">
       <table>
         <thead id="table-head"></thead>
@@ -461,6 +461,7 @@ const inputs = {
 };
 let growthMode = 'median';
 let useInflated = { withdraw1: false, withdraw2: false, withdraw3: false, withdraw4: false };
+let useGrowthAdj = { balance401k: false, ssMonthly: false };
 let stressTest = false;
 let crashYears = [];
 let crashImpacts = {}; // year -> loss rate
@@ -573,8 +574,12 @@ function calcProjection() {
     return (stockPct/100) * mktRate + (1 - stockPct/100) * mmRate;
   };
   const baseMarketRate = GROWTH_MODES[growthMode].rate;
+  const yearsToRetire401k = Math.max(0, inputs.retirementAge - inputs.currentAge);
+  const startBalance401k = useGrowthAdj.balance401k && yearsToRetire401k > 0
+    ? balance401k * Math.pow(1 + baseMarketRate, yearsToRetire401k)
+    : balance401k;
   const rows = [];
-  let balance = balance401k;
+  let balance = startBalance401k;
   let reinvestBal = 0; // RMD reinvestment account
   let prevSsAnnual = 0;  // carry forward SS from prior year
   let savingsBal = regularSavings; // regular savings account
@@ -601,6 +606,14 @@ function calcProjection() {
     const marketRate = isCrash ? crashRate : baseMarketRate;
 
     // ── Social Security (COLA = 0% in crash years → freeze at prior year value) ─
+    // If useGrowthAdj.ssMonthly: base SS is COLA-projected from today to ssStartAge
+    // COLA growth only counts working years or years to SS start, whichever is less
+    const yrsToSSStart  = Math.max(0, inputs.ssStartAge  - inputs.currentAge);
+    const yrsToRetire_  = Math.max(0, inputs.retirementAge - inputs.currentAge);
+    const colaGrowthYrs = Math.min(yrsToSSStart, yrsToRetire_);
+    const ssBase = useGrowthAdj.ssMonthly
+      ? ssMonthly * Math.pow(1 + ssColaRate / 100, colaGrowthYrs)
+      : ssMonthly;
     const ssActive = age >= ssStartAge;
     let ssAnnual;
     if (!ssActive) {
@@ -609,7 +622,7 @@ function calcProjection() {
       ssAnnual = prevSsAnnual; // freeze at last year's value
     } else {
       const yearsOfSS = age - ssStartAge;
-      ssAnnual = ssMonthly * 12 * Math.pow(1 + ssColaRate / 100, yearsOfSS);
+      ssAnnual = ssBase * 12 * Math.pow(1 + ssColaRate / 100, yearsOfSS);
     }
     prevSsAnnual = ssAnnual;
 
@@ -781,13 +794,18 @@ function getInputHint(key) {
   if (key === 'balance401k') {
     if (yearsToRetire <= 0) return '';
     const projected = inputs.balance401k * Math.pow(1 + mktRate, yearsToRetire);
-    return 'At retirement: <span>' + fmtK(projected) + '</span> (at ' + (mktRate*100).toFixed(1) + '% growth for ' + yearsToRetire + ' yrs)';
+    return 'At retirement: <span>' + fmtK(projected) + '</span> (at ' + (mktRate*100).toFixed(1) + '% growth for ' + yearsToRetire + ' yrs)' + (useGrowthAdj.balance401k ? ' <span style="color:var(--amber)">✓ used</span>' : '');
   }
   if (key === 'ssMonthly') {
-    const ssYrsToRetire = Math.max(0, inputs.ssStartAge - inputs.currentAge);
-    if (ssYrsToRetire <= 0) return '';
-    const projected = inputs.ssMonthly * Math.pow(1 + inputs.ssColaRate/100, ssYrsToRetire);
-    return 'At SS start (age ' + inputs.ssStartAge + '): <span>$' + Math.round(projected).toLocaleString() + '/mo</span> (' + inputs.ssColaRate + '% COLA for ' + ssYrsToRetire + ' yrs)';
+    const ssYrsToStart  = Math.max(0, inputs.ssStartAge   - inputs.currentAge);
+    const ssYrsToRetire = Math.max(0, inputs.retirementAge - inputs.currentAge);
+    const effectiveSSYrs = Math.min(ssYrsToStart, ssYrsToRetire);
+    if (ssYrsToStart <= 0) return '';
+    const projected = inputs.ssMonthly * Math.pow(1 + inputs.ssColaRate/100, effectiveSSYrs);
+    const label = effectiveSSYrs < ssYrsToStart
+      ? '(' + inputs.ssColaRate + '% COLA · capped at ' + effectiveSSYrs + ' work yrs)'
+      : '(' + inputs.ssColaRate + '% COLA for ' + effectiveSSYrs + ' yrs)';
+    return 'At SS start (age ' + inputs.ssStartAge + '): <span>$' + Math.round(projected).toLocaleString() + '/mo</span> ' + label + (useGrowthAdj.ssMonthly ? ' <span style="color:var(--amber)">✓ used</span>' : '');
   }
   if (key === 'regularSavings') {
     if (yearsToRetire <= 0) return '';
@@ -795,21 +813,24 @@ function getInputHint(key) {
     const projected = inputs.regularSavings * Math.pow(1 + blended, yearsToRetire);
     return 'At retirement: <span>' + fmtK(projected) + '</span> (blended ' + (blended*100).toFixed(1) + '% for ' + yearsToRetire + ' yrs)';
   }
-  if (key === 'withdraw1') {
-    const endYr9 = inputs.withdraw1 * Math.pow(1 + inflHalf, 9);
-    return 'By yr 10 with inflation: <span>$' + Math.round(endYr9).toLocaleString() + '/mo</span>';
-  }
-  if (key === 'withdraw2') {
-    const endYr9 = inputs.withdraw2 * Math.pow(1 + inflHalf, 9);
-    return 'By yr 20 with inflation: <span>$' + Math.round(endYr9).toLocaleString() + '/mo</span>';
-  }
-  if (key === 'withdraw3') {
-    const endYr9 = inputs.withdraw3 * Math.pow(1 + inflHalf, 9);
-    return 'By yr 30 with inflation: <span>$' + Math.round(endYr9).toLocaleString() + '/mo</span>';
-  }
-  if (key === 'withdraw4') {
-    const endYr9 = inputs.withdraw4 * Math.pow(1 + inflHalf, 9);
-    return 'By yr 40 with inflation: <span>$' + Math.round(endYr9).toLocaleString() + '/mo</span>';
+  if (key === 'withdraw1' || key === 'withdraw2' || key === 'withdraw3' || key === 'withdraw4') {
+    const phaseIdx  = { withdraw1:0, withdraw2:1, withdraw3:2, withdraw4:3 }[key];
+    const baseAmt   = inputs[key];
+    // Years from TODAY until the START of this phase:
+    //   Phase 1 starts at retirement (yr 0), Phase 2 at yr 10, etc.
+    const yrsToRetire     = Math.max(0, inputs.retirementAge - inputs.currentAge);
+    const yrsToPhaseStart = yrsToRetire + phaseIdx * 10;
+    // Years from TODAY until the END of this phase:
+    const yrsToPhaseEnd   = yrsToPhaseStart + 9;
+    // Amount at START of phase (after total compounding from today)
+    const atStart = baseAmt * Math.pow(1 + inflHalf, yrsToPhaseStart);
+    // Amount at END of phase
+    const atEnd   = baseAmt * Math.pow(1 + inflHalf, yrsToPhaseEnd);
+    const phaseLabel = ['1–10','11–20','21–30','31–40'][phaseIdx];
+    const startAge   = inputs.retirementAge + phaseIdx * 10;
+    const endAge     = startAge + 9;
+    return 'Phase start (age ' + startAge + '): <span>$' + Math.round(atStart).toLocaleString() + '/mo</span>'
+         + ' &rarr; end (age ' + endAge + '): <span>$' + Math.round(atEnd).toLocaleString() + '/mo</span>';
   }
   return '';
 }
@@ -817,8 +838,11 @@ function getInputHint(key) {
 function makeCard(f) {
   const hint = getInputHint(f.key);
   const isWithdraw = ['withdraw1','withdraw2','withdraw3','withdraw4'].includes(f.key);
+  const isGrowthAdj = ['balance401k','ssMonthly'].includes(f.key);
   const inflChk = isWithdraw
     ? '<label class="inflate-check"><input type="checkbox" id="infl-' + f.key + '" ' + (useInflated[f.key] ? 'checked' : '') + ' onchange="toggleInflated(\'' + f.key + '\', this.checked)"> Use inflation-adjusted amount</label>'
+    : isGrowthAdj
+    ? '<label class="inflate-check"><input type="checkbox" id="gadj-' + f.key + '" ' + (useGrowthAdj[f.key] ? 'checked' : '') + ' onchange="toggleGrowthAdj(\'' + f.key + '\', this.checked)">' + (f.key === 'balance401k' ? ' Use growth-projected balance at retirement' : ' Use COLA-projected benefit at SS start') + '</label>'
     : '';
   return '<div class="input-card">'
     + '<label>' + f.label + ' <span class="help-btn" onclick="showFieldTip(\'' + f.key + '\')" title="What is this?">?</span></label>'
@@ -834,6 +858,12 @@ function makeCard(f) {
 
 function toggleInflated(key, checked) {
   useInflated[key] = checked;
+  saveCookie();
+  render();
+}
+
+function toggleGrowthAdj(key, checked) {
+  useGrowthAdj[key] = checked;
   saveCookie();
   render();
 }
@@ -1409,6 +1439,8 @@ function getStateObj() {
     infl2: useInflated.withdraw2 ? 1 : 0,
     infl3: useInflated.withdraw3 ? 1 : 0,
     infl4: useInflated.withdraw4 ? 1 : 0,
+    gadj401k: useGrowthAdj.balance401k ? 1 : 0,
+    gadjSS:   useGrowthAdj.ssMonthly   ? 1 : 0,
     ts: Date.now(),
   };
 }
@@ -1439,6 +1471,8 @@ function applyState(s) {
   useInflated.withdraw2 = Number(s.infl2) === 1;
   useInflated.withdraw3 = Number(s.infl3) === 1;
   useInflated.withdraw4 = Number(s.infl4) === 1;
+  if (s.gadj401k !== undefined) useGrowthAdj.balance401k = Number(s.gadj401k) === 1;
+  if (s.gadjSS   !== undefined) useGrowthAdj.ssMonthly   = Number(s.gadjSS)   === 1;
 }
 
 // ── Cookie ────────────────────────────────────────────────────────────────────
@@ -1509,6 +1543,10 @@ function syncInputsDOM() {
   ['withdraw1','withdraw2','withdraw3','withdraw4'].forEach(k => {
     const el = document.getElementById('infl-' + k);
     if (el) el.checked = useInflated[k];
+  });
+  ['balance401k','ssMonthly'].forEach(k => {
+    const el = document.getElementById('gadj-' + k);
+    if (el) el.checked = useGrowthAdj[k];
   });
 }
 
