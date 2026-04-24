@@ -5,18 +5,41 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>401(k) Pre-Retirement Withdrawal Planner</title>
 <style>
+  /* Dark mode (default) */
   :root {
     --bg: #0f1117; --bg2: #161b27; --bg3: #12161f; --bg4: #131720;
     --border: #252b3a; --border2: #2a2f3e; --border3: #1e2535;
     --gold: #c9a96e; --gold2: #e8dcc8; --gold3: #f0e6d0;
     --blue: #5b8ecf; --green: #8fcf6a; --red: #e87070; --amber: #e8a84a;
     --mid: #7c8a9a; --dim: #4a5568; --dimmer: #7c6f5a;
+    --header-bg: linear-gradient(135deg, #1a1f2e 0%, #0f1117 60%);
+    --header-border: #2a2f3e;
+    --input-border-bottom: #2e3650;
+    --thead-bg: #0f1117;
+    --repeat-header-bg: #0d1019;
+    --table-even: var(--bg2);
+    --table-odd: var(--bg4);
+  }
+  /* Light mode */
+  body.light {
+    --bg: #f4f6fa; --bg2: #ffffff; --bg3: #eef1f7; --bg4: #f9fafc;
+    --border: #dde2ee; --border2: #c8d0e4; --border3: #e2e7f0;
+    --gold: #a07030; --gold2: #4a3820; --gold3: #2a1f10;
+    --blue: #2255aa; --green: #276b27; --red: #cc2200; --amber: #c06000;
+    --mid: #5a6070; --dim: #8a93a0; --dimmer: #a09080;
+    --header-bg: linear-gradient(135deg, #1a1f2e 0%, #2a3050 100%);
+    --header-border: #1a1f2e;
+    --input-border-bottom: #c8d0e4;
+    --thead-bg: #1a1f2e;
+    --repeat-header-bg: #1e2436;
+    --table-even: #ffffff;
+    --table-odd: #f4f6fa;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: Georgia, serif; background: var(--bg); color: var(--gold2); min-height: 100vh; padding-bottom: 60px; }
+  body { font-family: Georgia, serif; background: var(--bg); color: var(--gold2); min-height: 100vh; padding-bottom: 60px; transition: background 0.25s, color 0.25s; }
 
   /* ── Header ── */
-  .header { background: linear-gradient(135deg, #1a1f2e 0%, #0f1117 60%); border-bottom: 1px solid var(--border2); padding: 40px 40px 32px; }
+  .header { background: var(--header-bg); border-bottom: 1px solid var(--header-border); padding: 40px 40px 32px; }
   .header-inner { max-width: 1100px; margin: 0 auto; }
   .header-eyebrow { display: flex; align-items: baseline; gap: 16px; margin-bottom: 6px; }
   .header-eyebrow span { font-size: 11px; letter-spacing: 0.3em; color: var(--dimmer); text-transform: uppercase; }
@@ -35,14 +58,14 @@
   .input-card label { display: block; font-size: 11px; letter-spacing: 0.08em; color: var(--mid); text-transform: uppercase; margin-bottom: 10px; font-family: sans-serif; }
   .input-row { display: flex; align-items: center; gap: 6px; }
   .input-prefix { color: var(--gold); font-size: 16px; font-weight: 600; }
-  .input-card input[type=number] { background: transparent; border: none; border-bottom: 1px solid #2e3650; color: var(--gold3); font-size: 22px; font-family: Georgia, serif; width: 100%; padding: 4px 0; outline: none; }
+  .input-card input[type=number] { background: transparent; border: none; border-bottom: 1px solid var(--input-border-bottom); color: var(--gold3); font-size: 22px; font-family: Georgia, serif; width: 100%; padding: 4px 0; outline: none; transition: color 0.2s; }
   .input-suffix { color: var(--mid); font-size: 13px; white-space: nowrap; font-family: sans-serif; }
 
   /* ── Growth Toggle ── */
   .growth-toggle { margin-top: 20px; background: var(--bg3); border: 1px solid var(--border3); border-radius: 10px; padding: 16px 20px; display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
   .growth-label { font-size: 11px; letter-spacing: 0.08em; color: var(--mid); text-transform: uppercase; font-family: sans-serif; margin-bottom: 10px; }
   .growth-btns { display: flex; gap: 8px; }
-  .growth-btn { padding: 8px 20px; border-radius: 6px; border: 1px solid #2e3650; background: transparent; color: var(--mid); font-family: sans-serif; font-size: 13px; cursor: pointer; transition: all 0.15s; }
+  .growth-btn { padding: 8px 20px; border-radius: 6px; border: 1px solid var(--input-border-bottom); background: transparent; color: var(--mid); font-family: sans-serif; font-size: 13px; cursor: pointer; transition: all 0.15s; }
   .growth-btn .sub { margin-left: 8px; font-size: 11px; opacity: 0.75; }
   .growth-desc { flex: 1; font-size: 13px; color: var(--mid); font-family: sans-serif; line-height: 1.6; }
 
@@ -76,13 +99,13 @@
   .table-wrap { margin-top: 32px; background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
   .table-scroll { overflow-x: auto; }
   table { width: 100%; border-collapse: collapse; font-family: sans-serif; font-size: 13px; }
-  thead tr { background: #0f1117; border-bottom: 1px solid var(--border); }
+  thead tr { background: var(--thead-bg); border-bottom: 1px solid var(--border); }
   th { padding: 12px 14px; text-align: right; color: var(--mid); font-weight: 500; letter-spacing: 0.04em; font-size: 11px; text-transform: uppercase; white-space: nowrap; }
   th.center { text-align: center; }
   td { padding: 10px 14px; text-align: right; border-bottom: 1px solid var(--border3); }
   td.center { text-align: center; }
-  tr.even { background: var(--bg2); }
-  tr.odd  { background: var(--bg4); }
+  tr.even { background: var(--table-even); }
+  tr.odd  { background: var(--table-odd); }
   tr.depleted-row { background: rgba(107,44,44,0.15); }
   tr.rmd-row-bg { background: rgba(176,104,32,0.08); }
   tr.banner-rmd  { background: rgba(176,104,32,0.15); }
@@ -133,7 +156,7 @@
   /* ── Stress Test ── */
   .stress-toggle { margin-top: 16px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; background: var(--bg3); border: 1px solid var(--border3); border-radius: 10px; padding: 14px 20px; }
   .stress-label { font-size: 11px; letter-spacing: 0.08em; color: var(--mid); text-transform: uppercase; font-family: sans-serif; }
-  .toggle-track { position: relative; width: 44px; height: 24px; background: #2a2f3e; border-radius: 12px; cursor: pointer; transition: background 0.2s; border: 1px solid var(--border); flex-shrink: 0; }
+  .toggle-track { position: relative; width: 44px; height: 24px; background: var(--border2); border-radius: 12px; cursor: pointer; transition: background 0.2s; border: 1px solid var(--border); flex-shrink: 0; }
   .toggle-track.on { background: #6b2c2c; border-color: var(--red); }
   .toggle-thumb { position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; background: var(--mid); border-radius: 50%; transition: left 0.2s, background 0.2s; }
   .toggle-track.on .toggle-thumb { left: 23px; background: var(--red); }
@@ -151,7 +174,7 @@
   .scroll-hint svg { flex-shrink: 0; }
 
   /* ── Repeat header rows ── */
-  tr.repeat-header th { background: #0d1019; border-top: 2px solid var(--border2); border-bottom: 1px solid var(--border); opacity: 0.85; }
+  tr.repeat-header th { background: var(--repeat-header-bg); border-top: 2px solid var(--border2); border-bottom: 1px solid var(--border); opacity: 0.85; }
 
   /* ── Input Categories ── */
   .input-section { margin-top: 28px; }
@@ -164,12 +187,71 @@
   .section-grid.four-col { grid-template-columns: repeat(4, 1fr); }
   @media (max-width: 800px) { .section-grid.four-col { grid-template-columns: repeat(2, 1fr); } }
   @media (max-width: 480px) { .section-grid.four-col { grid-template-columns: 1fr 1fr; } }
+
+  /* ── Input hints ── */
+  .input-hint { font-size: 10px; font-family: sans-serif; color: #5b8ecf; margin-top: 6px; line-height: 1.4; opacity: 0.85; }
+  .input-hint span { color: var(--gold); font-weight: 600; }
+
+  /* ── Dark/Light toggle ── */
+  .mode-toggle { position: absolute; top: 20px; right: 20px; display: flex; align-items: center; gap: 8px; cursor: pointer; font-family: sans-serif; font-size: 12px; color: rgba(255,255,255,0.6); background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 20px; padding: 6px 14px; transition: all 0.2s; user-select: none; }
+  .mode-toggle:hover { background: rgba(255,255,255,0.14); color: rgba(255,255,255,0.9); }
+  .mode-icon { font-size: 15px; }
+
+  /* ── Legal footer ── */
+  .legal-footer { margin-top: 40px; padding: 20px 24px; border-top: 1px solid var(--border); background: var(--bg3); border-radius: 10px; }
+  .legal-footer p { font-family: sans-serif; font-size: 11px; color: var(--dim); line-height: 1.7; }
+  .legal-footer strong { color: var(--mid); }
+
+  /* ── Mobile responsive ── */
+  @media (max-width: 600px) {
+    .header { padding: 24px 16px 20px; }
+    .header h1 { font-size: 26px; }
+    .main { padding: 0 12px; }
+    .section-grid { grid-template-columns: 1fr 1fr; }
+    .section-grid.four-col { grid-template-columns: 1fr 1fr; }
+    .cards-row { grid-template-columns: 1fr 1fr; }
+    .chart-wrap { padding: 16px 12px; }
+    .growth-toggle { padding: 12px 14px; }
+    .growth-btns { flex-wrap: wrap; gap: 6px; }
+    .growth-btn { padding: 6px 12px; font-size: 12px; }
+    .stress-toggle { padding: 12px 14px; gap: 10px; }
+    .footer-row { flex-direction: column; align-items: stretch; }
+    .report-btn { justify-content: center; }
+    .modal-toolbar { flex-direction: column; align-items: flex-start; gap: 10px; }
+    .modal-actions { width: 100%; justify-content: space-between; }
+    .mode-toggle { top: 12px; right: 12px; padding: 5px 10px; font-size: 11px; }
+    .input-card input[type=number] { font-size: 18px; }
+    td, th { padding: 8px 8px; font-size: 11px; }
+    .help-box { padding: 20px 16px; }
+    .help-box-title { font-size: 15px; }
+    .help-box-body { font-size: 13px; }
+  }
+  @media (max-width: 400px) {
+    .section-grid { grid-template-columns: 1fr; }
+    .cards-row { grid-template-columns: 1fr; }
+  }
+
+  /* ── Inflated toggle ── */
+  .inflate-check { display: flex; align-items: center; gap: 5px; margin-top: 7px; font-size: 10px; font-family: sans-serif; color: var(--amber); cursor: pointer; user-select: none; }
+  .inflate-check input[type=checkbox] { accent-color: var(--amber); width: 12px; height: 12px; cursor: pointer; }
+
+  /* ── Share Panel ── */
+  .share-panel { margin-top: 24px; background: var(--bg3); border: 1px solid var(--border2); border-radius: 12px; padding: 16px 20px; display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
+  .share-panel-label { font-size: 11px; letter-spacing: 0.1em; color: var(--gold); text-transform: uppercase; font-family: sans-serif; font-weight: 600; flex-shrink: 0; }
+  .share-url-box { flex: 1; min-width: 0; background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 14px; font-family: monospace; font-size: 11px; color: var(--mid); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; transition: border-color 0.2s; }
+  .share-url-box:hover { border-color: var(--gold); color: var(--gold2); }
+  .share-copy-btn { display: flex; align-items: center; gap: 6px; padding: 8px 16px; background: var(--gold); border: none; border-radius: 8px; color: #0f1117; font-family: sans-serif; font-size: 12px; font-weight: 700; cursor: pointer; flex-shrink: 0; transition: opacity 0.15s; white-space: nowrap; }
+  .share-copy-btn:hover { opacity: 0.85; }
+  .share-copied { background: var(--green) !important; }
+  .share-meta { width: 100%; font-size: 10px; color: var(--dim); font-family: sans-serif; }
+  @media (max-width: 600px) { .share-url-box { font-size: 10px; } .share-panel { padding: 12px 14px; } }
 </style>
 </head>
 <body>
 
 <!-- Header -->
-<div class="header">
+<div class="header" style="position:relative">
+  <div class="mode-toggle" onclick="toggleMode()" id="mode-toggle" title="Toggle light/dark mode"><span class="mode-icon" id="mode-icon">☀️</span><span id="mode-label">Light Mode</span></div>
   <div class="header-inner">
     <div class="header-eyebrow">
       <span>Retirement</span>
@@ -178,6 +260,7 @@
     </div>
     <h1>Pre-Retirement<br><span>Withdrawal Projector</span></h1>
     <p>Projects your 401(k) balance over 40 years — with market growth, Social Security offsets, RMD rules, and tiered withdrawal phases.</p>
+    <p style="margin-top:10px;font-size:12px;color:rgba(255,255,255,0.45);font-family:sans-serif;font-style:italic">This is an educational planning tool, not a certified retirement plan. Results are estimates only — please consult a CPA or qualified financial advisor before making any retirement decisions.</p>
   </div>
 </div>
 
@@ -276,6 +359,17 @@
     <div class="chart-footer">Age →</div>
   </div>
 
+  <!-- Share Panel -->
+  <div class="share-panel">
+    <span class="share-panel-label">🔗 Share</span>
+    <div class="share-url-box" id="share-url-box" onclick="copyShareUrl()" title="Click to copy"></div>
+    <button class="share-copy-btn" id="share-copy-btn" onclick="copyShareUrl()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      Copy Link
+    </button>
+    <div class="share-meta" id="share-meta"></div>
+  </div>
+
   <!-- Scroll hint -->
   <div class="scroll-hint" id="scroll-hint" style="display:none">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 12h14M15 7l5 5-5 5"/></svg>
@@ -305,6 +399,13 @@
       </svg>
       View / Save Report
     </button>
+  </div>
+
+  <!-- Legal Footer -->
+  <div class="legal-footer">
+    <p><strong>Important Disclaimer:</strong> This tool is provided for <strong>illustrative and educational purposes only</strong>. All projections, calculations, and estimates are based on assumptions that may not reflect actual future conditions. Market returns, Social Security benefits, tax laws, inflation rates, and other factors are subject to change and are not guaranteed.</p>
+    <p style="margin-top:8px">This tool does <strong>not</strong> constitute financial, tax, legal, or investment advice. The federal tax estimates use simplified 2024 bracket assumptions and may not reflect your actual tax situation. Required Minimum Distribution calculations are approximations based on the IRS Uniform Lifetime Table and may differ from your actual RMD obligations.</p>
+    <p style="margin-top:8px"><strong>You should consult a qualified financial advisor, tax professional, and/or attorney before making any retirement, investment, or financial planning decisions.</strong> Past market performance is not indicative of future results. Social Security projections are estimates only and actual benefits may vary based on your earnings history and future legislative changes.</p>
   </div>
 
 </div>
@@ -341,6 +442,7 @@ const STD_DEDUCTION_BENEFIT = 29200 * 0.12;
 
 // ── State ─────────────────────────────────────────────────────────────────────
 const inputs = {
+  currentAge: 52,
   retirementAge: 59,
   balance401k: 800000,
   ssMonthly: 4500,
@@ -358,6 +460,7 @@ const inputs = {
   stockPct: 50,
 };
 let growthMode = 'median';
+let useInflated = { withdraw1: false, withdraw2: false, withdraw3: false, withdraw4: false };
 let stressTest = false;
 let crashYears = [];
 let crashImpacts = {}; // year -> loss rate
@@ -450,6 +553,8 @@ function toggleStress() {
     ? 'ON — ' + crashYears.length + ' random crash year(s) injected · each hits -10% to -18% market loss'
     : 'Off — using steady market growth';
   render();
+  saveCookie();
+  updateSharePanel();
 }
 
 // ── Projection ────────────────────────────────────────────────────────────────
@@ -480,8 +585,13 @@ function calcProjection() {
 
     // ── Monthly gross need (inflation-adjusted) ─────────────────────────────
     const yrInPhase = yr % 10; // reset compounding at each phase boundary
-    const grossMonthlyNeed = [w1, w2, w3, w4][decade]
-      * Math.pow(1 + (inflationRate / 2) / 100, yrInPhase);
+    const inflHalfRate = (inflationRate / 2) / 100;
+    const basePhaseW = [w1, w2, w3, w4][decade];
+    const wKey = ['withdraw1','withdraw2','withdraw3','withdraw4'][decade];
+    // If 'use inflated' checked: use peak (yr 9) inflated amount as flat rate for whole phase
+    const grossMonthlyNeed = useInflated[wKey]
+      ? basePhaseW * Math.pow(1 + inflHalfRate, 9)
+      : basePhaseW * Math.pow(1 + inflHalfRate, yrInPhase);
     const grossAnnualNeed = grossMonthlyNeed * 12;
 
     // ── Social Security (COLA-adjusted) ────────────────────────────────────
@@ -663,14 +773,69 @@ function showFieldTip(key) {
   if (f) showHelp(f.icon, f.label, f.tip);
 }
 
+function getInputHint(key) {
+  const yearsToRetire = Math.max(0, inputs.retirementAge - inputs.currentAge);
+  const mktRate = GROWTH_MODES[growthMode].rate;
+  const inflHalf = (inputs.inflationRate / 2) / 100;
+
+  if (key === 'balance401k') {
+    if (yearsToRetire <= 0) return '';
+    const projected = inputs.balance401k * Math.pow(1 + mktRate, yearsToRetire);
+    return 'At retirement: <span>' + fmtK(projected) + '</span> (at ' + (mktRate*100).toFixed(1) + '% growth for ' + yearsToRetire + ' yrs)';
+  }
+  if (key === 'ssMonthly') {
+    const ssYrsToRetire = Math.max(0, inputs.ssStartAge - inputs.currentAge);
+    if (ssYrsToRetire <= 0) return '';
+    const projected = inputs.ssMonthly * Math.pow(1 + inputs.ssColaRate/100, ssYrsToRetire);
+    return 'At SS start (age ' + inputs.ssStartAge + '): <span>$' + Math.round(projected).toLocaleString() + '/mo</span> (' + inputs.ssColaRate + '% COLA for ' + ssYrsToRetire + ' yrs)';
+  }
+  if (key === 'regularSavings') {
+    if (yearsToRetire <= 0) return '';
+    const blended = (inputs.stockPct/100)*mktRate + (1-inputs.stockPct/100)*0.008;
+    const projected = inputs.regularSavings * Math.pow(1 + blended, yearsToRetire);
+    return 'At retirement: <span>' + fmtK(projected) + '</span> (blended ' + (blended*100).toFixed(1) + '% for ' + yearsToRetire + ' yrs)';
+  }
+  if (key === 'withdraw1') {
+    const endYr9 = inputs.withdraw1 * Math.pow(1 + inflHalf, 9);
+    return 'By yr 10 with inflation: <span>$' + Math.round(endYr9).toLocaleString() + '/mo</span>';
+  }
+  if (key === 'withdraw2') {
+    const endYr9 = inputs.withdraw2 * Math.pow(1 + inflHalf, 9);
+    return 'By yr 20 with inflation: <span>$' + Math.round(endYr9).toLocaleString() + '/mo</span>';
+  }
+  if (key === 'withdraw3') {
+    const endYr9 = inputs.withdraw3 * Math.pow(1 + inflHalf, 9);
+    return 'By yr 30 with inflation: <span>$' + Math.round(endYr9).toLocaleString() + '/mo</span>';
+  }
+  if (key === 'withdraw4') {
+    const endYr9 = inputs.withdraw4 * Math.pow(1 + inflHalf, 9);
+    return 'By yr 40 with inflation: <span>$' + Math.round(endYr9).toLocaleString() + '/mo</span>';
+  }
+  return '';
+}
+
 function makeCard(f) {
+  const hint = getInputHint(f.key);
+  const isWithdraw = ['withdraw1','withdraw2','withdraw3','withdraw4'].includes(f.key);
+  const inflChk = isWithdraw
+    ? '<label class="inflate-check"><input type="checkbox" id="infl-' + f.key + '" ' + (useInflated[f.key] ? 'checked' : '') + ' onchange="toggleInflated(\'' + f.key + '\', this.checked)"> Use inflation-adjusted amount</label>'
+    : '';
   return '<div class="input-card">'
     + '<label>' + f.label + ' <span class="help-btn" onclick="showFieldTip(\'' + f.key + '\')" title="What is this?">?</span></label>'
     + '<div class="input-row">'
     + (f.prefix ? '<span class="input-prefix">' + f.prefix + '</span>' : '')
     + '<input type="number" id="inp-' + f.key + '" min="' + f.min + '" max="' + f.max + '" step="' + f.step + '" value="' + inputs[f.key] + '" oninput="onInput(\'' + f.key + '\', this.value)">'
     + (f.suffix ? '<span class="input-suffix">' + f.suffix + '</span>' : '')
-    + '</div></div>';
+    + '</div>'
+    + (hint ? '<div class="input-hint">' + hint + '</div>' : '')
+    + inflChk
+    + '</div>';
+}
+
+function toggleInflated(key, checked) {
+  useInflated[key] = checked;
+  saveCookie();
+  render();
 }
 
 // ── Input Categories ─────────────────────────────────────────────────────────
@@ -678,6 +843,8 @@ const CATEGORIES = [
   {
     id: 'cat-profile',
     fields: [
+      { label:'Current Age',        key:'currentAge',    prefix:'',  suffix:' yrs', min:18,  max:80,     step:1,
+        icon:'👤', tip:'Your age today. Used to calculate how many years until retirement and to project compounding growth on your 401(k), savings, and SS benefit before retirement begins.' },
       { label:'Retirement Age',     key:'retirementAge', prefix:'',  suffix:' yrs', min:50,  max:80,     step:1,
         icon:'🎂', tip:'The age you plan to stop working and begin drawing from your 401(k). Withdrawals begin in Year 1 at this age. Starting earlier means more years of drawdown and fewer years of accumulation.' },
       { label:'401(k) Balance',     key:'balance401k',   prefix:'$', suffix:'',     min:0,   max:5000000, step:1000,
@@ -748,9 +915,30 @@ function buildInputs() {
 
 function onInput(key, val) {
   const n = Number(val);
-  if (val === '' || isNaN(n)) return; // ignore empty/partial input
+  if (val === '' || isNaN(n)) return;
   inputs[key] = n;
   render();
+  refreshHints();
+  saveCookie();
+  updateSharePanel();
+}
+
+function refreshHints() {
+  const allFields = CATEGORIES.flatMap(c => c.fields).concat(WITHDRAWAL_FIELDS_CAT);
+  allFields.forEach(f => {
+    const card = document.getElementById('inp-' + f.key);
+    if (!card) return;
+    const parent = card.closest('.input-card');
+    if (!parent) return;
+    let hintEl = parent.querySelector('.input-hint');
+    const hint = getInputHint(f.key);
+    if (hint) {
+      if (!hintEl) { hintEl = document.createElement('div'); hintEl.className = 'input-hint'; parent.appendChild(hintEl); }
+      hintEl.innerHTML = hint;
+    } else if (hintEl) {
+      hintEl.innerHTML = '';
+    }
+  });
 }
 
 // ── Build Growth Toggle ───────────────────────────────────────────────────────
@@ -778,6 +966,8 @@ function buildGrowthToggle() {
 function setGrowth(key) {
   growthMode = key;
   render();
+  saveCookie();
+  updateSharePanel();
 }
 
 // ── Info Banner ───────────────────────────────────────────────────────────────
@@ -1032,7 +1222,7 @@ function buildReportHTML() {
   /* ── Stress Test ── */
   .stress-toggle { margin-top: 16px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; background: var(--bg3); border: 1px solid var(--border3); border-radius: 10px; padding: 14px 20px; }
   .stress-label { font-size: 11px; letter-spacing: 0.08em; color: var(--mid); text-transform: uppercase; font-family: sans-serif; }
-  .toggle-track { position: relative; width: 44px; height: 24px; background: #2a2f3e; border-radius: 12px; cursor: pointer; transition: background 0.2s; border: 1px solid var(--border); flex-shrink: 0; }
+  .toggle-track { position: relative; width: 44px; height: 24px; background: var(--border2); border-radius: 12px; cursor: pointer; transition: background 0.2s; border: 1px solid var(--border); flex-shrink: 0; }
   .toggle-track.on { background: #6b2c2c; border-color: var(--red); }
   .toggle-thumb { position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; background: var(--mid); border-radius: 50%; transition: left 0.2s, background 0.2s; }
   .toggle-track.on .toggle-thumb { left: 23px; background: var(--red); }
@@ -1050,7 +1240,7 @@ function buildReportHTML() {
   .scroll-hint svg { flex-shrink: 0; }
 
   /* ── Repeat header rows ── */
-  tr.repeat-header th { background: #0d1019; border-top: 2px solid var(--border2); border-bottom: 1px solid var(--border); opacity: 0.85; }
+  tr.repeat-header th { background: var(--repeat-header-bg); border-top: 2px solid var(--border2); border-bottom: 1px solid var(--border); opacity: 0.85; }
 
   /* ── Input Categories ── */
   .input-section { margin-top: 28px; }
@@ -1063,6 +1253,64 @@ function buildReportHTML() {
   .section-grid.four-col { grid-template-columns: repeat(4, 1fr); }
   @media (max-width: 800px) { .section-grid.four-col { grid-template-columns: repeat(2, 1fr); } }
   @media (max-width: 480px) { .section-grid.four-col { grid-template-columns: 1fr 1fr; } }
+
+  /* ── Input hints ── */
+  .input-hint { font-size: 10px; font-family: sans-serif; color: #5b8ecf; margin-top: 6px; line-height: 1.4; opacity: 0.85; }
+  .input-hint span { color: var(--gold); font-weight: 600; }
+
+  /* ── Dark/Light toggle ── */
+  .mode-toggle { position: absolute; top: 20px; right: 20px; display: flex; align-items: center; gap: 8px; cursor: pointer; font-family: sans-serif; font-size: 12px; color: rgba(255,255,255,0.6); background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 20px; padding: 6px 14px; transition: all 0.2s; user-select: none; }
+  .mode-toggle:hover { background: rgba(255,255,255,0.14); color: rgba(255,255,255,0.9); }
+  .mode-icon { font-size: 15px; }
+
+  /* ── Legal footer ── */
+  .legal-footer { margin-top: 40px; padding: 20px 24px; border-top: 1px solid var(--border); background: var(--bg3); border-radius: 10px; }
+  .legal-footer p { font-family: sans-serif; font-size: 11px; color: var(--dim); line-height: 1.7; }
+  .legal-footer strong { color: var(--mid); }
+
+  /* ── Mobile responsive ── */
+  @media (max-width: 600px) {
+    .header { padding: 24px 16px 20px; }
+    .header h1 { font-size: 26px; }
+    .main { padding: 0 12px; }
+    .section-grid { grid-template-columns: 1fr 1fr; }
+    .section-grid.four-col { grid-template-columns: 1fr 1fr; }
+    .cards-row { grid-template-columns: 1fr 1fr; }
+    .chart-wrap { padding: 16px 12px; }
+    .growth-toggle { padding: 12px 14px; }
+    .growth-btns { flex-wrap: wrap; gap: 6px; }
+    .growth-btn { padding: 6px 12px; font-size: 12px; }
+    .stress-toggle { padding: 12px 14px; gap: 10px; }
+    .footer-row { flex-direction: column; align-items: stretch; }
+    .report-btn { justify-content: center; }
+    .modal-toolbar { flex-direction: column; align-items: flex-start; gap: 10px; }
+    .modal-actions { width: 100%; justify-content: space-between; }
+    .mode-toggle { top: 12px; right: 12px; padding: 5px 10px; font-size: 11px; }
+    .input-card input[type=number] { font-size: 18px; }
+    td, th { padding: 8px 8px; font-size: 11px; }
+    .help-box { padding: 20px 16px; }
+    .help-box-title { font-size: 15px; }
+    .help-box-body { font-size: 13px; }
+  }
+  @media (max-width: 400px) {
+    .section-grid { grid-template-columns: 1fr; }
+    .cards-row { grid-template-columns: 1fr; }
+  }
+
+  /* ── Inflated toggle ── */
+  .inflate-check { display: flex; align-items: center; gap: 5px; margin-top: 7px; font-size: 10px; font-family: sans-serif; color: var(--amber); cursor: pointer; user-select: none; }
+  .inflate-check input[type=checkbox] { accent-color: var(--amber); width: 12px; height: 12px; cursor: pointer; }
+
+  /* ── Share Panel ── */
+  .share-panel { margin-top: 24px; background: var(--bg3); border: 1px solid var(--border2); border-radius: 12px; padding: 16px 20px; display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
+  .share-panel-label { font-size: 11px; letter-spacing: 0.1em; color: var(--gold); text-transform: uppercase; font-family: sans-serif; font-weight: 600; flex-shrink: 0; }
+  .share-url-box { flex: 1; min-width: 0; background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 14px; font-family: monospace; font-size: 11px; color: var(--mid); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; transition: border-color 0.2s; }
+  .share-url-box:hover { border-color: var(--gold); color: var(--gold2); }
+  .share-copy-btn { display: flex; align-items: center; gap: 6px; padding: 8px 16px; background: var(--gold); border: none; border-radius: 8px; color: #0f1117; font-family: sans-serif; font-size: 12px; font-weight: 700; cursor: pointer; flex-shrink: 0; transition: opacity 0.15s; white-space: nowrap; }
+  .share-copy-btn:hover { opacity: 0.85; }
+  .share-copied { background: var(--green) !important; }
+  .share-meta { width: 100%; font-size: 10px; color: var(--dim); font-family: sans-serif; }
+  @media (max-width: 600px) { .share-url-box { font-size: 10px; } .share-panel { padding: 12px 14px; } }
 </style></head><body>
 <div class="hdr">
   <h1>401(k) Pre-Retirement Withdrawal Projection</h1>
@@ -1126,14 +1374,162 @@ function render() {
     buildCards();
     buildChart();
     buildTable();
+    refreshHints();
+    updateSharePanel();
   } catch(e) {
     console.error('Render error:', e);
   }
 }
 
+
+// ── Dark / Light Mode ─────────────────────────────────────────────────────────
+let isDark = true;
+function toggleMode() {
+  isDark = !isDark;
+  document.body.classList.toggle('light', !isDark);
+  document.getElementById('mode-icon').textContent  = isDark ? '☀️' : '🌙';
+  document.getElementById('mode-label').textContent = isDark ? 'Light Mode' : 'Dark Mode';
+  saveCookie();
+  updateSharePanel();
+}
+
+
+// ── State Serialization ───────────────────────────────────────────────────────
+const STATE_KEYS = ['currentAge','retirementAge','balance401k','ssMonthly','ssStartAge',
+  'ssColaRate','pretaxPct','extraTax401k','extraTaxSS','inflationRate',
+  'withdraw1','withdraw2','withdraw3','withdraw4','regularSavings','stockPct'];
+
+function getStateObj() {
+  return {
+    ...Object.fromEntries(STATE_KEYS.map(k => [k, inputs[k]])),
+    growthMode,
+    isDark: isDark ? 1 : 0,
+    stressTest: stressTest ? 1 : 0,
+    infl1: useInflated.withdraw1 ? 1 : 0,
+    infl2: useInflated.withdraw2 ? 1 : 0,
+    infl3: useInflated.withdraw3 ? 1 : 0,
+    infl4: useInflated.withdraw4 ? 1 : 0,
+    ts: Date.now(),
+  };
+}
+
+function applyState(s) {
+  STATE_KEYS.forEach(k => { if (s[k] !== undefined) inputs[k] = Number(s[k]); });
+  if (s.growthMode) growthMode = s.growthMode;
+  if (s.isDark !== undefined) {
+    isDark = Number(s.isDark) === 1;
+    document.body.classList.toggle('light', !isDark);
+    const icon = document.getElementById('mode-icon');
+    const lbl  = document.getElementById('mode-label');
+    if (icon) icon.textContent = isDark ? '☀️' : '🌙';
+    if (lbl)  lbl.textContent  = isDark ? 'Light Mode' : 'Dark Mode';
+  }
+  if (s.stressTest !== undefined) {
+    stressTest = Number(s.stressTest) === 1;
+    if (stressTest) { crashYears = generateCrashYears(); crashImpacts = generateCrashImpacts(crashYears); }
+    else { crashYears = []; crashImpacts = {}; }
+    const track = document.getElementById('stress-track');
+    const desc  = document.getElementById('stress-desc');
+    if (track) track.classList.toggle('on', stressTest);
+    if (desc)  desc.textContent = stressTest
+      ? 'ON — ' + crashYears.length + ' crash year(s) injected · each hits -10% to -18% market loss'
+      : 'Off — using steady market growth';
+  }
+  useInflated.withdraw1 = Number(s.infl1) === 1;
+  useInflated.withdraw2 = Number(s.infl2) === 1;
+  useInflated.withdraw3 = Number(s.infl3) === 1;
+  useInflated.withdraw4 = Number(s.infl4) === 1;
+}
+
+// ── Cookie ────────────────────────────────────────────────────────────────────
+const COOKIE_NAME = '401k_planner_v2';
+function saveCookie() {
+  try {
+    const val = encodeURIComponent(JSON.stringify(getStateObj()));
+    const exp = new Date(Date.now() + 365*24*60*60*1000).toUTCString();
+    document.cookie = COOKIE_NAME + '=' + val + '; expires=' + exp + '; path=/; SameSite=Lax';
+  } catch(e) { console.warn('Cookie save failed', e); }
+}
+function loadCookie() {
+  try {
+    const c = document.cookie.split(';').map(x => x.trim()).find(x => x.startsWith(COOKIE_NAME + '='));
+    return c ? JSON.parse(decodeURIComponent(c.slice(COOKIE_NAME.length + 1))) : null;
+  } catch(e) { return null; }
+}
+
+// ── URL Sharing ───────────────────────────────────────────────────────────────
+function buildShareUrl() {
+  const s = getStateObj();
+  const p = new URLSearchParams(Object.entries(s).map(([k,v]) => [k, String(v)]));
+  return location.origin + location.pathname + '?' + p.toString();
+}
+function updateSharePanel() {
+  const url = buildShareUrl();
+  const box = document.getElementById('share-url-box');
+  const meta = document.getElementById('share-meta');
+  if (box) box.textContent = url;
+  if (meta) {
+    const d = new Date();
+    meta.textContent = 'Last updated ' + d.toLocaleTimeString() + ' · click URL or button to copy';
+  }
+}
+function copyShareUrl() {
+  const url = buildShareUrl();
+  const btn = document.getElementById('share-copy-btn');
+  const doConfirm = () => {
+    if (!btn) return;
+    const orig = btn.innerHTML;
+    btn.classList.add('share-copied');
+    btn.innerHTML = '✓ Copied!';
+    setTimeout(() => { btn.classList.remove('share-copied'); btn.innerHTML = orig; }, 2200);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url).then(doConfirm).catch(() => fallbackCopy(url, doConfirm));
+  } else { fallbackCopy(url, doConfirm); }
+}
+function fallbackCopy(text, cb) {
+  const ta = document.createElement('textarea');
+  ta.value = text; ta.style.cssText = 'position:fixed;opacity:0';
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand('copy'); cb(); } catch(e) {}
+  document.body.removeChild(ta);
+}
+function loadFromUrlParams() {
+  const p = new URLSearchParams(location.search);
+  if (!p.has('retirementAge') && !p.has('balance401k')) return null;
+  const s = {};
+  p.forEach((v, k) => { const n = Number(v); s[k] = isNaN(n) || v==='' ? v : n; });
+  return s;
+}
+function syncInputsDOM() {
+  STATE_KEYS.forEach(k => {
+    const el = document.getElementById('inp-' + k);
+    if (el) el.value = inputs[k];
+  });
+  ['withdraw1','withdraw2','withdraw3','withdraw4'].forEach(k => {
+    const el = document.getElementById('infl-' + k);
+    if (el) el.checked = useInflated[k];
+  });
+}
+
 // ── Init ──────────────────────────────────────────────────────────────────────
-buildInputs();
-render();
+(function init() {
+  const urlState  = loadFromUrlParams();
+  const cookState = loadCookie();
+  let chosen = null;
+  if (urlState && cookState) {
+    chosen = Number(urlState.ts||0) >= Number(cookState.ts||0) ? urlState : cookState;
+  } else {
+    chosen = urlState || cookState;
+  }
+  if (chosen) applyState(chosen);
+  // Clear URL params after reading so reload doesn't re-apply
+  if (urlState && location.search) history.replaceState(null, '', location.pathname);
+  buildInputs();
+  syncInputsDOM();
+  render();
+  saveCookie();
+})();
 </script>
 
 <!-- Help Modal -->
