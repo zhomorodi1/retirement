@@ -756,7 +756,8 @@ function calcProjection() {
         const totalIncomeD = ssA + drawnReinvestD + drawnSavingsD;
         const ft = calcFedTax(ssA * 0.85) + ssA * (inputs.extraTaxSS / 100);
         const netD = Math.max(0, totalIncomeD - ft);
-        rows.push({ year: rest+1, age: ra, startBalance:0, growth:0, annual401k:0,
+        rows.push({ year: rest+1, age: ra, startBalance:0, growth:0, annual401k:0, spendable401k:0,
+          grossMonthlyNeed: grossMonthlyD, grossAnnualNeed: grossAnnualD,
           desiredAnnual401k: desiredD, rmdRequired:0, rmdApplied:false, rmdExcess:0,
           reinvestBal, reinvestGrowth: rg, drawnFromReinvest: drawnReinvestD,
           drawnFromSavings: drawnSavingsD, savingsBal,
