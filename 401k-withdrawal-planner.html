@@ -461,7 +461,7 @@ const inputs = {
 };
 let growthMode = 'median';
 let useInflated = { withdraw1: false, withdraw2: false, withdraw3: false, withdraw4: false };
-let useGrowthAdj = { balance401k: false, ssMonthly: false };
+let useGrowthAdj = { balance401k: false, ssMonthly: false, regularSavings: false };
 let stressTest = false;
 let crashYears = [];
 let crashImpacts = {}; // year -> loss rate
@@ -582,7 +582,12 @@ function calcProjection() {
   let balance = startBalance401k;
   let reinvestBal = 0; // RMD reinvestment account
   let prevSsAnnual = 0;  // carry forward SS from prior year
-  let savingsBal = regularSavings; // regular savings account
+  const yearsToRetireSav = Math.max(0, inputs.retirementAge - inputs.currentAge);
+  const blendRatePreRetire = (inputs.stockPct/100)*baseMarketRate + (1-inputs.stockPct/100)*0.008;
+  const startSavings = useGrowthAdj.regularSavings && yearsToRetireSav > 0
+    ? regularSavings * Math.pow(1 + blendRatePreRetire, yearsToRetireSav)
+    : regularSavings;
+  let savingsBal = startSavings; // regular savings account
 
   for (let yr = 0; yr < 40; yr++) {
     const age = retirementAge + yr;
@@ -815,7 +820,7 @@ function getInputHint(key) {
     if (yearsToRetire <= 0) return '';
     const blended = (inputs.stockPct/100)*mktRate + (1-inputs.stockPct/100)*0.008;
     const projected = inputs.regularSavings * Math.pow(1 + blended, yearsToRetire);
-    return 'At retirement: <span>' + fmtK(projected) + '</span> (blended ' + (blended*100).toFixed(1) + '% for ' + yearsToRetire + ' yrs)';
+    return 'At retirement: <span>' + fmtK(projected) + '</span> (blended ' + (blended*100).toFixed(1) + '% for ' + yearsToRetire + ' yrs)' + (useGrowthAdj.regularSavings ? ' <span style="color:var(--amber)">✓ used</span>' : '');
   }
   if (key === 'withdraw1' || key === 'withdraw2' || key === 'withdraw3' || key === 'withdraw4') {
     const phaseIdx  = { withdraw1:0, withdraw2:1, withdraw3:2, withdraw4:3 }[key];
@@ -842,11 +847,11 @@ function getInputHint(key) {
 function makeCard(f) {
   const hint = getInputHint(f.key);
   const isWithdraw = ['withdraw1','withdraw2','withdraw3','withdraw4'].includes(f.key);
-  const isGrowthAdj = ['balance401k','ssMonthly'].includes(f.key);
+  const isGrowthAdj = ['balance401k','ssMonthly','regularSavings'].includes(f.key);
   const inflChk = isWithdraw
     ? '<label class="inflate-check"><input type="checkbox" id="infl-' + f.key + '" ' + (useInflated[f.key] ? 'checked' : '') + ' onchange="toggleInflated(\'' + f.key + '\', this.checked)"> Use inflation-adjusted amount</label>'
     : isGrowthAdj
-    ? '<label class="inflate-check"><input type="checkbox" id="gadj-' + f.key + '" ' + (useGrowthAdj[f.key] ? 'checked' : '') + ' onchange="toggleGrowthAdj(\'' + f.key + '\', this.checked)">' + (f.key === 'balance401k' ? ' Use growth-projected balance at retirement' : ' Use COLA-projected benefit at SS start') + '</label>'
+    ? '<label class="inflate-check"><input type="checkbox" id="gadj-' + f.key + '" ' + (useGrowthAdj[f.key] ? 'checked' : '') + ' onchange="toggleGrowthAdj(\'' + f.key + '\', this.checked)">' + (f.key === 'balance401k' ? ' Use market growth-projected balance at retirement' : f.key === 'regularSavings' ? ' Use stock/market growth-projected amount at retirement' : ' Use COLA-projected benefit at SS start') + '</label>'
     : '';
   return '<div class="input-card">'
     + '<label>' + f.label + ' <span class="help-btn" onclick="showFieldTip(\'' + f.key + '\')" title="What is this?">?</span></label>'
@@ -1077,7 +1082,7 @@ function buildTable() {
     { icon:'💼', title:'Total Income/yr',tip:'Gross annual income: 401(k) withdrawal plus SS income. This is your pre-tax income for the year.' },
     { icon:'🏷️', title:'Fed Tax/yr',    tip:'Estimated federal tax using 2024 MFJ brackets on: (401k x pre-tax%) plus (SS x 85%), minus standard deduction benefit. Your extra tax rates for 401(k) and SS are added on top.' },
     { icon:'✅', title:'Net Income/yr',  tip:'Spendable annual income after federal taxes: Total Income minus Fed Tax.' },
-    { icon:'💵', title:'Gross/mo',        tip:'Your total gross monthly income before taxes: Total Income divided by 12. This should match your monthly need target (adjusted for inflation). Includes SS, 401k draw, and any drawn from reinvestment or savings.' },
+    { icon:'💵', title:'Gross/mo',        tip:'Your planned monthly gross need for this year — the inflation-adjusted target from your phase settings. This is what you set as your spending goal, compounded by half the inflation rate. Does not include any RMD excess (which goes to reinvestment).' },
     { icon:'📆', title:'Net/mo',         tip:'Monthly take-home after all taxes: Net Annual Income divided by 12. Compare directly to your monthly budget.' },
     { icon:'🏦', title:'End Balance',    tip:'401(k) balance at end of year: Start Balance plus Growth minus Withdrawal. Green = healthy, amber = below $100K, red = depleted.' },
     { icon:'♻️', title:'RMD Reinvest',   tip:'A separate taxable account holding excess RMD amounts — money the IRS forced you to withdraw beyond your spending need. This surplus is reinvested using the blended stock/money market rate.' },
@@ -1145,7 +1150,7 @@ function buildTable() {
       + '<td style="color:#f0e6d0;font-weight:500">' + fmtK(row.totalIncome) + '</td>'
       + '<td style="color:' + (row.fedTax>0?'#e87070':'#4a5568') + ';font-weight:' + (row.fedTax>0?600:400) + '">' + (row.fedTax>0?fmtK(row.fedTax):'—') + '</td>'
       + '<td style="color:#8fcf6a;font-weight:600">' + fmtK(row.netIncome) + '</td>'
-      + '<td style="color:#f0e6d0;font-weight:600">' + fmtK(row.totalIncome/12) + '</td>'
+      + '<td style="color:#f0e6d0;font-weight:600">' + fmtK(row.grossMonthlyNeed) + '</td>'
       + '<td style="color:#c9a96e;font-weight:700">' + fmtK(row.netIncome/12) + '</td>'
       + '<td>' + endVal + '</td>'
       + '<td class="reinvest-col">' + (row.reinvestBal>0?fmtK(row.reinvestBal):'—') + (row.drawnFromReinvest>0?' <span style="color:#e87070;font-size:10px">(−'+fmtK(row.drawnFromReinvest)+')</span>':'') + '</td>'
@@ -1191,7 +1196,7 @@ function buildReportHTML() {
       <td class="tax">${row.fedTax>0?fmtK(row.fedTax):'—'}</td>
       <td class="gd">${fmtK(row.netIncome)}</td>
       <td class="gol">${fmtK(row.totalIncome/12)}</td>
-      <td class="gol">${fmtK(row.totalIncome/12)}</td>
+      <td class="gol">${fmtK(row.grossMonthlyNeed||0)}</td>
       <td class="gol">${fmtK(row.netIncome/12)}</td>
       <td>${endCell}</td>
       <td style="color:#7ec8c8">${row.reinvestBal>0?fmtK(row.reinvestBal):'—'}</td>
@@ -1443,8 +1448,9 @@ function getStateObj() {
     infl2: useInflated.withdraw2 ? 1 : 0,
     infl3: useInflated.withdraw3 ? 1 : 0,
     infl4: useInflated.withdraw4 ? 1 : 0,
-    gadj401k: useGrowthAdj.balance401k ? 1 : 0,
-    gadjSS:   useGrowthAdj.ssMonthly   ? 1 : 0,
+    gadj401k: useGrowthAdj.balance401k    ? 1 : 0,
+    gadjSS:   useGrowthAdj.ssMonthly      ? 1 : 0,
+    gadjSav:  useGrowthAdj.regularSavings  ? 1 : 0,
     ts: Date.now(),
   };
 }
@@ -1475,8 +1481,9 @@ function applyState(s) {
   useInflated.withdraw2 = Number(s.infl2) === 1;
   useInflated.withdraw3 = Number(s.infl3) === 1;
   useInflated.withdraw4 = Number(s.infl4) === 1;
-  if (s.gadj401k !== undefined) useGrowthAdj.balance401k = Number(s.gadj401k) === 1;
-  if (s.gadjSS   !== undefined) useGrowthAdj.ssMonthly   = Number(s.gadjSS)   === 1;
+  if (s.gadj401k !== undefined) useGrowthAdj.balance401k    = Number(s.gadj401k) === 1;
+  if (s.gadjSS   !== undefined) useGrowthAdj.ssMonthly      = Number(s.gadjSS)   === 1;
+  if (s.gadjSav  !== undefined) useGrowthAdj.regularSavings  = Number(s.gadjSav)  === 1;
 }
 
 // ── Cookie ────────────────────────────────────────────────────────────────────
@@ -1548,7 +1555,7 @@ function syncInputsDOM() {
     const el = document.getElementById('infl-' + k);
     if (el) el.checked = useInflated[k];
   });
-  ['balance401k','ssMonthly'].forEach(k => {
+  ['balance401k','ssMonthly','regularSavings'].forEach(k => {
     const el = document.getElementById('gadj-' + k);
     if (el) el.checked = useGrowthAdj[k];
   });
