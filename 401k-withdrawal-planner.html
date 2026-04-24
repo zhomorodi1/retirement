@@ -96,7 +96,7 @@
   .chart-footer { margin-top: 6px; font-size: 11px; color: var(--dim); font-family: sans-serif; text-align: center; }
 
   /* ── Table ── */
-  .table-wrap { margin-top: 24px; background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .table-wrap { margin-top: 32px; background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
   .table-scroll { overflow-x: auto; }
   table { width: 100%; border-collapse: collapse; font-family: sans-serif; font-size: 13px; }
   thead tr { background: var(--thead-bg); border-bottom: 1px solid var(--border); }
@@ -170,7 +170,7 @@
   .cards-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
 
   /* ── Scroll hint ── */
-  .scroll-hint { display: flex; align-items: center; gap: 6px; color: var(--dim); font-family: sans-serif; font-size: 12px; margin-bottom: 12px; opacity: 0.8; }
+  .scroll-hint { display: flex; align-items: center; gap: 6px; color: var(--dim); font-family: sans-serif; font-size: 11px; margin-bottom: 6px; opacity: 0.7; }
   .scroll-hint svg { flex-shrink: 0; }
 
   /* ── Repeat header rows ── */
@@ -593,9 +593,13 @@ function calcProjection() {
     const inflHalfRate = (inflationRate / 2) / 100;
     const basePhaseW = [w1, w2, w3, w4][decade];
     const wKey = ['withdraw1','withdraw2','withdraw3','withdraw4'][decade];
-    // If 'use inflated' checked: use peak (yr 9) inflated amount as flat rate for whole phase
+    // Years from today to the START of this phase (pre-retirement + phase offset)
+    const yrsToRetireNow = Math.max(0, inputs.retirementAge - inputs.currentAge);
+    const yrsToPhaseStart = yrsToRetireNow + decade * 10;
+    // If 'use inflated' checked: compound from today through phase start, then continue
+    // yearly within the phase — so the number keeps growing during the phase too
     const grossMonthlyNeed = useInflated[wKey]
-      ? basePhaseW * Math.pow(1 + inflHalfRate, 9)
+      ? basePhaseW * Math.pow(1 + inflHalfRate, yrsToPhaseStart + yrInPhase)
       : basePhaseW * Math.pow(1 + inflHalfRate, yrInPhase);
     const grossAnnualNeed = grossMonthlyNeed * 12;
 
