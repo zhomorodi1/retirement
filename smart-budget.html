@@ -705,11 +705,83 @@ function paintButtons() {
 }
 
 // ─────────────────────────────────────────
+//  SMART PRESETS
+//  Suggested values per status — only applied if user hasn't manually
+//  edited that field (i.e. it still matches a known preset value)
+// ─────────────────────────────────────────
+const HOUSING_PRESETS = {
+  rent:     { rent_mortgage: 1800, insurance_home: 0,   maintenance: 30  },
+  mortgage: { rent_mortgage: 1500, insurance_home: 100, maintenance: 100 },
+  own:      { rent_mortgage: 0,    insurance_home: 80,  maintenance: 150 },
+};
+const VEHICLE_PRESETS = {
+  none:  { car_payment: 0,   gas_fuel: 30,  car_insurance: 0,   car_maint: 0,   parking: 10, public_transit: 100 },
+  lease: { car_payment: 450, gas_fuel: 130, car_insurance: 140, car_maint: 30,  parking: 40, public_transit: 20  },
+  own:   { car_payment: 350, gas_fuel: 150, car_insurance: 110, car_maint: 70,  parking: 35, public_transit: 20  },
+};
+const WORK_PRESETS = {
+  working: { retirement: 300, student_loan: 200, gym: 40, streaming: 50, vacation: 150 },
+  retired: { retirement: 0,   student_loan: 0,   gym: 50, streaming: 60, vacation: 250 },
+};
+
+// Track which preset values were last applied so we only overwrite
+// fields the user hasn't personally customised
+let lastHousingPreset = null;
+let lastVehiclePreset = null;
+let lastWorkPreset    = null;
+
+function applyPreset(presetMap, lastPresetRef, newKey) {
+  const newPreset = presetMap[newKey];
+  if (!newPreset) return;
+
+  Object.entries(newPreset).forEach(([subId, newVal]) => {
+    const inp = document.getElementById('sub_' + subId);
+    if (!inp) return;
+
+    // Only overwrite if the current value matches the OLD preset value
+    // (meaning the user hasn't customised it), or if there was no previous preset
+    const currentVal = parseFloat(inp.value) || 0;
+    const oldPreset  = presetMap[lastPresetRef];
+    const oldVal     = oldPreset ? (oldPreset[subId] ?? null) : null;
+
+    if (oldVal === null || currentVal === oldVal) {
+      inp.value = newVal;
+      state.budgets[subId] = newVal;
+      // Flash the field to signal it changed
+      flashInput(inp);
+    }
+  });
+}
+
+function flashInput(inp) {
+  const t = T();
+  inp.style.borderColor = t.accent;
+  inp.style.transition = 'border-color 0s';
+  setTimeout(() => {
+    inp.style.transition = 'border-color 0.6s';
+    inp.style.borderColor = t.border;
+  }, 400);
+}
+
+// ─────────────────────────────────────────
 //  TOGGLE GROUPS
 // ─────────────────────────────────────────
-window.setToggle = function(key, val, btn) {
+window.setToggle = function(key, val) {
+  const prev = state[key];
   state[key] = val;
   paintButtons();
+
+  if (key === 'housing') {
+    applyPreset(HOUSING_PRESETS, prev, val);
+    lastHousingPreset = val;
+  } else if (key === 'vehicle') {
+    applyPreset(VEHICLE_PRESETS, prev, val);
+    lastVehiclePreset = val;
+  } else if (key === 'work') {
+    applyPreset(WORK_PRESETS, prev, val);
+    lastWorkPreset = val;
+  }
+
   saveState();
   recalc();
 };
@@ -941,6 +1013,10 @@ function setText(id, text, color) {
 // ─────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   loadState();
+  // Seed preset trackers so first toggle knows what the "old" values were
+  lastHousingPreset = state.housing || 'mortgage';
+  lastVehiclePreset = state.vehicle || 'own';
+  lastWorkPreset    = state.work    || 'working';
 
   // Theme toggle
   document.getElementById('themeToggle').addEventListener('click', () => {
@@ -976,14 +1052,6 @@ document.addEventListener('DOMContentLoaded', () => {
   paintAll();
   recalc();
   fetchRates();
-
-  // Open first category
-  const firstBody = document.getElementById('body_housing');
-  const firstHeader = document.getElementById('catHdr_housing');
-  if (firstBody && firstHeader) {
-    firstBody.classList.add('open');
-    firstHeader.classList.add('open');
-  }
 });
 </script>
 
