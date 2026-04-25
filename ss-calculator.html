@@ -1,0 +1,1187 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Social Security Benefit Estimator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0d1b2a;
+    --navy-mid: #162235;
+    --navy-light: #1e3251;
+    --gold: #c8a84b;
+    --gold-light: #e8c96b;
+    --cream: #f5f0e8;
+    --cream-dim: #d8d0be;
+    --teal: #2a9d8f;
+    --red: #e63946;
+    --green: #3aaa78;
+    --text: #e8e4d8;
+    --text-dim: #8fa0b8;
+    --border: rgba(200,168,75,0.25);
+    --row-hover: rgba(200,168,75,0.07);
+  }
+
+/* ── LIGHT MODE ── */
+body.light {
+–navy: #f4f1eb;
+–navy-mid: #fffdf8;
+–navy-light: #e8e2d4;
+–gold: #9c7a1e;
+–gold-light: #b8920e;
+–cream: #1a1208;
+–cream-dim: #3d3020;
+–teal: #1a7a6e;
+–red: #c0202d;
+–green: #1e7d4e;
+–text: #1e1a10;
+–text-dim: #5a6478;
+–border: rgba(120,90,20,0.2);
+–row-hover: rgba(120,90,20,0.05);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+background: var(–navy);
+color: var(–text);
+font-family: ‘IBM Plex Sans’, sans-serif;
+font-weight: 300;
+min-height: 100vh;
+overflow-x: hidden;
+transition: background 0.3s, color 0.3s;
+}
+
+/* Light mode body gradient override */
+body.light::before {
+background-image:
+radial-gradient(ellipse 80% 50% at 20% 10%, rgba(120,90,20,0.04) 0%, transparent 60%),
+radial-gradient(ellipse 60% 80% at 80% 90%, rgba(26,122,110,0.03) 0%, transparent 60%);
+}
+
+/* Background texture */
+body::before {
+content: ‘’;
+position: fixed;
+inset: 0;
+background-image:
+radial-gradient(ellipse 80% 50% at 20% 10%, rgba(200,168,75,0.04) 0%, transparent 60%),
+radial-gradient(ellipse 60% 80% at 80% 90%, rgba(42,157,143,0.03) 0%, transparent 60%);
+pointer-events: none;
+z-index: 0;
+}
+
+.container {
+position: relative;
+z-index: 1;
+max-width: 1100px;
+margin: 0 auto;
+padding: 40px 20px 80px;
+}
+
+/* HEADER */
+header {
+display: flex;
+align-items: flex-start;
+gap: 24px;
+margin-bottom: 48px;
+padding-bottom: 28px;
+border-bottom: 1px solid var(–border);
+}
+
+.seal {
+width: 72px;
+height: 72px;
+border: 2px solid var(–gold);
+border-radius: 50%;
+display: flex;
+align-items: center;
+justify-content: center;
+font-family: ‘IBM Plex Mono’, monospace;
+font-size: 22px;
+color: var(–gold);
+flex-shrink: 0;
+background: radial-gradient(circle, rgba(200,168,75,0.08), transparent);
+box-shadow: 0 0 20px rgba(200,168,75,0.15);
+}
+
+.header-text h1 {
+font-family: ‘Playfair Display’, serif;
+font-size: 2rem;
+font-weight: 900;
+color: var(–cream);
+line-height: 1.1;
+letter-spacing: -0.5px;
+}
+
+.header-text h1 span { color: var(–gold); }
+
+.header-text p {
+color: var(–text-dim);
+font-size: 0.82rem;
+margin-top: 6px;
+letter-spacing: 0.04em;
+text-transform: uppercase;
+}
+
+/* DISCLAIMER BANNER */
+.disclaimer {
+background: rgba(230, 57, 70, 0.08);
+border: 1px solid rgba(230,57,70,0.35);
+border-left: 3px solid var(–red);
+border-radius: 4px;
+padding: 14px 18px;
+margin-bottom: 36px;
+font-size: 0.8rem;
+color: #e89a9f;
+line-height: 1.6;
+}
+
+.disclaimer strong { color: var(–red); font-weight: 600; }
+
+/* SETUP PANEL */
+.setup-panel {
+background: var(–navy-mid);
+border: 1px solid var(–border);
+border-radius: 8px;
+padding: 28px 32px;
+margin-bottom: 36px;
+}
+
+.panel-title {
+font-family: ‘IBM Plex Mono’, monospace;
+font-size: 0.72rem;
+letter-spacing: 0.15em;
+text-transform: uppercase;
+color: var(–gold);
+margin-bottom: 20px;
+}
+
+.setup-grid {
+display: grid;
+grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+gap: 20px;
+}
+
+.field-group {
+display: flex;
+flex-direction: column;
+gap: 6px;
+}
+
+.field-group label {
+font-size: 0.75rem;
+letter-spacing: 0.08em;
+text-transform: uppercase;
+color: var(–text-dim);
+font-weight: 500;
+}
+
+.field-group input, .field-group select {
+background: var(–navy);
+border: 1px solid var(–border);
+border-radius: 4px;
+color: var(–cream);
+font-family: ‘IBM Plex Mono’, monospace;
+font-size: 1rem;
+font-weight: 600;
+padding: 10px 14px;
+transition: border-color 0.2s, box-shadow 0.2s;
+outline: none;
+width: 100%;
+}
+
+.field-group input:focus, .field-group select:focus {
+border-color: var(–gold);
+box-shadow: 0 0 0 2px rgba(200,168,75,0.15);
+}
+
+.field-group select option { background: var(–navy); }
+
+/* EARNINGS TABLE */
+.earnings-section {
+background: var(–navy-mid);
+border: 1px solid var(–border);
+border-radius: 8px;
+margin-bottom: 36px;
+overflow: hidden;
+}
+
+.section-header {
+padding: 18px 28px;
+border-bottom: 1px solid var(–border);
+display: flex;
+align-items: center;
+justify-content: space-between;
+gap: 12px;
+flex-wrap: wrap;
+}
+
+.earnings-table-wrap {
+overflow-x: auto;
+max-height: 520px;
+overflow-y: auto;
+}
+
+.earnings-table-wrap::-webkit-scrollbar { width: 6px; height: 6px; }
+.earnings-table-wrap::-webkit-scrollbar-track { background: var(–navy); }
+.earnings-table-wrap::-webkit-scrollbar-thumb { background: var(–navy-light); border-radius: 3px; }
+
+/* THEME TOGGLE */
+.theme-toggle {
+margin-left: auto;
+display: flex;
+align-items: center;
+gap: 8px;
+cursor: pointer;
+user-select: none;
+}
+
+.theme-toggle-label {
+font-family: ‘IBM Plex Mono’, monospace;
+font-size: 0.68rem;
+letter-spacing: 0.1em;
+text-transform: uppercase;
+color: var(–text-dim);
+transition: color 0.3s;
+}
+
+.toggle-track {
+width: 40px;
+height: 22px;
+background: var(–navy-light);
+border: 1px solid var(–border);
+border-radius: 11px;
+position: relative;
+transition: background 0.3s, border-color 0.3s;
+flex-shrink: 0;
+}
+
+body.light .toggle-track {
+background: var(–gold);
+border-color: var(–gold);
+}
+
+.toggle-knob {
+position: absolute;
+top: 2px;
+left: 2px;
+width: 16px;
+height: 16px;
+border-radius: 50%;
+background: var(–text-dim);
+transition: transform 0.25s cubic-bezier(0.4,0,0.2,1), background 0.3s;
+display: flex;
+align-items: center;
+justify-content: center;
+font-size: 9px;
+}
+
+body.light .toggle-knob {
+transform: translateX(18px);
+background: #fff;
+}
+
+/* Light mode field overrides */
+body.light .field-group input,
+body.light .field-group select {
+background: var(–navy-light);
+color: var(–cream);
+}
+
+body.light .field-group select option {
+background: var(–navy-light);
+}
+
+body.light thead th {
+background: var(–navy-light);
+}
+
+body.light .benefit-card {
+background: var(–navy-light);
+}
+
+body.light .wage-input {
+color: var(–cream);
+}
+
+body.light .wage-input:focus {
+color: var(–gold);
+}
+
+body.light .disclaimer {
+background: rgba(192,32,45,0.06);
+color: #8a2025;
+}
+
+body.light .disclaimer strong { color: #c0202d; }
+
+body.light footer a { color: var(–gold); }
+
+table {
+width: 100%;
+border-collapse: collapse;
+}
+
+thead th {
+background: var(–navy);
+padding: 10px 14px;
+font-family: ‘IBM Plex Mono’, monospace;
+font-size: 0.68rem;
+letter-spacing: 0.12em;
+text-transform: uppercase;
+color: var(–text-dim);
+text-align: left;
+position: sticky;
+top: 0;
+z-index: 2;
+border-bottom: 1px solid var(–border);
+}
+
+thead th:not(:first-child) { text-align: right; }
+
+tbody tr {
+border-bottom: 1px solid rgba(200,168,75,0.07);
+transition: background 0.15s;
+}
+
+tbody tr:hover { background: var(–row-hover); }
+
+tbody tr.current-year {
+background: rgba(200,168,75,0.05);
+border-left: 2px solid var(–gold);
+}
+
+tbody tr.future-year {
+background: rgba(42,157,143,0.04);
+}
+
+tbody tr.future-year td:first-child { color: var(–teal); }
+
+td {
+padding: 7px 14px;
+font-size: 0.85rem;
+}
+
+td:first-child {
+font-family: ‘IBM Plex Mono’, monospace;
+font-size: 0.8rem;
+color: var(–text-dim);
+white-space: nowrap;
+}
+
+td.year-label { font-weight: 600; }
+td.age-label { color: var(–cream-dim); font-size: 0.75rem; }
+
+td:not(:first-child):not(:last-child) { text-align: right; }
+
+.wage-input {
+background: transparent;
+border: none;
+border-bottom: 1px solid transparent;
+color: var(–cream);
+font-family: ‘IBM Plex Mono’, monospace;
+font-size: 0.88rem;
+font-weight: 600;
+text-align: right;
+width: 130px;
+padding: 3px 4px;
+outline: none;
+transition: border-color 0.2s;
+}
+
+.wage-input:focus {
+border-bottom-color: var(–gold);
+color: var(–gold-light);
+}
+
+.wage-input::placeholder { color: rgba(143,160,184,0.4); }
+
+td.indexed-val {
+font-family: ‘IBM Plex Mono’, monospace;
+font-size: 0.8rem;
+color: var(–text-dim);
+text-align: right;
+}
+
+td.indexed-val.counted { color: var(–green); font-weight: 600; }
+
+/* RESULTS */
+.results-section {
+background: var(–navy-mid);
+border: 1px solid var(–border);
+border-radius: 8px;
+padding: 32px;
+margin-bottom: 36px;
+}
+
+.aime-display {
+display: flex;
+align-items: center;
+gap: 32px;
+flex-wrap: wrap;
+margin-bottom: 28px;
+padding-bottom: 24px;
+border-bottom: 1px solid var(–border);
+}
+
+.aime-stat {
+display: flex;
+flex-direction: column;
+gap: 4px;
+}
+
+.aime-stat .stat-label {
+font-family: ‘IBM Plex Mono’, monospace;
+font-size: 0.66rem;
+letter-spacing: 0.15em;
+text-transform: uppercase;
+color: var(–text-dim);
+}
+
+.aime-stat .stat-value {
+font-family: ‘Playfair Display’, serif;
+font-size: 1.8rem;
+font-weight: 700;
+color: var(–gold);
+line-height: 1;
+}
+
+.aime-stat .stat-value.small { font-size: 1.2rem; color: var(–cream); }
+
+.benefit-grid {
+display: grid;
+grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+gap: 16px;
+}
+
+.benefit-card {
+background: var(–navy);
+border: 1px solid var(–border);
+border-radius: 6px;
+padding: 18px 16px;
+display: flex;
+flex-direction: column;
+gap: 6px;
+transition: border-color 0.2s, transform 0.2s;
+position: relative;
+overflow: hidden;
+}
+
+.benefit-card::before {
+content: ‘’;
+position: absolute;
+top: 0; left: 0; right: 0;
+height: 2px;
+background: var(–border-color, var(–border));
+transition: background 0.2s;
+}
+
+.benefit-card:hover {
+border-color: rgba(200,168,75,0.45);
+transform: translateY(-2px);
+}
+
+.benefit-card.highlight {
+border-color: rgba(200,168,75,0.5);
+background: rgba(200,168,75,0.05);
+}
+.benefit-card.highlight::before { background: var(–gold); }
+
+.benefit-card .age-label {
+font-family: ‘IBM Plex Mono’, monospace;
+font-size: 0.68rem;
+letter-spacing: 0.12em;
+text-transform: uppercase;
+color: var(–text-dim);
+}
+
+.benefit-card .monthly {
+font-family: ‘Playfair Display’, serif;
+font-size: 1.4rem;
+font-weight: 700;
+color: var(–cream);
+line-height: 1.1;
+}
+
+.benefit-card.highlight .monthly { color: var(–gold-light); }
+
+.benefit-card .annual {
+font-family: ‘IBM Plex Mono’, monospace;
+font-size: 0.78rem;
+color: var(–text-dim);
+}
+
+.benefit-card .pct {
+font-size: 0.72rem;
+margin-top: 2px;
+color: var(–text-dim);
+}
+
+.benefit-card .pct.up { color: var(–green); }
+.benefit-card .pct.down { color: #e89a9f; }
+
+/* BUTTONS */
+.btn {
+font-family: ‘IBM Plex Mono’, monospace;
+font-size: 0.75rem;
+letter-spacing: 0.1em;
+text-transform: uppercase;
+padding: 9px 18px;
+border-radius: 4px;
+border: 1px solid;
+cursor: pointer;
+transition: all 0.2s;
+}
+
+.btn-primary {
+background: var(–gold);
+border-color: var(–gold);
+color: var(–navy);
+font-weight: 600;
+}
+
+.btn-primary:hover { background: var(–gold-light); border-color: var(–gold-light); }
+
+.btn-outline {
+background: transparent;
+border-color: var(–border);
+color: var(–text-dim);
+}
+
+.btn-outline:hover { border-color: var(–gold); color: var(–gold); }
+
+.btn-danger {
+background: transparent;
+border-color: rgba(230,57,70,0.4);
+color: rgba(230,57,70,0.8);
+}
+
+.btn-danger:hover { border-color: var(–red); color: var(–red); }
+
+.btn-row {
+display: flex;
+gap: 10px;
+flex-wrap: wrap;
+align-items: center;
+}
+
+/* FORMULA NOTE */
+.formula-note {
+background: var(–navy-light);
+border: 1px solid var(–border);
+border-radius: 6px;
+padding: 16px 20px;
+font-size: 0.78rem;
+color: var(–text-dim);
+line-height: 1.8;
+}
+
+.formula-note strong { color: var(–cream); font-weight: 500; }
+.formula-note .gold { color: var(–gold); }
+
+/* SAVE INDICATOR */
+.save-indicator {
+font-family: ‘IBM Plex Mono’, monospace;
+font-size: 0.7rem;
+color: var(–teal);
+opacity: 0;
+transition: opacity 0.4s;
+margin-left: auto;
+}
+.save-indicator.show { opacity: 1; }
+
+/* FOOTER */
+footer {
+border-top: 1px solid var(–border);
+padding-top: 24px;
+text-align: center;
+font-size: 0.75rem;
+color: var(–text-dim);
+line-height: 1.8;
+}
+
+footer a { color: var(–gold); text-decoration: none; }
+
+.badge {
+display: inline-block;
+font-family: ‘IBM Plex Mono’, monospace;
+font-size: 0.6rem;
+letter-spacing: 0.1em;
+padding: 2px 7px;
+border-radius: 2px;
+text-transform: uppercase;
+vertical-align: middle;
+margin-left: 6px;
+}
+.badge-now { background: rgba(200,168,75,0.2); color: var(–gold); border: 1px solid rgba(200,168,75,0.4); }
+.badge-future { background: rgba(42,157,143,0.15); color: var(–teal); border: 1px solid rgba(42,157,143,0.3); }
+
+@media (max-width: 640px) {
+header { flex-direction: column; gap: 14px; }
+.header-text h1 { font-size: 1.5rem; }
+.setup-grid { grid-template-columns: 1fr 1fr; }
+.benefit-grid { grid-template-columns: repeat(3, 1fr); }
+.aime-stat .stat-value { font-size: 1.4rem; }
+}
+</style>
+
+</head>
+<body>
+<div class="container">
+
+  <!-- HEADER -->
+
+  <header>
+    <div class="seal">SSA</div>
+    <div class="header-text">
+      <h1>Social Security <span>Benefit Estimator</span></h1>
+      <p>Retirement Benefit Projection &bull; Based on SSA AIME/PIA Methodology</p>
+    </div>
+    <div class="theme-toggle" id="themeToggle" title="Toggle light/dark mode">
+      <span class="theme-toggle-label" id="themeLabel">Dark</span>
+      <div class="toggle-track">
+        <div class="toggle-knob" id="toggleKnob">☀</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- DISCLAIMER -->
+
+  <div class="disclaimer">
+    <strong>⚠ Important Notice:</strong> This tool provides <strong>estimates only</strong> and is intended as a personal planning aid. Actual benefits are determined by the Social Security Administration and may differ significantly based on your complete earnings record, legislative changes, indexing adjustments, and other factors. <strong>Consult the SSA directly at <a href="https://www.ssa.gov" target="_blank" style="color:#e89a9f">ssa.gov</a> or a qualified financial/tax professional</strong> before making retirement decisions.
+  </div>
+
+  <!-- SETUP -->
+
+  <div class="setup-panel">
+    <div class="panel-title">▸ Personal Information</div>
+    <div class="setup-grid">
+      <div class="field-group">
+        <label>Current Age</label>
+        <input type="number" id="currentAge" min="16" max="80" placeholder="e.g. 55" value="">
+      </div>
+      <div class="field-group">
+        <label>Birth Year</label>
+        <input type="number" id="birthYear" min="1930" max="2010" placeholder="e.g. 1970" value="" readonly style="opacity:0.6;cursor:not-allowed">
+      </div>
+      <div class="field-group">
+        <label>Projected Annual Raises</label>
+        <select id="raiseRate">
+          <option value="0">0% — No raises</option>
+          <option value="0.02" selected>2% — Moderate</option>
+          <option value="0.03">3% — Inflation+</option>
+          <option value="0.04">4% — Strong</option>
+          <option value="0.05">5% — Aggressive</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label>Est. Future Taxed SS Earnings ($/yr)</label>
+        <input type="number" id="futureWage" min="0" placeholder="e.g. 80000" value="">
+      </div>
+    </div>
+  </div>
+
+  <!-- EARNINGS TABLE -->
+
+  <div class="earnings-section">
+    <div class="section-header">
+      <div class="panel-title" style="margin:0">▸ Annual Earnings History &amp; Projection</div>
+      <div class="btn-row">
+        <span class="save-indicator" id="saveIndicator">● Saved</span>
+        <button class="btn btn-outline" onclick="fillAllFuture()">Auto-fill Future</button>
+        <button class="btn btn-outline" onclick="clearAllWages()">Clear All</button>
+      </div>
+    </div>
+    <div class="earnings-table-wrap">
+      <table id="earningsTable">
+        <thead>
+          <tr>
+            <th>Year</th>
+            <th>Age</th>
+            <th>Taxed SS Earnings ($)</th>
+            <th>SS Wage Base Cap</th>
+            <th>Indexed Earnings</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+
+  <div class="results-section">
+    <div class="panel-title">▸ Benefit Projections (PIA Calculation)</div>
+
+```
+<div class="aime-display">
+  <div class="aime-stat">
+    <span class="stat-label">AIME (Avg Indexed Monthly Earnings)</span>
+    <span class="stat-value" id="aimeDisplay">—</span>
+  </div>
+  <div class="aime-stat">
+    <span class="stat-label">PIA (Primary Insurance Amount)</span>
+    <span class="stat-value small" id="piaDisplay">—</span>
+  </div>
+  <div class="aime-stat">
+    <span class="stat-label">Qualifying Credits</span>
+    <span class="stat-value small" id="creditsDisplay">—</span>
+  </div>
+  <div class="aime-stat">
+    <span class="stat-label">Top-35 Years Counted</span>
+    <span class="stat-value small" id="top35Display">—</span>
+  </div>
+</div>
+
+<div class="benefit-grid" id="benefitGrid">
+  <!-- cards injected by JS -->
+</div>
+```
+
+  </div>
+
+  <!-- FORMULA NOTE -->
+
+  <div class="formula-note">
+    <strong>How this is calculated:</strong><br>
+    <span class="gold">Step 1 — Index earnings:</span> Each year's wages are indexed to today's wage levels using SSA's Average Wage Index (AWI), capped at the Social Security wage base for that year.<br>
+    <span class="gold">Step 2 — AIME:</span> The top 35 years of indexed earnings are summed and divided by 420 months.<br>
+    <span class="gold">Step 3 — PIA bend points (2025):</span> 90% of first $1,226 + 32% of next $6,172 + 15% above $7,398.<br>
+    <span class="gold">Step 4 — Claiming age adjustments:</span> FRA (Full Retirement Age) is 67 for those born 1960+. Claiming at 62 reduces benefit by up to 30%. Each year past FRA adds 8% (Delayed Retirement Credits) up to age 70.<br>
+    <span class="gold">Future AWI growth:</span> Projected at 3.5%/yr (SSA's long-range assumption). Data is encrypted and saved in your browser.
+  </div>
+
+  <br>
+
+  <footer>
+    This is an independent estimation tool and is <strong>not affiliated with the Social Security Administration</strong>.<br>
+    Official estimates: <a href="https://www.ssa.gov/myaccount/" target="_blank">my Social Security account at ssa.gov</a> &bull;
+    Your data is encrypted locally and never transmitted.
+  </footer>
+</div>
+
+<script>
+// ─────────────────────────────────────────────────────────────
+// SSA HISTORICAL DATA
+// ─────────────────────────────────────────────────────────────
+
+// SS Wage Base (taxable maximum) by year
+const WAGE_BASE = {
+  1984:37800,1985:39600,1986:42000,1987:43800,1988:45000,1989:48000,
+  1990:51300,1991:53400,1992:55500,1993:57600,1994:60600,1995:61200,
+  1996:62700,1997:65400,1998:68400,1999:72600,2000:76200,2001:80400,
+  2002:84900,2003:87000,2004:87900,2005:90000,2006:94200,2007:97500,
+  2008:102000,2009:106800,2010:106800,2011:106800,2012:110100,2013:113700,
+  2014:117000,2015:118500,2016:118500,2017:127200,2018:128400,2019:132900,
+  2020:137700,2021:142800,2022:147000,2023:160200,2024:168600,2025:176100
+};
+
+// SSA Average Wage Index by year (used for indexing)
+const AWI = {
+  1984:16135.07,1985:16822.51,1986:17321.82,1987:18426.51,1988:19334.04,
+  1989:20099.55,1990:21027.98,1991:21811.60,1992:22935.42,1993:23132.67,
+  1994:23753.53,1995:24705.66,1996:25913.90,1997:27426.00,1998:28861.44,
+  1999:30469.84,2000:32154.82,2001:32921.92,2002:33252.09,2003:34064.95,
+  2004:35648.55,2005:36952.94,2006:38651.41,2007:40405.48,2008:41334.97,
+  2009:40711.61,2010:41673.83,2011:42979.61,2012:44321.67,2013:44888.16,
+  2014:46481.52,2015:48098.63,2016:48642.15,2017:50321.89,2018:52145.80,
+  2019:54099.99,2020:55628.60,2021:60575.07,2022:63795.13,2023:66621.80,
+  2024:69000.00,2025:71415.00 // estimated
+};
+
+// SSA Bend Points for PIA formula (2025 values)
+const BEND1 = 1226;  // 90% bracket
+const BEND2 = 7398;  // 32% bracket
+// above BEND2: 15%
+
+const CURRENT_YEAR = new Date().getFullYear();
+const AWI_BASE_YEAR = 2025; // we index relative to 2 years before FRA typically; simplified to current
+const AWI_GROWTH = 0.035; // SSA long-range AWI growth assumption
+
+// ─────────────────────────────────────────────────────────────
+// ENCRYPTION (AES-GCM via Web Crypto)
+// ─────────────────────────────────────────────────────────────
+const COOKIE_KEY = 'ss_calc_v3';
+const ENC_KEY_SEED = 'ss-calc-2025-local-key';
+
+async function getKey() {
+  const enc = new TextEncoder();
+  const keyMaterial = await crypto.subtle.importKey(
+    'raw', enc.encode(ENC_KEY_SEED), { name: 'PBKDF2' }, false, ['deriveKey']
+  );
+  return crypto.subtle.deriveKey(
+    { name: 'PBKDF2', salt: enc.encode('ss-salt-v3'), iterations: 100000, hash: 'SHA-256' },
+    keyMaterial, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']
+  );
+}
+
+async function encryptData(obj) {
+  try {
+    const key = await getKey();
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const enc = new TextEncoder();
+    const encrypted = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, enc.encode(JSON.stringify(obj)));
+    const buf = new Uint8Array(iv.length + encrypted.byteLength);
+    buf.set(iv); buf.set(new Uint8Array(encrypted), iv.length);
+    return btoa(String.fromCharCode(...buf));
+  } catch(e) { return null; }
+}
+
+async function decryptData(b64) {
+  try {
+    const key = await getKey();
+    const buf = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+    const iv = buf.slice(0, 12);
+    const data = buf.slice(12);
+    const dec = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, data);
+    return JSON.parse(new TextDecoder().decode(dec));
+  } catch(e) { return null; }
+}
+
+function setCookie(name, val, days=365) {
+  const d = new Date(); d.setTime(d.getTime() + days*24*60*60*1000);
+  document.cookie = `${name}=${val};expires=${d.toUTCString()};path=/;SameSite=Strict`;
+}
+
+function getCookie(name) {
+  const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+  return match ? match[2] : null;
+}
+
+async function saveState() {
+  const wages = {};
+  document.querySelectorAll('.wage-input').forEach(inp => {
+    if (inp.value) wages[inp.dataset.year] = inp.value;
+  });
+  const state = {
+    theme: document.body.classList.contains('light') ? 'light' : 'dark',
+    currentAge: document.getElementById('currentAge').value,
+    raiseRate: document.getElementById('raiseRate').value,
+    futureWage: document.getElementById('futureWage').value,
+    wages
+  };
+  const encrypted = await encryptData(state);
+  if (encrypted) {
+    setCookie(COOKIE_KEY, encrypted);
+    flashSaved();
+  }
+}
+
+let saveTimer;
+function debounceSave() { clearTimeout(saveTimer); saveTimer = setTimeout(saveState, 800); }
+
+function flashSaved() {
+  const el = document.getElementById('saveIndicator');
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 1800);
+}
+
+// ─────────────────────────────────────────────────────────────
+// TABLE BUILDING
+// ─────────────────────────────────────────────────────────────
+
+let currentAge = 0;
+let birthYear = 0;
+
+function getWageBase(year) {
+  if (WAGE_BASE[year]) return WAGE_BASE[year];
+  // Project forward: ~4%/yr from 2025
+  const growth = Math.pow(1.04, year - 2025);
+  return Math.round(WAGE_BASE[2025] * growth / 100) * 100;
+}
+
+function getAWI(year) {
+  if (AWI[year]) return AWI[year];
+  // Project forward
+  return AWI[AWI_BASE_YEAR] * Math.pow(1 + AWI_GROWTH, year - AWI_BASE_YEAR);
+}
+
+function getIndexFactor(year, indexYear) {
+  // SSA indexes earnings to the year worker turns 60 (or current if younger)
+  // Simplified: index relative to indexYear
+  const awiYear = getAWI(year);
+  const awiIndex = getAWI(indexYear);
+  if (year >= indexYear) return 1; // no indexing for years at or after index year
+  return awiIndex / awiYear;
+}
+
+function buildTable(savedWages) {
+  const age = parseInt(document.getElementById('currentAge').value) || 0;
+  currentAge = age;
+  birthYear = CURRENT_YEAR - age;
+  document.getElementById('birthYear').value = birthYear || '';
+
+  if (!age || age < 22) {
+    document.getElementById('tableBody').innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text-dim)">Enter your current age above to populate the earnings table.</td></tr>';
+    clearResults();
+    return;
+  }
+
+  const startYear = Math.max(birthYear + 18, CURRENT_YEAR - 45); // show from age 18 or 45 years back
+  const retireYear = Math.max(birthYear + 70, CURRENT_YEAR + 1);  // project to age 70
+  const indexYear = Math.min(birthYear + 60, CURRENT_YEAR);       // SSA indexes to year turning 60
+
+  const tbody = document.getElementById('tableBody');
+  tbody.innerHTML = '';
+
+  for (let yr = startYear; yr <= retireYear; yr++) {
+    const yrAge = yr - birthYear;
+    if (yrAge < 18 || yrAge > 70) continue;
+
+    const isFuture = yr > CURRENT_YEAR;
+    const isCurrent = yr === CURRENT_YEAR;
+    const wageBase = getWageBase(yr);
+    const savedVal = savedWages && savedWages[yr] ? savedWages[yr] : '';
+
+    const tr = document.createElement('tr');
+    if (isCurrent) tr.classList.add('current-year');
+    if (isFuture) tr.classList.add('future-year');
+
+    tr.innerHTML = `
+      <td class="year-label">
+        ${yr}
+        ${isCurrent ? '<span class="badge badge-now">Now</span>' : ''}
+        ${isFuture ? '<span class="badge badge-future">Proj</span>' : ''}
+      </td>
+      <td class="age-label">Age ${yrAge}</td>
+      <td style="text-align:right">
+        <input class="wage-input" type="number" min="0" max="${wageBase}" step="100"
+          data-year="${yr}" data-future="${isFuture ? 1 : 0}"
+          placeholder="0" value="${savedVal}"
+          title="Enter SS-taxed earnings (max $${wageBase.toLocaleString()} for ${yr})">
+      </td>
+      <td class="indexed-val" title="Max SS-taxable for ${yr}">$${wageBase.toLocaleString()}</td>
+      <td class="indexed-val indexed-${yr}">—</td>
+    `;
+    tbody.appendChild(tr);
+  }
+
+  // Attach listeners
+  tbody.querySelectorAll('.wage-input').forEach(inp => {
+    inp.addEventListener('input', () => { updateRowCalc(inp); recalcAll(); debounceSave(); });
+    updateRowCalc(inp);
+  });
+
+  recalcAll();
+}
+
+function updateRowCalc(inp) {
+  const yr = parseInt(inp.dataset.year);
+  const raw = parseFloat(inp.value) || 0;
+  const wageBase = getWageBase(yr);
+  // Input is already SS-taxed earnings; clamp to wage base just in case
+  const taxed = Math.min(raw, wageBase);
+  if (raw > wageBase) inp.value = wageBase; // auto-correct if over cap
+  const indexYear = Math.min(birthYear + 60, CURRENT_YEAR);
+  const factor = getIndexFactor(yr, indexYear);
+  const indexed = taxed * factor;
+
+  document.querySelector(`.indexed-${yr}`).textContent = taxed > 0 ? '$' + Math.round(indexed).toLocaleString() : '—';
+}
+
+// ─────────────────────────────────────────────────────────────
+// MAIN CALCULATION
+// ─────────────────────────────────────────────────────────────
+
+function recalcAll() {
+  if (!currentAge || currentAge < 22) { clearResults(); return; }
+
+  const indexYear = Math.min(birthYear + 60, CURRENT_YEAR);
+  const earningsArr = [];
+
+  document.querySelectorAll('.wage-input').forEach(inp => {
+    const yr = parseInt(inp.dataset.year);
+    const taxed = parseFloat(inp.value) || 0;
+    if (taxed <= 0) return;
+    const wageBase = getWageBase(yr);
+    const capped = Math.min(taxed, wageBase);
+    const factor = getIndexFactor(yr, indexYear);
+    const indexed = capped * factor;
+    earningsArr.push({ yr, raw: capped, taxable: capped, indexed });
+  });
+
+  // Color counted years
+  document.querySelectorAll('.indexed-val').forEach(el => el.classList.remove('counted'));
+
+  // Sort descending by indexed, take top 35
+  const sorted = [...earningsArr].sort((a, b) => b.indexed - a.indexed);
+  const top35 = sorted.slice(0, 35);
+  const top35Years = new Set(top35.map(e => e.yr));
+
+  // Highlight
+  top35Years.forEach(yr => {
+    const el = document.querySelector(`.indexed-${yr}`);
+    if (el) el.classList.add('counted');
+  });
+
+  // AIME
+  const sumTop35 = top35.reduce((s, e) => s + e.indexed, 0);
+  const aime = sumTop35 / 420;
+
+  // PIA calculation (2025 bend points)
+  let pia = 0;
+  if (aime <= BEND1) {
+    pia = aime * 0.90;
+  } else if (aime <= BEND2) {
+    pia = BEND1 * 0.90 + (aime - BEND1) * 0.32;
+  } else {
+    pia = BEND1 * 0.90 + (BEND2 - BEND1) * 0.32 + (aime - BEND2) * 0.15;
+  }
+
+  // Credits (simplified: 4/yr, need 40 total)
+  const yearsWithEarnings = earningsArr.filter(e => e.raw > 0).length;
+  const credits = Math.min(yearsWithEarnings * 4, 40);
+  const qualified = credits >= 40;
+
+  // Full Retirement Age
+  let fra = 67; // born 1960+
+  if (birthYear < 1938) fra = 65;
+  else if (birthYear < 1943) fra = 65 + (birthYear - 1937) * (2/12);
+  else if (birthYear < 1955) fra = 66;
+  else if (birthYear < 1960) fra = 66 + (birthYear - 1954) * (2/12);
+
+  // Update displays
+  document.getElementById('aimeDisplay').textContent = aime > 0 ? '$' + Math.round(aime).toLocaleString() : '—';
+  document.getElementById('piaDisplay').textContent = pia > 0 ? '$' + Math.round(pia).toLocaleString() + '/mo' : '—';
+  document.getElementById('creditsDisplay').textContent = `${credits}/40 ${qualified ? '✓' : '⚠'}`;
+  document.getElementById('top35Display').textContent = top35.length + ' years';
+
+  // Build benefit cards for ages 62–70
+  const grid = document.getElementById('benefitGrid');
+  grid.innerHTML = '';
+
+  for (let claimAge = 62; claimAge <= 70; claimAge++) {
+    const monthsFromFRA = (claimAge - fra) * 12;
+    let factor = 1.0;
+
+    if (monthsFromFRA < 0) {
+      // Early: first 36 months = 5/9% per month, beyond = 5/12% per month
+      const early = Math.abs(monthsFromFRA);
+      const first36 = Math.min(early, 36);
+      const beyond36 = Math.max(early - 36, 0);
+      factor = 1 - (first36 * 5/9/100) - (beyond36 * 5/12/100);
+    } else if (monthsFromFRA > 0) {
+      // Delayed: 8%/yr = 2/3% per month
+      factor = 1 + (monthsFromFRA * 2/3/100);
+    }
+
+    const monthly = pia * factor;
+    const annual = monthly * 12;
+    const pctVsFRA = ((factor - 1) * 100).toFixed(0);
+    const isFRA = Math.abs(claimAge - fra) < 0.5;
+    const isHighlight = claimAge === 70;
+
+    const card = document.createElement('div');
+    card.className = 'benefit-card' + (isHighlight ? ' highlight' : '');
+    card.innerHTML = `
+      <div class="age-label">Age ${claimAge}${isFRA ? ' <span style="color:var(--gold)">★ FRA</span>' : ''}</div>
+      <div class="monthly">$${monthly > 0 ? Math.round(monthly).toLocaleString() : '—'}<span style="font-size:0.75rem;font-weight:400;color:var(--text-dim)">/mo</span></div>
+      <div class="annual">$${annual > 0 ? Math.round(annual).toLocaleString() : '—'}/yr</div>
+      <div class="pct ${pctVsFRA > 0 ? 'up' : pctVsFRA < 0 ? 'down' : ''}">
+        ${pctVsFRA > 0 ? '+' : ''}${pctVsFRA}% vs FRA
+      </div>
+    `;
+    grid.appendChild(card);
+  }
+}
+
+function clearResults() {
+  document.getElementById('aimeDisplay').textContent = '—';
+  document.getElementById('piaDisplay').textContent = '—';
+  document.getElementById('creditsDisplay').textContent = '—';
+  document.getElementById('top35Display').textContent = '—';
+  document.getElementById('benefitGrid').innerHTML = '';
+}
+
+// ─────────────────────────────────────────────────────────────
+// HELPERS
+// ─────────────────────────────────────────────────────────────
+
+function fillAllFuture() {
+  const baseWage = parseFloat(document.getElementById('futureWage').value) || 0;
+  const raiseRate = parseFloat(document.getElementById('raiseRate').value) || 0;
+
+  document.querySelectorAll('.wage-input').forEach(inp => {
+    if (inp.dataset.future === '1') {
+      if (!inp.value) {
+        const year = parseInt(inp.dataset.year);
+        const yearsOut = year - CURRENT_YEAR;
+        const projected = baseWage * Math.pow(1 + raiseRate, yearsOut);
+        const wageBase = getWageBase(year);
+        inp.value = Math.round(Math.min(projected, wageBase));
+        updateRowCalc(inp);
+      }
+    }
+  });
+  recalcAll();
+  debounceSave();
+}
+
+function clearAllWages() {
+  if (!confirm('Clear all entered wages?')) return;
+  document.querySelectorAll('.wage-input').forEach(inp => { inp.value = ''; updateRowCalc(inp); });
+  recalcAll();
+  debounceSave();
+}
+
+// ─────────────────────────────────────────────────────────────
+// INIT & STATE RESTORE
+// ─────────────────────────────────────────────────────────────
+
+async function init() {
+  const raw = getCookie(COOKIE_KEY);
+  let saved = null;
+  if (raw) saved = await decryptData(raw);
+
+  // ── THEME TOGGLE ──
+  const themeToggle = document.getElementById('themeToggle');
+  const themeLabel = document.getElementById('themeLabel');
+  const toggleKnob = document.getElementById('toggleKnob');
+
+  function applyTheme(isLight) {
+    document.body.classList.toggle('light', isLight);
+    themeLabel.textContent = isLight ? 'Light' : 'Dark';
+    toggleKnob.textContent = isLight ? '☀' : '☾';
+  }
+
+  themeToggle.addEventListener('click', () => {
+    const isLight = !document.body.classList.contains('light');
+    applyTheme(isLight);
+    debounceSave();
+  });
+
+  // Wire up age → birthYear
+  document.getElementById('currentAge').addEventListener('input', function() {
+    const a = parseInt(this.value) || 0;
+    document.getElementById('birthYear').value = a ? (CURRENT_YEAR - a) : '';
+    buildTable(null);
+    debounceSave();
+  });
+
+  document.getElementById('raiseRate').addEventListener('change', debounceSave);
+  document.getElementById('futureWage').addEventListener('input', debounceSave);
+
+  if (saved) {
+    if (saved.theme === 'light') applyTheme(true);
+    if (saved.currentAge) document.getElementById('currentAge').value = saved.currentAge;
+    if (saved.raiseRate) document.getElementById('raiseRate').value = saved.raiseRate;
+    if (saved.futureWage) document.getElementById('futureWage').value = saved.futureWage;
+    if (saved.currentAge) {
+      const a = parseInt(saved.currentAge);
+      document.getElementById('birthYear').value = CURRENT_YEAR - a;
+    }
+    buildTable(saved.wages || {});
+  } else {
+    buildTable(null);
+  }
+}
+
+init();
+</script>
+
+</body>
+</html>
