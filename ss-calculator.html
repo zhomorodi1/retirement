@@ -4,1117 +4,250 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Social Security Benefit Estimator</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<title>SS Benefit Estimator</title>
 <style>
-/* ============================================================
-   DESIGN TOKENS
-   ============================================================ */
-:root {
-  color-scheme: dark;
-  --bg-page:    #0f1923;
-  --bg-card:    #162030;
-  --bg-header:  #1a2840;
-  --bg-input:   #0d1620;
-  --bg-cur:     #1a2618;
-  --bg-fut:     #101e28;
-  --bg-hover:   #1e2e3e;
-  --tx-primary:   #e8edf2;
-  --tx-secondary: #8ca0b8;
-  --tx-muted:     #4e6278;
-  --tx-label:     #6a8098;
-  --gold:         #c8a050;
-  --gold-dim:     #8a6830;
-  --teal:         #28a898;
-  --teal-dim:     #1a6858;
-  --red:          #e04040;
-  --red-dim:      #8a2020;
-  --green:        #38b878;
-  --green-dim:    #1a6838;
-  --border:       #243048;
-  --border-hi:    #2e3e58;
-}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { min-height: 100vh; background: #0f1923; color: #e8edf2; font-family: system-ui, -apple-system, sans-serif; font-size: 16px; }
+html.light, html.light body { background: #f0f2f5; color: #0d1520; }
+.page { max-width: 1000px; margin: 0 auto; padding: 16px; }
 
-html.light, html.light body {
-color-scheme: light;
-–bg-page:    #f0f2f5;
-–bg-card:    #ffffff;
-–bg-header:  #e8edf4;
-–bg-input:   #ffffff;
-–bg-cur:     #fffbe8;
-–bg-fut:     #eef8f5;
-–bg-hover:   #f0f4f8;
-–tx-primary:   #0d1520;
-–tx-secondary: #384858;
-–tx-muted:     #889098;
-–tx-label:     #506070;
-–gold:         #7a5800;
-–gold-dim:     #c8a050;
-–teal:         #0a6858;
-–teal-dim:     #28a898;
-–red:          #b81818;
-–red-dim:      #e04040;
-–green:        #186838;
-–green-dim:    #38b878;
-–border:       #d0d8e0;
-–border-hi:    #b8c4d0;
-}
+/* HEADER */
+.hdr { display:flex; align-items:center; justify-content:space-between; padding:14px 0; border-bottom:1px solid #243048; margin-bottom:14px; gap:12px; flex-wrap:wrap; }
+html.light .hdr { border-bottom-color:#d0d8e0; }
+.hdr h1 { font-size:20px; font-weight:700; }
+.hdr h1 span { color:#c8a050; }
+html.light .hdr h1 span { color:#7a5800; }
+.theme-btn { padding:7px 14px; background:#1a2840; border:1px solid #2e3e58; border-radius:6px; color:#e8edf2; font-size:14px; cursor:pointer; white-space:nowrap; }
+html.light .theme-btn { background:#fff; border-color:#c0c8d0; color:#0d1520; }
 
-/* ============================================================
-RESET & BASE
-============================================================ */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+/* SECURITY */
+.sec-wrap { border:1px solid #1a6858; border-radius:6px; overflow:hidden; margin-bottom:12px; }
+html.light .sec-wrap { border-color:#28a898; }
+.sec-bar { padding:10px 14px; background:#162030; font-size:13px; color:#8ca0b8; }
+html.light .sec-bar { background:#fff; color:#384858; }
+.sec-bar strong { color:#e8edf2; }
+html.light .sec-bar strong { color:#0d1520; }
+.priv-bar { display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding:8px 14px; background:#1a2840; border-top:1px solid #243048; }
+html.light .priv-bar { background:#e8edf4; border-top-color:#d0d8e0; }
+.priv-lbl { flex:1; min-width:160px; font-size:11px; color:#4e6278; text-transform:uppercase; letter-spacing:0.08em; }
+html.light .priv-lbl { color:#506070; }
+.priv-status { font-size:12px; font-weight:600; color:#4e6278; }
+.priv-status.on { color:#28a898; }
+html.light .priv-status { color:#889098; }
+html.light .priv-status.on { color:#0a6858; }
+.pill { width:40px; height:22px; border-radius:11px; background:#243048; border:1px solid #2e3e58; position:relative; cursor:pointer; padding:0; outline:none; -webkit-appearance:none; appearance:none; transition:background 0.2s; flex-shrink:0; }
+.pill.on { background:#28a898; border-color:#28a898; }
+html.light .pill { background:#d0d8e0; border-color:#b0b8c0; }
+html.light .pill.on { background:#0a6858; border-color:#0a6858; }
+.pill::after { content:’’; position:absolute; top:2px; left:2px; width:16px; height:16px; border-radius:50%; background:#8ca0b8; transition:transform 0.2s, background 0.2s; }
+.pill.on::after { transform:translateX(18px); background:#fff; }
+html.light .pill::after { background:#fff; }
+.priv-note { font-size:11px; color:#4e6278; }
+html.light .priv-note { color:#889098; }
 
-html {
-background: #0f1923;
-min-height: 100vh;
-}
-html.light { background: #f0f2f5; }
+/* DISCLAIMER */
+.disc { padding:9px 14px; margin-bottom:12px; background:#162030; border:1px solid #8a2020; border-left:3px solid #e04040; border-radius:6px; font-size:12px; color:#8ca0b8; }
+html.light .disc { background:#fff8f8; border-color:#d08080; border-left-color:#b81818; color:#384858; }
+.disc a { color:#e04040; }
+html.light .disc a { color:#b81818; }
 
-body {
-min-height: 100vh;
-background: #0f1923;
-background-color: #0f1923;
-color: #e8edf2;
-font-family: ‘Inter’, system-ui, sans-serif;
-font-size: 14px;
-line-height: 1.5;
--webkit-font-smoothing: antialiased;
-}
-html.light body {
-background: #f0f2f5;
-background-color: #f0f2f5;
-color: #0d1520;
-}
+/* CARDS */
+.card { background:#162030; border:1px solid #243048; border-radius:8px; margin-bottom:12px; overflow:hidden; }
+html.light .card { background:#fff; border-color:#d0d8e0; }
+.card-hdr { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; padding:10px 14px; background:#1a2840; border-bottom:1px solid #243048; }
+html.light .card-hdr { background:#e8edf4; border-bottom-color:#d0d8e0; }
+.card-title { display:flex; align-items:center; gap:8px; font-size:11px; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; color:#8ca0b8; }
+html.light .card-title { color:#384858; }
+.bar { width:3px; height:14px; border-radius:2px; flex-shrink:0; }
+.gold { background:#c8a050; } html.light .gold { background:#7a5800; }
+.teal { background:#28a898; } html.light .teal { background:#0a6858; }
+.card-body { padding:16px 14px; }
 
-a { color: var(–teal); text-decoration: none; }
-a:hover { text-decoration: underline; }
-
-/* ============================================================
-LAYOUT
-============================================================ */
-.page {
-max-width: 1080px;
-margin: 0 auto;
-padding: 0 16px 60px;
+/* FIELDS */
+.fields { display:grid; grid-template-columns:repeat(auto-fill, minmax(175px,1fr)); gap:12px; }
+.field { display:flex; flex-direction:column; gap:5px; }
+.field label { font-size:11px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:#6a8098; }
+html.light .field label { color:#506070; }
+.field input, .field select {
+background:#0d1620; background-color:#0d1620;
+border:1px solid #2e3e58; border-radius:5px;
+padding:10px 12px; font-size:16px; font-weight:600;
+color:#e8edf2; -webkit-text-fill-color:#e8edf2;
+-webkit-appearance:none; appearance:none;
+outline:none; width:100%; touch-action:manipulation;
 }
-
-/* ============================================================
-HEADER
-============================================================ */
-.site-header {
-display: flex;
-align-items: center;
-gap: 0;
-padding: 20px 0 18px;
-border-bottom: 1px solid var(–border);
-margin-bottom: 24px;
+html.light .field input, html.light .field select {
+background:#fff; background-color:#fff; border-color:#c0c8d0;
+color:#0d1520; -webkit-text-fill-color:#0d1520;
 }
+.field input:focus, .field select:focus { border-color:#c8a050; }
+html.light .field input:focus, html.light .field select:focus { border-color:#7a5800; }
+.field input[readonly] { opacity:0.5; cursor:not-allowed; }
+.field select option { background:#0d1620; color:#e8edf2; }
+html.light .field select option { background:#fff; color:#0d1520; }
+input:-webkit-autofill { -webkit-box-shadow:0 0 0 1000px #0d1620 inset; -webkit-text-fill-color:#e8edf2; }
+html.light input:-webkit-autofill { -webkit-box-shadow:0 0 0 1000px #fff inset; -webkit-text-fill-color:#0d1520; }
 
-.header-eyebrow {
-font-family: ‘JetBrains Mono’, monospace;
-font-size: 10px;
-font-weight: 500;
-letter-spacing: 0.18em;
-text-transform: uppercase;
-color: var(–tx-muted);
-display: flex;
-align-items: center;
-gap: 8px;
-}
-
-.header-eyebrow::after {
-content: ‘’;
-display: inline-block;
-width: 40px;
-height: 1px;
-background: var(–border-hi);
-}
-
-.header-eyebrow span { color: var(–gold); }
-
-.header-titles {
-flex: 1;
-padding-left: 14px;
-}
-
-.header-titles h1 {
-font-size: 28px;
-font-weight: 700;
-line-height: 1.1;
-color: var(–tx-primary);
-letter-spacing: -0.5px;
-}
-
-.header-titles h1 em {
-font-style: normal;
-color: var(–gold);
-}
-
-.header-titles .subtitle {
-font-family: ‘JetBrains Mono’, monospace;
-font-size: 10px;
-letter-spacing: 0.12em;
-text-transform: uppercase;
-color: var(–tx-muted);
-margin-top: 4px;
-}
-
-.header-right {
-display: flex;
-align-items: center;
-gap: 12px;
-flex-shrink: 0;
-}
-
-/* Theme toggle button — matches 401k tool style */
-.theme-btn {
-display: flex;
-align-items: center;
-gap: 7px;
-padding: 7px 14px;
-background: var(–bg-card);
-border: 1px solid var(–border-hi);
-border-radius: 6px;
-cursor: pointer;
-font-family: ‘JetBrains Mono’, monospace;
-font-size: 11px;
-font-weight: 500;
-letter-spacing: 0.08em;
-color: var(–tx-secondary);
-transition: border-color 0.15s, color 0.15s;
-white-space: nowrap;
-}
-.theme-btn:hover { border-color: var(–gold); color: var(–gold); }
-.theme-btn .tb-icon { font-size: 14px; }
-
-/* ============================================================
-SECURITY + PRIVACY BAR
-============================================================ */
-.security-wrap {
-margin-bottom: 20px;
-border-radius: 6px;
-overflow: hidden;
-border: 1px solid #1a6858;
-}
-html.light .security-wrap { border-color: #28a898; }
-
-.security-bar {
-display: flex;
-align-items: flex-start;
-gap: 10px;
-padding: 10px 14px;
-background: #162030;
-background-color: #162030;
-font-size: 12px;
-color: #8ca0b8;
-line-height: 1.5;
-}
-html.light .security-bar { background: #ffffff; background-color: #ffffff; color: #384858; }
-.security-bar .lock { font-size: 13px; flex-shrink: 0; margin-top: 1px; }
-.security-bar strong { color: #e8edf2; -webkit-text-fill-color: #e8edf2; }
-html.light .security-bar strong { color: #0d1520; -webkit-text-fill-color: #0d1520; }
-
-.privacy-bar {
-display: flex;
-align-items: center;
-gap: 10px;
-padding: 8px 14px;
-background: #1a2840;
-background-color: #1a2840;
-border-top: 1px solid #243048;
-flex-wrap: wrap;
-}
-html.light .privacy-bar { background: #e8edf4; background-color: #e8edf4; border-top-color: #d0d8e0; }
-
-.privacy-bar-label {
-font-family: ‘JetBrains Mono’, monospace;
-font-size: 10px;
-letter-spacing: 0.1em;
-text-transform: uppercase;
-color: #4e6278;
--webkit-text-fill-color: #4e6278;
-flex: 1;
-min-width: 180px;
-}
-html.light .privacy-bar-label { color: #889098; -webkit-text-fill-color: #889098; }
-
-.privacy-status { font-family: ‘JetBrains Mono’, monospace; font-size: 11px; font-weight: 600; }
-.privacy-status.public  { color: #4e6278; -webkit-text-fill-color: #4e6278; }
-.privacy-status.private { color: #28a898; -webkit-text-fill-color: #28a898; }
-html.light .privacy-status.public  { color: #889098; -webkit-text-fill-color: #889098; }
-html.light .privacy-status.private { color: #0a6858; -webkit-text-fill-color: #0a6858; }
-
-.pill-toggle {
-width: 38px; height: 20px;
-border-radius: 10px;
-background: #0d1620;
-border: 1px solid #2e3e58;
-position: relative;
-cursor: pointer;
-flex-shrink: 0;
-transition: background 0.2s, border-color 0.2s;
-touch-action: manipulation;
--webkit-tap-highlight-color: transparent;
-user-select: none;
--webkit-user-select: none;
-padding: 0;
-outline: none;
--webkit-appearance: none;
-appearance: none;
-}
-.pill-toggle.on { background: #28a898; border-color: #28a898; }
-html.light .pill-toggle { background: #e8edf4; border-color: #c0c8d0; }
-html.light .pill-toggle.on { background: #0a6858; border-color: #0a6858; }
-.pill-knob {
-position: absolute;
-top: 2px; left: 2px;
-width: 14px; height: 14px;
-border-radius: 50%;
-background: #4e6278;
-transition: transform 0.2s, background 0.2s;
-}
-.pill-toggle.on .pill-knob { transform: translateX(18px); background: #fff; }
-html.light .pill-knob { background: #b0b8c0; }
-html.light .pill-toggle.on .pill-knob { background: #fff; }
-
-.privacy-bar-note {
-font-family: ‘JetBrains Mono’, monospace;
-font-size: 10px;
-color: #4e6278;
--webkit-text-fill-color: #4e6278;
-}
-html.light .privacy-bar-note { color: #889098; -webkit-text-fill-color: #889098; }
-
-/* ============================================================
-DISCLAIMER
-============================================================ */
-.disclaimer {
-display: flex;
-align-items: flex-start;
-gap: 8px;
-padding: 9px 14px;
-margin-bottom: 20px;
-background: #162030;
-background-color: #162030;
-border: 1px solid #8a2020;
-border-left: 3px solid #e04040;
-border-radius: 6px;
-font-size: 12px;
-color: #8ca0b8;
-line-height: 1.5;
-}
-html.light .disclaimer { background: #fff8f8; background-color: #fff8f8; border-color: #d08080; border-left-color: #b81818; color: #384858; }
-.disclaimer strong { color: #e8edf2; -webkit-text-fill-color: #e8edf2; }
-html.light .disclaimer strong { color: #0d1520; -webkit-text-fill-color: #0d1520; }
-.disclaimer a { color: #8a2020; }
-html.light .disclaimer a { color: #b81818; }
-
-.section-card {
-background: #162030;
-background-color: #162030;
-border: 1px solid #243048;
-border-radius: 8px;
-margin-bottom: 18px;
-overflow: hidden;
-}
-html.light .section-card {
-background: #ffffff;
-background-color: #ffffff;
-border-color: #d0d8e0;
-}
-
-.section-card-header {
-display: flex;
-align-items: center;
-justify-content: space-between;
-gap: 12px;
-padding: 11px 18px;
-background: #1a2840;
-background-color: #1a2840;
-border-bottom: 1px solid #243048;
-flex-wrap: wrap;
-}
-html.light .section-card-header {
-background: #e8edf4;
-background-color: #e8edf4;
-border-bottom-color: #d0d8e0;
-}
-
-.section-title {
-display: flex;
-align-items: center;
-gap: 10px;
-font-family: ‘JetBrains Mono’, monospace;
-font-size: 11px;
-font-weight: 600;
-letter-spacing: 0.15em;
-text-transform: uppercase;
-color: var(–tx-secondary);
-}
-
-.section-title .bar {
-display: inline-block;
-width: 3px;
-height: 14px;
-border-radius: 2px;
-flex-shrink: 0;
-}
-.bar-gold  { background: var(–gold); }
-.bar-teal  { background: var(–teal); }
-
-.section-title .icon { font-size: 14px; }
-
-.section-card-body { padding: 20px 18px; }
-
-/* ============================================================
-FIELD GROUPS — inputs inside cards
-============================================================ */
-.fields-grid {
-display: grid;
-grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
-gap: 16px;
-}
-
-.field {
-display: flex;
-flex-direction: column;
-gap: 5px;
-}
-
-.field label {
-font-family: ‘JetBrains Mono’, monospace;
-font-size: 10px;
-font-weight: 500;
-letter-spacing: 0.12em;
-text-transform: uppercase;
-color: var(–tx-label);
--webkit-text-fill-color: var(–tx-label);
-}
-
-.field input,
-.field select {
-background: #0d1620;
-background-color: #0d1620;
-border: 1px solid #2e3e58;
-border-radius: 5px;
-padding: 9px 12px;
-font-family: ‘JetBrains Mono’, monospace;
-font-size: 16px;
-font-weight: 600;
-color: #e8edf2;
--webkit-text-fill-color: #e8edf2;
-outline: none;
-width: 100%;
--webkit-appearance: none;
-appearance: none;
-transition: border-color 0.15s;
-touch-action: manipulation;
-}
-.field input:focus,
-.field select:focus { border-color: #c8a050; }
-html.light .field input,
-html.light .field select {
-background: #ffffff;
-background-color: #ffffff;
-border-color: #c0c8d0;
-color: #0d1520;
--webkit-text-fill-color: #0d1520;
-}
-html.light .field input:focus,
-html.light .field select:focus { border-color: #7a5800; }
-
-.field input[readonly] {
-opacity: 0.45;
-cursor: not-allowed;
-background: #1a2840;
-background-color: #1a2840;
-}
-html.light .field input[readonly] {
-background: #e8edf4;
-background-color: #e8edf4;
-}
-
-.field select option {
-background: #0d1620;
-background-color: #0d1620;
-color: #e8edf2;
--webkit-text-fill-color: #e8edf2;
-}
-html.light .field select option {
-background: #ffffff;
-background-color: #ffffff;
-color: #0d1520;
--webkit-text-fill-color: #0d1520;
-}
-
-/* autofill override */
-input:-webkit-autofill,
-input:-webkit-autofill:focus {
--webkit-box-shadow: 0 0 0 1000px var(–bg-input) inset;
--webkit-text-fill-color: var(–tx-primary);
-}
-
-/* ============================================================
-BUTTONS
-============================================================ */
-.btn {
-font-family: ‘JetBrains Mono’, monospace;
-font-size: 10px;
-font-weight: 600;
-letter-spacing: 0.12em;
-text-transform: uppercase;
-padding: 7px 14px;
-border-radius: 5px;
-border: 1px solid var(–border-hi);
-background: var(–bg-input);
-color: var(–tx-secondary);
-cursor: pointer;
-transition: border-color 0.15s, color 0.15s, background 0.15s;
-white-space: nowrap;
-}
-.btn:hover { border-color: var(–teal); color: var(–teal); }
-.btn.danger:hover { border-color: var(–red); color: var(–red); }
-
-.btn-row {
-display: flex;
-align-items: center;
-gap: 8px;
-flex-wrap: wrap;
-}
-
-/* Save indicator */
-.save-flash {
-font-family: ‘JetBrains Mono’, monospace;
-font-size: 10px;
-color: var(–teal);
-opacity: 0;
-transition: opacity 0.3s;
-}
-.save-flash.show { opacity: 1; }
-
-/* ============================================================
-EARNINGS TABLE
-============================================================ */
-.table-scroll {
-overflow-x: auto;
-overflow-y: auto;
-max-height: 500px;
-}
-.table-scroll::-webkit-scrollbar { width: 5px; height: 5px; }
-.table-scroll::-webkit-scrollbar-track { background: var(–bg-page); }
-.table-scroll::-webkit-scrollbar-thumb { background: var(–border-hi); border-radius: 3px; }
-
-table { width: 100%; border-collapse: collapse; }
-
+/* TABLE */
+.tbl-scroll { overflow-x:auto; overflow-y:auto; max-height:480px; }
+table { width:100%; border-collapse:collapse; }
 thead th {
-position: sticky;
-top: 0;
-z-index: 2;
-background: #1a2840;
-background-color: #1a2840;
-padding: 9px 12px;
-font-family: ‘JetBrains Mono’, monospace;
-font-size: 10px;
-font-weight: 600;
-letter-spacing: 0.12em;
-text-transform: uppercase;
-color: #6a8098;
--webkit-text-fill-color: #6a8098;
-text-align: left;
-border-bottom: 1px solid #2e3e58;
-white-space: nowrap;
+position:sticky; top:0; z-index:2;
+background:#1a2840; background-color:#1a2840;
+padding:8px 10px; font-size:10px; font-weight:600;
+letter-spacing:0.12em; text-transform:uppercase;
+color:#6a8098; -webkit-text-fill-color:#6a8098;
+text-align:left; border-bottom:1px solid #2e3e58; white-space:nowrap;
 }
-html.light thead th {
-background: #e8edf4;
-background-color: #e8edf4;
-color: #506070;
--webkit-text-fill-color: #506070;
-border-bottom-color: #c0c8d0;
+html.light thead th { background:#e8edf4; background-color:#e8edf4; color:#506070; -webkit-text-fill-color:#506070; border-bottom-color:#c0c8d0; }
+thead th:nth-child(n+3) { text-align:right; }
+tbody tr { border-bottom:1px solid #1e2f45; }
+html.light tbody tr { border-bottom-color:#e0e8f0; }
+tbody tr:hover { background:#1e2e3e; }
+html.light tbody tr:hover { background:#f0f4f8; }
+tr.now { background:#1a2618; border-left:2px solid #c8a050; }
+html.light tr.now { background:#fffbe0; border-left-color:#7a5800; }
+tr.fut { background:#101e28; }
+html.light tr.fut { background:#eef8f5; }
+td { padding:6px 10px; font-size:14px; vertical-align:middle; }
+.td-yr { font-size:13px; font-weight:700; color:#e8edf2; -webkit-text-fill-color:#e8edf2; white-space:nowrap; }
+html.light .td-yr { color:#0d1520; -webkit-text-fill-color:#0d1520; }
+.fut .td-yr { color:#28a898; -webkit-text-fill-color:#28a898; }
+html.light .fut .td-yr { color:#0a6858; -webkit-text-fill-color:#0a6858; }
+.td-age { font-size:12px; color:#4e6278; -webkit-text-fill-color:#4e6278; }
+html.light .td-age { color:#889098; -webkit-text-fill-color:#889098; }
+.td-inp { text-align:right; padding:3px 6px; }
+.wi {
+background:#0d1620; background-color:#0d1620;
+border:1px solid #2e3e58; border-radius:4px;
+padding:5px 8px; font-size:16px; font-weight:600;
+color:#e8edf2; -webkit-text-fill-color:#e8edf2;
+text-align:right; width:128px;
+-webkit-appearance:none; appearance:none;
+outline:none; touch-action:manipulation;
 }
-thead th:not(:first-child):not(:nth-child(2)) { text-align: right; }
+html.light .wi { background:#fff; background-color:#fff; border-color:#b0b8c0; color:#0d1520; -webkit-text-fill-color:#0d1520; }
+.wi:focus { border-color:#c8a050; }
+html.light .wi:focus { border-color:#7a5800; }
+.td-n { font-size:12px; text-align:right; color:#8ca0b8; -webkit-text-fill-color:#8ca0b8; white-space:nowrap; }
+html.light .td-n { color:#384858; -webkit-text-fill-color:#384858; }
+.td-n.hi { color:#38b878; -webkit-text-fill-color:#38b878; font-weight:700; }
+html.light .td-n.hi { color:#186838; -webkit-text-fill-color:#186838; }
+.badge { display:inline-block; font-size:9px; font-weight:700; padding:1px 5px; border-radius:3px; margin-left:4px; vertical-align:middle; }
+.bn { background:#2a1800; color:#c8a050; border:1px solid #4a3010; }
+html.light .bn { background:#fdf0c0; color:#7a5800; border-color:#c8a050; }
+.bf { background:#0a2820; color:#28a898; border:1px solid #1a5040; }
+html.light .bf { background:#d0f0e8; color:#0a6858; border-color:#50a898; }
 
-tbody tr {
-border-bottom: 1px solid var(–border);
-transition: background 0.1s;
+/* BTNS */
+.btn-row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+.btn { padding:6px 12px; background:#0d1620; border:1px solid #2e3e58; border-radius:5px; color:#8ca0b8; font-size:11px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; cursor:pointer; white-space:nowrap; }
+html.light .btn { background:#fff; border-color:#c0c8d0; color:#384858; }
+.btn:hover { border-color:#28a898; color:#28a898; }
+.btn.red:hover { border-color:#e04040; color:#e04040; }
+.flash { font-size:11px; color:#28a898; opacity:0; transition:opacity 0.3s; }
+html.light .flash { color:#0a6858; }
+.flash.on { opacity:1; }
+
+/* RESULTS */
+.stats { display:flex; flex-wrap:wrap; gap:0; margin-bottom:16px; padding-bottom:16px; border-bottom:1px solid #243048; }
+html.light .stats { border-bottom-color:#d0d8e0; }
+.stat { flex:1; min-width:110px; padding:0 14px 0 0; }
+.stat+.stat { border-left:1px solid #243048; padding-left:14px; }
+html.light .stat+.stat { border-left-color:#d0d8e0; }
+.stat-lbl { font-size:10px; font-weight:600; letter-spacing:0.12em; text-transform:uppercase; color:#4e6278; -webkit-text-fill-color:#4e6278; margin-bottom:3px; }
+html.light .stat-lbl { color:#889098; -webkit-text-fill-color:#889098; }
+.stat-val { font-size:24px; font-weight:700; color:#c8a050; -webkit-text-fill-color:#c8a050; line-height:1; }
+html.light .stat-val { color:#7a5800; -webkit-text-fill-color:#7a5800; }
+.stat-val.sm { font-size:17px; color:#e8edf2; -webkit-text-fill-color:#e8edf2; }
+html.light .stat-val.sm { color:#0d1520; -webkit-text-fill-color:#0d1520; }
+
+/* BENEFIT CARDS */
+.b-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(100px,1fr)); gap:8px; }
+.bc { background:#1a2840; border:1px solid #243048; border-radius:6px; padding:10px; position:relative; overflow:hidden; }
+html.light .bc { background:#f4f6f8; border-color:#d0d8e0; }
+.bc::before { content:’’; position:absolute; top:0; left:0; right:0; height:2px; background:#243048; }
+html.light .bc::before { background:#d0d8e0; }
+.bc.best { border-color:#4a3010; background:#1a2010; }
+html.light .bc.best { border-color:#c8a050; background:#fffbe0; }
+.bc.best::before { background:#c8a050; }
+html.light .bc.best::before { background:#7a5800; }
+.bc-age { font-size:10px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:#4e6278; -webkit-text-fill-color:#4e6278; margin-bottom:4px; }
+html.light .bc-age { color:#889098; -webkit-text-fill-color:#889098; }
+.bc.best .bc-age { color:#c8a050; -webkit-text-fill-color:#c8a050; }
+html.light .bc.best .bc-age { color:#7a5800; -webkit-text-fill-color:#7a5800; }
+.bc-mo { font-size:17px; font-weight:700; color:#e8edf2; -webkit-text-fill-color:#e8edf2; line-height:1; margin-bottom:2px; }
+html.light .bc-mo { color:#0d1520; -webkit-text-fill-color:#0d1520; }
+.bc.best .bc-mo { color:#c8a050; -webkit-text-fill-color:#c8a050; }
+html.light .bc.best .bc-mo { color:#7a5800; -webkit-text-fill-color:#7a5800; }
+.bc-yr { font-size:11px; color:#4e6278; -webkit-text-fill-color:#4e6278; margin-bottom:2px; }
+html.light .bc-yr { color:#889098; -webkit-text-fill-color:#889098; }
+.bc-pct { font-size:11px; font-weight:600; }
+.up { color:#38b878; -webkit-text-fill-color:#38b878; } html.light .up { color:#186838; -webkit-text-fill-color:#186838; }
+.dn { color:#e04040; -webkit-text-fill-color:#e04040; } html.light .dn { color:#b81818; -webkit-text-fill-color:#b81818; }
+.ze { color:#4e6278; -webkit-text-fill-color:#4e6278; } html.light .ze { color:#889098; -webkit-text-fill-color:#889098; }
+
+/* FORMULA */
+.fml { background:#162030; border:1px solid #243048; border-radius:8px; margin-bottom:14px; overflow:hidden; }
+html.light .fml { background:#fff; border-color:#d0d8e0; }
+.fml-hdr { display:flex; align-items:center; justify-content:space-between; padding:10px 14px; cursor:pointer; background:#1a2840; user-select:none; }
+html.light .fml-hdr { background:#e8edf4; }
+.fml-hdr:hover { background:#1e2e3e; } html.light .fml-hdr:hover { background:#dce4ee; }
+.fml-t { font-size:11px; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; color:#8ca0b8; }
+html.light .fml-t { color:#384858; }
+.fml-c { font-size:11px; color:#4e6278; }
+html.light .fml-c { color:#889098; }
+.fml-body { display:none; padding:12px 14px; font-size:12px; line-height:1.8; color:#8ca0b8; border-top:1px solid #243048; }
+html.light .fml-body { color:#384858; border-top-color:#d0d8e0; }
+.fml-body.open { display:block; }
+.fml-body b { color:#c8a050; } html.light .fml-body b { color:#7a5800; }
+
+/* FOOTER */
+footer { text-align:center; padding-top:14px; border-top:1px solid #243048; font-size:12px; color:#4e6278; line-height:1.8; }
+html.light footer { border-top-color:#d0d8e0; color:#889098; }
+footer a { color:#28a898; } html.light footer a { color:#0a6858; }
+footer strong { color:#8ca0b8; } html.light footer strong { color:#384858; }
+
+/* RESPONSIVE */
+@media (max-width:600px) {
+.fields { grid-template-columns:1fr 1fr; }
+.b-grid { grid-template-columns:repeat(2,1fr); }
+.stats { flex-direction:column; gap:10px; }
+.stat { border-left:none !important; padding-left:0 !important; }
+.hdr h1 { font-size:17px; }
 }
-tbody tr:hover { background: var(–bg-hover); }
-tbody tr.row-current { background: var(–bg-cur); }
-tbody tr.row-future  { background: var(–bg-fut); }
-
-td {
-padding: 7px 12px;
-font-size: 13px;
-vertical-align: middle;
-}
-
-.td-year {
-font-family: ‘JetBrains Mono’, monospace;
-font-size: 12px;
-font-weight: 600;
-color: var(–tx-primary);
--webkit-text-fill-color: var(–tx-primary);
-white-space: nowrap;
-}
-.row-future .td-year { color: var(–teal); -webkit-text-fill-color: var(–teal); }
-
-.td-age {
-font-family: ‘JetBrains Mono’, monospace;
-font-size: 11px;
-color: var(–tx-muted);
--webkit-text-fill-color: var(–tx-muted);
-}
-
-/* Input cell */
-.td-entry {
-text-align: right;
-padding: 4px 8px;
-}
-
-.wage-input {
-background: #0d1620;
-background-color: #0d1620;
-border: 1px solid #2e3e58;
-border-radius: 4px;
-padding: 5px 8px;
-font-family: ‘JetBrains Mono’, monospace;
-font-size: 16px;
-font-weight: 600;
-color: #e8edf2;
--webkit-text-fill-color: #e8edf2;
-text-align: right;
-width: 130px;
-outline: none;
--webkit-appearance: none;
-appearance: none;
-transition: border-color 0.15s;
-touch-action: manipulation;
-}
-.wage-input:focus { border-color: #c8a050; }
-.wage-input::placeholder { color: #4e6278; -webkit-text-fill-color: #4e6278; }
-html.light .wage-input {
-background: #ffffff;
-background-color: #ffffff;
-border-color: #b0b8c0;
-color: #0d1520;
--webkit-text-fill-color: #0d1520;
-}
-html.light .wage-input:focus { border-color: #7a5800; }
-html.light .wage-input::placeholder { color: #a0a8b0; -webkit-text-fill-color: #a0a8b0; }
-
-.td-num {
-font-family: ‘JetBrains Mono’, monospace;
-font-size: 12px;
-color: var(–tx-secondary);
--webkit-text-fill-color: var(–tx-secondary);
-text-align: right;
-white-space: nowrap;
-}
-.td-num.counted {
-color: var(–green);
--webkit-text-fill-color: var(–green);
-font-weight: 600;
-}
-
-/* badges */
-.badge {
-display: inline-block;
-font-family: ‘JetBrains Mono’, monospace;
-font-size: 9px;
-font-weight: 600;
-letter-spacing: 0.06em;
-padding: 1px 5px;
-border-radius: 3px;
-vertical-align: middle;
-margin-left: 5px;
-}
-.badge-now  { background: var(–gold-dim); color: var(–gold); border: 1px solid var(–gold-dim); }
-.badge-proj { background: var(–teal-dim); color: var(–teal); border: 1px solid var(–teal-dim); }
-
-/* ============================================================
-RESULTS — AIME stats
-============================================================ */
-.stats-row {
-display: flex;
-align-items: flex-start;
-gap: 0;
-flex-wrap: wrap;
-margin-bottom: 20px;
-padding-bottom: 20px;
-border-bottom: 1px solid var(–border);
-}
-
-.stat-block {
-flex: 1;
-min-width: 130px;
-padding: 0 20px 0 0;
-}
-.stat-block + .stat-block {
-border-left: 1px solid var(–border);
-padding-left: 20px;
-}
-
-.stat-label {
-font-family: ‘JetBrains Mono’, monospace;
-font-size: 9px;
-font-weight: 600;
-letter-spacing: 0.14em;
-text-transform: uppercase;
-color: var(–tx-muted);
--webkit-text-fill-color: var(–tx-muted);
-margin-bottom: 4px;
-}
-
-.stat-value {
-font-size: 26px;
-font-weight: 700;
-color: var(–gold);
--webkit-text-fill-color: var(–gold);
-line-height: 1;
-letter-spacing: -0.5px;
-}
-.stat-value.md {
-font-size: 18px;
-color: var(–tx-primary);
--webkit-text-fill-color: var(–tx-primary);
-}
-
-/* ============================================================
-BENEFIT CARDS grid
-============================================================ */
-.benefit-grid {
-display: grid;
-grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-gap: 10px;
-}
-
-.benefit-card {
-background: var(–bg-header);
-border: 1px solid var(–border);
-border-radius: 6px;
-padding: 12px 10px;
-position: relative;
-overflow: hidden;
-transition: border-color 0.15s, transform 0.15s;
-}
-.benefit-card::before {
-content: ‘’;
-position: absolute;
-top: 0; left: 0; right: 0;
-height: 2px;
-background: var(–border-hi);
-}
-.benefit-card:hover { border-color: var(–border-hi); transform: translateY(-1px); }
-
-.benefit-card.best {
-border-color: var(–gold-dim);
-background: var(–bg-cur);
-}
-.benefit-card.best::before { background: var(–gold); }
-
-.bc-age {
-font-family: ‘JetBrains Mono’, monospace;
-font-size: 9px;
-font-weight: 600;
-letter-spacing: 0.1em;
-text-transform: uppercase;
-color: var(–tx-muted);
--webkit-text-fill-color: var(–tx-muted);
-margin-bottom: 5px;
-}
-.benefit-card.best .bc-age { color: var(–gold); -webkit-text-fill-color: var(–gold); }
-
-.bc-monthly {
-font-size: 18px;
-font-weight: 700;
-color: var(–tx-primary);
--webkit-text-fill-color: var(–tx-primary);
-line-height: 1;
-margin-bottom: 3px;
-}
-.benefit-card.best .bc-monthly { color: var(–gold); -webkit-text-fill-color: var(–gold); }
-
-.bc-annual {
-font-family: ‘JetBrains Mono’, monospace;
-font-size: 10px;
-color: var(–tx-muted);
--webkit-text-fill-color: var(–tx-muted);
-margin-bottom: 4px;
-}
-
-.bc-pct {
-font-family: ‘JetBrains Mono’, monospace;
-font-size: 10px;
-font-weight: 600;
-}
-.bc-pct.up   { color: var(–green); -webkit-text-fill-color: var(–green); }
-.bc-pct.down { color: var(–red);   -webkit-text-fill-color: var(–red); }
-.bc-pct.zero { color: var(–tx-muted); -webkit-text-fill-color: var(–tx-muted); }
-
-/* ============================================================
-FORMULA NOTE — collapsible
-============================================================ */
-.formula-card {
-background: var(–bg-card);
-border: 1px solid var(–border);
-border-radius: 8px;
-margin-bottom: 18px;
-overflow: hidden;
-}
-.formula-toggle {
-display: flex;
-align-items: center;
-justify-content: space-between;
-padding: 11px 18px;
-cursor: pointer;
-background: var(–bg-header);
-}
-.formula-toggle:hover { background: var(–bg-hover); }
-.formula-toggle-title {
-font-family: ‘JetBrains Mono’, monospace;
-font-size: 10px;
-font-weight: 600;
-letter-spacing: 0.15em;
-text-transform: uppercase;
-color: var(–tx-secondary);
-}
-.formula-chevron {
-font-family: ‘JetBrains Mono’, monospace;
-font-size: 10px;
-color: var(–tx-muted);
-}
-.formula-body {
-display: none;
-padding: 14px 18px;
-font-size: 12px;
-color: var(–tx-secondary);
-line-height: 1.8;
-border-top: 1px solid var(–border);
-}
-.formula-body.open { display: block; }
-.formula-body .hl { color: var(–gold); font-weight: 600; }
-
-/* ============================================================
-FOOTER
-============================================================ */
-footer {
-text-align: center;
-padding-top: 20px;
-border-top: 1px solid var(–border);
-font-size: 12px;
-color: var(–tx-muted);
-line-height: 1.8;
-}
-footer a { color: var(–teal); }
-footer strong { color: var(–tx-secondary); }
-
-/* ============================================================
-MOBILE CARD ROWS (shown instead of table on small screens)
-============================================================ */
-.mobile-rows { display: none; }
-
-.m-row {
-padding: 10px 12px;
-border-bottom: 1px solid var(–border);
-display: grid;
-grid-template-columns: 1fr auto;
-grid-template-rows: auto auto;
-gap: 3px 10px;
-transition: background 0.1s;
-}
-.m-row:active { background: var(–bg-hover); }
-.m-row.m-current { background: var(–bg-cur); border-left: 2px solid var(–gold); }
-.m-row.m-future  { background: var(–bg-fut); }
-
-.m-year {
-font-family: ‘JetBrains Mono’, monospace;
-font-size: 13px;
-font-weight: 700;
-color: var(–tx-primary);
--webkit-text-fill-color: var(–tx-primary);
-display: flex;
-align-items: center;
-gap: 6px;
-}
-.m-future .m-year { color: var(–teal); -webkit-text-fill-color: var(–teal); }
-
-.m-indexed {
-font-family: ‘JetBrains Mono’, monospace;
-font-size: 11px;
-color: var(–tx-muted);
--webkit-text-fill-color: var(–tx-muted);
-text-align: right;
-}
-.m-indexed.counted { color: var(–green); -webkit-text-fill-color: var(–green); font-weight: 700; }
-
-.m-input-row {
-grid-column: 1 / -1;
-display: flex;
-align-items: center;
-gap: 8px;
-margin-top: 3px;
-}
-.m-input-label {
-font-family: ‘JetBrains Mono’, monospace;
-font-size: 10px;
-text-transform: uppercase;
-letter-spacing: 0.08em;
-color: var(–tx-muted);
--webkit-text-fill-color: var(–tx-muted);
-white-space: nowrap;
-}
-.m-wage-input {
-flex: 1;
-background: #0d1620;
-background-color: #0d1620;
-border: 1px solid #2e3e58;
-border-radius: 4px;
-padding: 7px 10px;
-font-family: ‘JetBrains Mono’, monospace;
-font-size: 16px;
-font-weight: 600;
-color: #e8edf2;
--webkit-text-fill-color: #e8edf2;
-text-align: right;
-outline: none;
--webkit-appearance: none;
-appearance: none;
-transition: border-color 0.15s;
-touch-action: manipulation;
-}
-.m-wage-input:focus { border-color: var(–gold); }
-.m-wage-input::placeholder { color: var(–tx-muted); -webkit-text-fill-color: var(–tx-muted); }
-.m-cap {
-font-family: ‘JetBrains Mono’, monospace;
-font-size: 10px;
-color: var(–tx-muted);
--webkit-text-fill-color: var(–tx-muted);
-white-space: nowrap;
-}
-
-/* ============================================================
-RESPONSIVE
-============================================================ */
-@media (max-width: 720px) {
-.site-header { flex-wrap: wrap; gap: 10px; }
-.header-titles h1 { font-size: 20px; }
-.header-eyebrow { display: none; }
-.fields-grid { grid-template-columns: 1fr 1fr; }
-.benefit-grid { grid-template-columns: repeat(3, 1fr); }
-.stats-row { gap: 12px; }
-.stat-block { border-left: none !important; padding-left: 0 !important; min-width: 110px; }
-.stat-value { font-size: 20px; }
-.stat-value.md { font-size: 15px; }
-}
-
-@media (max-width: 560px) {
-.table-wrap table { display: none; }
-.mobile-rows { display: block; }
-.fields-grid { grid-template-columns: 1fr; }
-.benefit-grid { grid-template-columns: repeat(2, 1fr); }
-.section-card-body { padding: 14px 12px; }
-.section-card-header { padding: 9px 12px; }
-.stats-row { flex-direction: column; gap: 10px; }
-.stat-block { padding: 0; }
-.privacy-bar { gap: 8px; }
-.privacy-bar-label { font-size: 9px; min-width: 0; }
-.theme-btn .tb-text { display: none; }
-}
-
-/* ============================================================
-LIGHT MODE EXPLICIT OVERRIDES
-Safari needs explicit values, not just CSS variables
-============================================================ */
-html.light .site-header { border-bottom-color: #d0d8e0; }
-html.light .header-titles h1 { color: #0d1520; -webkit-text-fill-color: #0d1520; }
-html.light .header-titles .subtitle { color: #889098; -webkit-text-fill-color: #889098; }
-html.light .header-eyebrow { color: #889098; -webkit-text-fill-color: #889098; }
-html.light .header-eyebrow::after { background: #d0d8e0; }
-
-html.light .theme-btn { background: #fff; border-color: #c0c8d0; color: #384858; }
-html.light .theme-btn:hover { border-color: #7a5800; color: #7a5800; }
-
-html.light .security-wrap { border-color: #28a898; }
-html.light .security-bar { background: #fff; color: #384858; }
-html.light .security-bar strong { color: #0d1520; -webkit-text-fill-color: #0d1520; }
-html.light .privacy-bar { background: #e8edf4; border-top-color: #d0d8e0; }
-html.light .privacy-bar-label { color: #889098; -webkit-text-fill-color: #889098; }
-html.light .privacy-status.public { color: #889098; -webkit-text-fill-color: #889098; }
-html.light .privacy-status.private { color: #0a6858; -webkit-text-fill-color: #0a6858; }
-html.light .pill-toggle { background: #e8edf4; border-color: #c0c8d0; }
-html.light .pill-knob { background: #b0b8c0; }
-html.light .pill-toggle.on { background: #0a6858; border-color: #0a6858; }
-html.light .pill-toggle.on .pill-knob { background: #fff; }
-html.light .privacy-bar-note { color: #889098; -webkit-text-fill-color: #889098; }
-
-html.light .disclaimer { background: #fff8f8; border-color: #d08080; color: #384858; }
-html.light .disclaimer strong { color: #0d1520; -webkit-text-fill-color: #0d1520; }
-
-html.light .section-card { background: #fff; border-color: #d0d8e0; }
-html.light .section-card-header { background: #e8edf4; border-bottom-color: #d0d8e0; }
-html.light .section-title { color: #384858; -webkit-text-fill-color: #384858; }
-
-html.light .field label { color: #506070; -webkit-text-fill-color: #506070; }
-html.light .field input,
-html.light .field select {
-background: #fff; background-color: #fff;
-border-color: #c0c8d0;
-color: #0d1520; -webkit-text-fill-color: #0d1520;
-}
-html.light .field input:focus,
-html.light .field select:focus { border-color: #7a5800; }
-html.light .field input[readonly] { background: #e8edf4; background-color: #e8edf4; }
-html.light .field select option { background: #fff; background-color: #fff; color: #0d1520; -webkit-text-fill-color: #0d1520; }
-
-.light input:-webkit-autofill,
-.light input:-webkit-autofill:focus {
--webkit-box-shadow: 0 0 0 1000px #fff inset;
--webkit-text-fill-color: #0d1520;
-}
-
-html.light .btn { background: #fff; border-color: #c0c8d0; color: #384858; }
-html.light .btn:hover { border-color: #0a6858; color: #0a6858; }
-
-.light thead th { background: #e8edf4; color: #506070; -webkit-text-fill-color: #506070; border-bottom-color: #c0c8d0; }
-.light tbody tr { border-bottom-color: #e0e8f0; }
-.light tbody tr:hover { background: #f4f6f8; }
-.light tbody tr.row-current { background: #fffbe0; border-left-color: #7a5800; }
-.light tbody tr.row-future  { background: #eef8f5; }
-
-html.light .td-year { color: #0d1520; -webkit-text-fill-color: #0d1520; }
-.light tbody tr.row-future .td-year { color: #0a6858; -webkit-text-fill-color: #0a6858; }
-html.light .td-age { color: #889098; -webkit-text-fill-color: #889098; }
-html.light .td-num { color: #384858; -webkit-text-fill-color: #384858; }
-html.light .td-num.counted { color: #186838; -webkit-text-fill-color: #186838; }
-
-html.light .wage-input {
-background: #fff; background-color: #fff;
-border-color: #b0b8c0;
-color: #0d1520; -webkit-text-fill-color: #0d1520;
-}
-html.light .wage-input:focus { border-color: #7a5800; }
-html.light .wage-input::placeholder { color: #a0a8b0; -webkit-text-fill-color: #a0a8b0; }
-
-html.light .badge-now  { background: #f0e8c0; color: #7a5800; border-color: #c8a050; }
-html.light .badge-proj { background: #d0f0e8; color: #0a6858; border-color: #28a898; }
-
-html.light .stats-row { border-bottom-color: #d0d8e0; }
-html.light .stat-block { border-left-color: #d0d8e0; }
-html.light .stat-label { color: #889098; -webkit-text-fill-color: #889098; }
-html.light .stat-value { color: #7a5800; -webkit-text-fill-color: #7a5800; }
-html.light .stat-value.md { color: #0d1520; -webkit-text-fill-color: #0d1520; }
-
-html.light .benefit-card { background: #f4f6f8; border-color: #d0d8e0; }
-html.light .benefit-card::before { background: #d0d8e0; }
-html.light .benefit-card:hover { border-color: #b0b8c0; }
-html.light .benefit-card.best { background: #fffbe0; border-color: #c8a050; }
-html.light .benefit-card.best::before { background: #7a5800; }
-html.light .bc-age { color: #889098; -webkit-text-fill-color: #889098; }
-html.light .benefit-card.best .bc-age { color: #7a5800; -webkit-text-fill-color: #7a5800; }
-html.light .bc-monthly { color: #0d1520; -webkit-text-fill-color: #0d1520; }
-html.light .benefit-card.best .bc-monthly { color: #7a5800; -webkit-text-fill-color: #7a5800; }
-html.light .bc-annual { color: #889098; -webkit-text-fill-color: #889098; }
-html.light .bc-pct.up   { color: #186838; -webkit-text-fill-color: #186838; }
-html.light .bc-pct.down { color: #b81818; -webkit-text-fill-color: #b81818; }
-html.light .bc-pct.zero { color: #889098; -webkit-text-fill-color: #889098; }
-
-html.light .formula-card { background: #fff; border-color: #d0d8e0; }
-html.light .formula-toggle { background: #e8edf4; }
-html.light .formula-toggle:hover { background: #dce4ee; }
-html.light .formula-toggle-title { color: #384858; -webkit-text-fill-color: #384858; }
-html.light .formula-chevron { color: #889098; -webkit-text-fill-color: #889098; }
-html.light .formula-body { background: #fff; border-top-color: #d0d8e0; color: #384858; }
-html.light .formula-body .hl { color: #7a5800; }
-
-.light footer { border-top-color: #d0d8e0; color: #889098; }
-.light footer strong { color: #384858; }
-
-html.light .save-flash { color: #0a6858; }
-html.light .table-scroll::-webkit-scrollbar-track { background: #f0f2f5; }
-html.light .table-scroll::-webkit-scrollbar-thumb { background: #c0c8d0; }
-
-html.light .m-row { border-bottom-color: #e0e8f0; }
-html.light .m-row.m-current { background: #fffbe0; border-left-color: #7a5800; }
-html.light .m-row.m-future  { background: #eef8f5; }
-html.light .m-year { color: #0d1520; -webkit-text-fill-color: #0d1520; }
-html.light .m-future .m-year { color: #0a6858; -webkit-text-fill-color: #0a6858; }
-html.light .m-indexed { color: #889098; -webkit-text-fill-color: #889098; }
-html.light .m-indexed.counted { color: #186838; -webkit-text-fill-color: #186838; }
-html.light .m-input-label { color: #889098; -webkit-text-fill-color: #889098; }
-html.light .m-wage-input {
-background: #fff; background-color: #fff;
-border-color: #b0b8c0;
-color: #0d1520; -webkit-text-fill-color: #0d1520;
-}
-html.light .m-cap { color: #a0a8b0; -webkit-text-fill-color: #a0a8b0; }
 </style>
 
 </head>
 <body>
 <div class="page">
 
-  <!-- ── HEADER ── -->
-
-  <header class="site-header">
-    <div class="header-eyebrow">Social Sec &nbsp;<span>Estimator</span></div>
-    <div class="header-titles">
-      <h1>Benefit <em>Estimator</em></h1>
-      <div class="subtitle">AIME · PIA · Retirement Age Projections</div>
-    </div>
-    <div class="header-right">
-      <button class="theme-btn" id="themeBtn">
-        <span class="tb-icon">☀️</span>
-        <span class="tb-text" id="themeLabel">Light Mode</span>
-      </button>
-    </div>
+  <header class="hdr">
+    <h1>Social Security <span>Benefit Estimator</span></h1>
+    <button class="theme-btn" id="themeBtn">☀️ Light Mode</button>
   </header>
 
-  <!-- ── SECURITY + PRIVACY ── -->
-
-  <div class="security-wrap">
-    <div class="security-bar">
-      <span class="lock">🔒</span>
-      <span><strong>Your data never leaves this device.</strong> All calculations run locally in your browser. Nothing is transmitted to any server. When saving is enabled (Private mode), data is stored only in your browser's local storage on your own computer — never sent anywhere.</span>
-    </div>
-    <div class="privacy-bar">
-      <span class="privacy-bar-label">🖥 Computer type — controls whether data is saved:</span>
-      <span class="privacy-status public" id="privStatus">Public / Shared — not saving</span>
-      <button class="pill-toggle" id="privToggle" aria-label="Toggle private mode">
-        <div class="pill-knob"></div>
-      </button>
-      <span class="privacy-bar-note">Private</span>
+  <div class="sec-wrap">
+    <div class="sec-bar">🔒 <strong>Your data never leaves this device.</strong> All calculations run locally in your browser. In Private mode, data is saved only in your browser's local storage — never transmitted anywhere.</div>
+    <div class="priv-bar">
+      <span class="priv-lbl">🖥 Computer type — controls whether data is saved:</span>
+      <span class="priv-status" id="privStatus">Public / Shared — not saving</span>
+      <button class="pill" id="privToggle" aria-label="Toggle private mode"></button>
+      <span class="priv-note">Private</span>
     </div>
   </div>
 
-  <!-- ── DISCLAIMER ── -->
+  <div class="disc">⚠ <strong>Guidance only.</strong> Estimates may differ from actual SSA benefits. <strong>Consult <a href="https://www.ssa.gov" target="_blank">ssa.gov</a> or a financial/tax professional</strong> before making retirement decisions.</div>
 
-  <div class="disclaimer">
-    <span>⚠</span>
-    <span><strong>Guidance only.</strong> Estimates may differ from actual SSA benefits. Legislative changes, your full earnings record, and other factors affect results. <strong>Consult <a href="https://www.ssa.gov" target="_blank">ssa.gov</a> or a financial/tax professional</strong> before making retirement decisions.</span>
-  </div>
-
-  <!-- ── PERSONAL INFORMATION ── -->
-
-  <div class="section-card">
-    <div class="section-card-header">
-      <div class="section-title">
-        <span class="bar bar-gold"></span>
-        <span class="icon">👤</span>
-        Personal Information
-      </div>
+  <div class="card">
+    <div class="card-hdr">
+      <div class="card-title"><span class="bar gold"></span> 👤 Personal Information</div>
     </div>
-    <div class="section-card-body">
-      <div class="fields-grid">
-        <div class="field">
-          <label>Current Age</label>
-          <input type="number" id="currentAge" min="16" max="80" placeholder="e.g. 55">
-        </div>
-        <div class="field">
-          <label>Birth Year</label>
-          <input type="number" id="birthYear" min="1930" max="2010" placeholder="—" readonly>
-        </div>
-        <div class="field">
-          <label>Projected Annual Raises</label>
+    <div class="card-body">
+      <div class="fields">
+        <div class="field"><label>Current Age</label><input type="number" id="currentAge" inputmode="numeric" min="16" max="85" placeholder="e.g. 51"></div>
+        <div class="field"><label>Birth Year</label><input type="number" id="birthYear" readonly placeholder="—"></div>
+        <div class="field"><label>Projected Annual Raises</label>
           <select id="raiseRate">
             <option value="0">0% — No raises</option>
             <option value="0.02" selected>2% — Moderate</option>
@@ -1123,533 +256,273 @@ html.light .m-cap { color: #a0a8b0; -webkit-text-fill-color: #a0a8b0; }
             <option value="0.05">5% — Aggressive</option>
           </select>
         </div>
-        <div class="field">
-          <label>Est. Future Taxed SS Earnings / yr</label>
-          <input type="number" id="futureWage" min="0" placeholder="e.g. 80000">
-        </div>
+        <div class="field"><label>Est. Future Taxed SS Earnings / yr</label><input type="number" id="futureWage" inputmode="numeric" min="0" placeholder="e.g. 80000"></div>
       </div>
     </div>
   </div>
 
-  <!-- ── EARNINGS TABLE ── -->
-
-  <div class="section-card">
-    <div class="section-card-header">
-      <div class="section-title">
-        <span class="bar bar-teal"></span>
-        <span class="icon">📋</span>
-        Annual Earnings History &amp; Projection
-      </div>
+  <div class="card">
+    <div class="card-hdr">
+      <div class="card-title"><span class="bar teal"></span> 📋 Annual Earnings — enter SS-taxed wages (W-2 Box 3)</div>
       <div class="btn-row">
-        <span class="save-flash" id="saveIndicator">● Saved</span>
-        <button class="btn" onclick="fillAllFuture()">Auto-fill Future</button>
-        <button class="btn danger" onclick="clearAllWages()">Clear All</button>
+        <span class="flash" id="saveFlash">● Saved</span>
+        <button class="btn" onclick="fillFuture()">Auto-fill Future</button>
+        <button class="btn red" onclick="clearWages()">Clear All</button>
       </div>
     </div>
-    <div class="table-scroll table-wrap">
-      <table id="earningsTable">
-        <thead>
-          <tr>
-            <th>Year</th>
-            <th>Age</th>
-            <th style="text-align:right;color:var(--gold)">✎ Taxed SS Earnings — enter yours</th>
-            <th style="text-align:right">SS Wage Base Cap</th>
-            <th style="text-align:right">Indexed Earnings</th>
-          </tr>
-        </thead>
-        <tbody id="tableBody"></tbody>
+    <div class="tbl-scroll">
+      <table>
+        <thead><tr>
+          <th>Year</th><th>Age</th>
+          <th style="text-align:right;color:#c8a050">✎ Taxed SS Earnings</th>
+          <th style="text-align:right">Wage Base Cap</th>
+          <th style="text-align:right">Indexed Earnings</th>
+        </tr></thead>
+        <tbody id="tBody"></tbody>
       </table>
-      <div class="mobile-rows" id="mobileRows"></div>
     </div>
   </div>
 
-  <!-- ── RESULTS ── -->
-
-  <div class="section-card">
-    <div class="section-card-header">
-      <div class="section-title">
-        <span class="bar bar-gold"></span>
-        <span class="icon">📊</span>
-        Benefit Projections (PIA Calculation)
-      </div>
+  <div class="card">
+    <div class="card-hdr">
+      <div class="card-title"><span class="bar gold"></span> 📊 Benefit Projections (PIA Calculation)</div>
     </div>
-    <div class="section-card-body">
-      <div class="stats-row">
-        <div class="stat-block">
-          <div class="stat-label">AIME — Avg Indexed Monthly Earnings</div>
-          <div class="stat-value" id="aimeDisplay">—</div>
-        </div>
-        <div class="stat-block">
-          <div class="stat-label">PIA — Primary Insurance Amount</div>
-          <div class="stat-value md" id="piaDisplay">—</div>
-        </div>
-        <div class="stat-block">
-          <div class="stat-label">Qualifying Credits</div>
-          <div class="stat-value md" id="creditsDisplay">—</div>
-        </div>
-        <div class="stat-block">
-          <div class="stat-label">Top-35 Years Counted</div>
-          <div class="stat-value md" id="top35Display">—</div>
-        </div>
+    <div class="card-body">
+      <div class="stats">
+        <div class="stat"><div class="stat-lbl">AIME</div><div class="stat-val" id="aimeOut">—</div></div>
+        <div class="stat"><div class="stat-lbl">PIA / mo</div><div class="stat-val sm" id="piaOut">—</div></div>
+        <div class="stat"><div class="stat-lbl">Credits</div><div class="stat-val sm" id="credOut">—</div></div>
+        <div class="stat"><div class="stat-lbl">Top-35 yrs</div><div class="stat-val sm" id="t35Out">—</div></div>
       </div>
-      <div class="benefit-grid" id="benefitGrid"></div>
+      <div class="b-grid" id="bGrid"></div>
     </div>
   </div>
 
-  <!-- ── FORMULA NOTE ── -->
-
-  <div class="formula-card">
-    <div class="formula-toggle" onclick="toggleFormula(this)">
-      <span class="formula-toggle-title">▸ How this is calculated</span>
-      <span class="formula-chevron" id="formulaChevron">▾ expand</span>
+  <div class="fml">
+    <div class="fml-hdr" onclick="toggleFml()">
+      <span class="fml-t">▸ How this is calculated</span>
+      <span class="fml-c" id="fmlChev">▾ expand</span>
     </div>
-    <div class="formula-body" id="formulaBody">
-      <span class="hl">Input — Taxed SS Earnings:</span> Your W-2 Box 3 wages (SS-taxed, capped at each year's SS wage base). Future years are projected estimates.<br>
-      <span class="hl">Step 1 — Index:</span> Past earnings indexed to today's dollars via SSA's Average Wage Index (AWI).<br>
-      <span class="hl">Step 2 — AIME:</span> Top 35 years of indexed earnings ÷ 420 months.<br>
-      <span class="hl">Step 3 — PIA (2025 bend points):</span> 90% of first $1,226 + 32% of next $6,172 + 15% above $7,398.<br>
-      <span class="hl">Step 4 — Claiming age:</span> FRA = 67 (born 1960+). Claiming at 62 reduces benefit up to −30%. Delaying past FRA adds +8%/yr through age 70.<br>
-      <span class="hl">AWI projection:</span> 3.5%/yr (SSA long-range assumption).
+    <div class="fml-body" id="fmlBody">
+      <b>Input:</b> Your W-2 Box 3 wages (SS-taxed, capped at each year's wage base). Future years are projected.<br>
+      <b>Step 1 — Index:</b> Past earnings indexed to today's dollars via SSA Average Wage Index (AWI).<br>
+      <b>Step 2 — AIME:</b> Top 35 years of indexed earnings ÷ 420 months.<br>
+      <b>Step 3 — PIA (2025):</b> 90% of first $1,226 + 32% of next $6,172 + 15% above $7,398.<br>
+      <b>Step 4 — Age:</b> FRA = 67 (born 1960+). Early at 62 = up to −30%. Delay to 70 = +24%.<br>
+      <b>AWI growth:</b> 3.5%/yr projected (SSA long-range assumption).
     </div>
   </div>
 
   <footer>
-    This is an independent estimation tool and is <strong>not affiliated with the Social Security Administration</strong>.<br>
-    Official estimates: <a href="https://www.ssa.gov/myaccount/" target="_blank">my Social Security account at ssa.gov</a> &bull; No data is ever transmitted — calculations are 100% local.
+    Independent tool — <strong>not affiliated with SSA</strong>.<br>
+    Official estimates: <a href="https://www.ssa.gov/myaccount/" target="_blank">ssa.gov/myaccount</a> · No data ever transmitted.
   </footer>
 
-</div><!-- /page -->
+</div>
 <script>
-// ─────────────────────────────────────────────────────────────
-// SSA HISTORICAL DATA
-// ─────────────────────────────────────────────────────────────
+/* ── SSA DATA ── */
+var WAGE_BASE = {1984:37800,1985:39600,1986:42000,1987:43800,1988:45000,1989:48000,1990:51300,1991:53400,1992:55500,1993:57600,1994:60600,1995:61200,1996:62700,1997:65400,1998:68400,1999:72600,2000:76200,2001:80400,2002:84900,2003:87000,2004:87900,2005:90000,2006:94200,2007:97500,2008:102000,2009:106800,2010:106800,2011:106800,2012:110100,2013:113700,2014:117000,2015:118500,2016:118500,2017:127200,2018:128400,2019:132900,2020:137700,2021:142800,2022:147000,2023:160200,2024:168600,2025:176100};
+var AWI_DATA = {1984:16135,1985:16822,1986:17321,1987:18426,1988:19334,1989:20099,1990:21027,1991:21811,1992:22935,1993:23132,1994:23753,1995:24705,1996:25913,1997:27426,1998:28861,1999:30469,2000:32154,2001:32921,2002:33252,2003:34064,2004:35648,2005:36952,2006:38651,2007:40405,2008:41334,2009:40711,2010:41673,2011:42979,2012:44321,2013:44888,2014:46481,2015:48098,2016:48642,2017:50321,2018:52145,2019:54099,2020:55628,2021:60575,2022:63795,2023:66621,2024:69000,2025:71415};
+var BEND1=1226, BEND2=7398, CY=new Date().getFullYear();
 
-const WAGE_BASE = {
-1984:37800,1985:39600,1986:42000,1987:43800,1988:45000,1989:48000,
-1990:51300,1991:53400,1992:55500,1993:57600,1994:60600,1995:61200,
-1996:62700,1997:65400,1998:68400,1999:72600,2000:76200,2001:80400,
-2002:84900,2003:87000,2004:87900,2005:90000,2006:94200,2007:97500,
-2008:102000,2009:106800,2010:106800,2011:106800,2012:110100,2013:113700,
-2014:117000,2015:118500,2016:118500,2017:127200,2018:128400,2019:132900,
-2020:137700,2021:142800,2022:147000,2023:160200,2024:168600,2025:176100
-};
+function wb(y){ return WAGE_BASE[y] || Math.round(WAGE_BASE[2025]*Math.pow(1.04,y-2025)/100)*100; }
+function awi(y){ return AWI_DATA[y] || AWI_DATA[2025]*Math.pow(1.035,y-2025); }
+function idx(y,iy){ return y>=iy?1:awi(iy)/awi(y); }
 
-const AWI = {
-1984:16135.07,1985:16822.51,1986:17321.82,1987:18426.51,1988:19334.04,
-1989:20099.55,1990:21027.98,1991:21811.60,1992:22935.42,1993:23132.67,
-1994:23753.53,1995:24705.66,1996:25913.90,1997:27426.00,1998:28861.44,
-1999:30469.84,2000:32154.82,2001:32921.92,2002:33252.09,2003:34064.95,
-2004:35648.55,2005:36952.94,2006:38651.41,2007:40405.48,2008:41334.97,
-2009:40711.61,2010:41673.83,2011:42979.61,2012:44321.67,2013:44888.16,
-2014:46481.52,2015:48098.63,2016:48642.15,2017:50321.89,2018:52145.80,
-2019:54099.99,2020:55628.60,2021:60575.07,2022:63795.13,2023:66621.80,
-2024:69000.00,2025:71415.00
-};
+/* ── STORAGE ── */
+var SK=‘ss_v5_wages’, PK=‘ss_v5_prefs’;
+function lsGet(k){ try{return JSON.parse(localStorage.getItem(k)||‘null’);}catch(e){return null;} }
+function lsSet(k,v){ try{localStorage.setItem(k,JSON.stringify(v));}catch(e){} }
+function lsDel(k){ try{localStorage.removeItem(k);}catch(e){} }
 
-const BEND1 = 1226;
-const BEND2 = 7398;
-const CURRENT_YEAR = new Date().getFullYear();
-const AWI_BASE_YEAR = 2025;
-const AWI_GROWTH = 0.035;
+/* ── STATE ── */
+var isPrivate=false, birthYear=0, saveTimer, ageTimer;
 
-// ─────────────────────────────────────────────────────────────
-// STORAGE
-// ─────────────────────────────────────────────────────────────
-const STORAGE_KEY  = ‘ss_calc_wages_v4’;
-const PREF_KEY     = ‘ss_calc_prefs_v4’;
-const LEGACY_COOKIE = ‘ss_calc_v3’;
-
-function loadPrefs() {
-try { return JSON.parse(localStorage.getItem(PREF_KEY) || ‘{}’); } catch(e) { return {}; }
-}
-function savePrefs(obj) {
-try { localStorage.setItem(PREF_KEY, JSON.stringify(obj)); } catch(e) {}
-}
-function loadWageState() {
-try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || ‘null’); } catch(e) { return null; }
-}
-function saveWageState(obj) {
-try { localStorage.setItem(STORAGE_KEY, JSON.stringify(obj)); flashSaved(); } catch(e) {}
-}
-function clearWageState() {
-try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}
-}
-function clearLegacyCookie() {
-document.cookie = LEGACY_COOKIE + ‘=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/’;
-}
-
-function saveState() {
-const prefs = loadPrefs();
-prefs.theme = document.documentElement.classList.contains(‘light’) ? ‘light’ : ‘dark’;  prefs.private = isPrivate;
-savePrefs(prefs);
-if (!isPrivate) { clearWageState(); return; }
-const wages = {};
-const seen = new Set();
-document.querySelectorAll(’.wage-input’).forEach(inp => {
-const yr = String(inp.dataset.year);
-if (seen.has(yr)) return;
-seen.add(yr);
-if (inp.value !== ‘’) wages[yr] = inp.value;
+function persist(){
+var prefs=lsGet(PK)||{};
+prefs.theme=document.documentElement.classList.contains(‘light’)?‘light’:‘dark’;
+prefs.private=isPrivate;
+lsSet(PK,prefs);
+if(!isPrivate){lsDel(SK);return;}
+var wages={}, seen={};
+document.querySelectorAll(’.wi’).forEach(function(inp){
+var yr=inp.dataset.year;
+if(seen[yr])return; seen[yr]=1;
+if(inp.value!==’’) wages[yr]=inp.value;
 });
-saveWageState({
-currentAge: document.getElementById(‘currentAge’).value,
-raiseRate:  document.getElementById(‘raiseRate’).value,
-futureWage: document.getElementById(‘futureWage’).value,
-wages
+lsSet(SK,{age:document.getElementById(‘currentAge’).value,raiseRate:document.getElementById(‘raiseRate’).value,future:document.getElementById(‘futureWage’).value,wages:wages});
+}
+function debounceSave(){ clearTimeout(saveTimer); saveTimer=setTimeout(persist,700); }
+function flashSaved(){ var e=document.getElementById(‘saveFlash’); e.classList.add(‘on’); setTimeout(function(){e.classList.remove(‘on’);},1600); }
+
+/* ── BUILD TABLE ── */
+function buildTable(wages){
+var ageEl=document.getElementById(‘currentAge’);
+var age=parseInt(ageEl.value)||0;
+birthYear=age?CY-age:0;
+document.getElementById(‘birthYear’).value=birthYear||’’;
+var tbody=document.getElementById(‘tBody’);
+var hint=’<tr><td colspan="5" style="text-align:center;padding:24px;color:#4e6278;font-size:14px">Enter your current age above to populate the table.</td></tr>’;
+if(!age||age<16||age>85){tbody.innerHTML=hint;clearResults();return;}
+var merged={};
+if(wages){ Object.keys(wages).forEach(function(k){if(wages[k]!==’’)merged[String(k)]=wages[k];}); }
+document.querySelectorAll(’.wi’).forEach(function(inp){
+var yr=String(inp.dataset.year);
+if(inp.value!==’’&&merged[yr]===undefined) merged[yr]=inp.value;
 });
-}
-
-let saveTimer;
-function debounceSave() { clearTimeout(saveTimer); saveTimer = setTimeout(saveState, 600); }
-
-function flashSaved() {
-const el = document.getElementById(‘saveIndicator’);
-el.classList.add(‘show’);
-setTimeout(() => el.classList.remove(‘show’), 1800);
-}
-
-// ─────────────────────────────────────────────────────────────
-// CALCULATIONS
-// ─────────────────────────────────────────────────────────────
-let currentAge = 0;
-let birthYear = 0;
-
-function getWageBase(year) {
-if (WAGE_BASE[year]) return WAGE_BASE[year];
-return Math.round(WAGE_BASE[2025] * Math.pow(1.04, year - 2025) / 100) * 100;
-}
-function getAWI(year) {
-if (AWI[year]) return AWI[year];
-return AWI[AWI_BASE_YEAR] * Math.pow(1 + AWI_GROWTH, year - AWI_BASE_YEAR);
-}
-function getIndexFactor(year, indexYear) {
-if (year >= indexYear) return 1;
-return getAWI(indexYear) / getAWI(year);
-}
-
-// ─────────────────────────────────────────────────────────────
-// TABLE BUILD
-// ─────────────────────────────────────────────────────────────
-function buildTable(savedWages) {
-const age = parseInt(document.getElementById(‘currentAge’).value) || 0;
-currentAge = age;
-birthYear = CURRENT_YEAR - age;
-document.getElementById(‘birthYear’).value = birthYear || ‘’;
-
-const emptyMsg = ‘Enter your current age above to populate the earnings table.’;
-if (!age || age < 16 || age > 85) {
-document.getElementById(‘tableBody’).innerHTML =
-`<tr><td colspan="5" style="text-align:center;padding:28px;color:#4e6278;font-size:13px">${emptyMsg}</td></tr>`;
-document.getElementById(‘mobileRows’).innerHTML =
-`<div style="padding:24px;text-align:center;color:#4e6278;font-size:13px">${emptyMsg}</div>`;
-clearResults(); return;
-}
-
-// Harvest existing DOM values before wipe
-const merged = {};
-if (savedWages) Object.keys(savedWages).forEach(k => { if (savedWages[k] !== ‘’) merged[String(k)] = savedWages[k]; });
-document.querySelectorAll(’.wage-input’).forEach(inp => {
-const yr = String(inp.dataset.year);
-if (inp.value !== ‘’ && !merged[yr]) merged[yr] = inp.value;
-});
-
-const startYear = Math.max(birthYear + 18, CURRENT_YEAR - 45);
-const retireYear = Math.max(birthYear + 70, CURRENT_YEAR + 1);
-const tbody = document.getElementById(‘tableBody’);
-const mobileContainer = document.getElementById(‘mobileRows’);
-tbody.innerHTML = ‘’;
-mobileContainer.innerHTML = ‘’;
-
-for (let yr = startYear; yr <= retireYear; yr++) {
-const yrAge = yr - birthYear;
-if (yrAge < 18 || yrAge > 70) continue;
-const isFuture = yr > CURRENT_YEAR;
-const isCurrent = yr === CURRENT_YEAR;
-const wageBase = getWageBase(yr);
-const savedVal = merged[String(yr)] !== undefined ? merged[String(yr)] : ‘’;
-const inputAttrs = `class="wage-input" type="number" inputmode="numeric" min="0" max="${wageBase}" step="100" data-year="${yr}" data-future="${isFuture?1:0}" placeholder="" value="${savedVal}"`;
-
-```
-// Desktop row
-const tr = document.createElement('tr');
-if (isCurrent) tr.classList.add('row-current');
-if (isFuture)  tr.classList.add('row-future');
-tr.innerHTML = `
-  <td class="td-year">${yr}${isCurrent?'<span class="badge badge-now">Now</span>':''}${isFuture?'<span class="badge badge-proj">Proj</span>':''}</td>
-  <td class="td-age">Age ${yrAge}</td>
-  <td class="td-entry"><input ${inputAttrs}></td>
-  <td class="td-num">$${wageBase.toLocaleString()}</td>
-  <td class="td-num indexed-${yr}">—</td>`;
+var startYr=Math.max(birthYear+16,CY-50), endYr=birthYear+70;
+tbody.innerHTML=’’;
+for(var yr=startYr;yr<=endYr;yr++){
+var yAge=yr-birthYear;
+if(yAge<16||yAge>70) continue;
+var isCur=(yr===CY), isFut=(yr>CY);
+var wbv=wb(yr), val=merged[String(yr)]!==undefined?merged[String(yr)]:’’;
+var tr=document.createElement(‘tr’);
+if(isCur) tr.className=‘now’; else if(isFut) tr.className=‘fut’;
+tr.innerHTML=’<td class="td-yr">’+yr+(isCur?’<span class="badge bn">Now</span>’:’’)+(isFut?’<span class="badge bf">Proj</span>’:’’)+’</td>’
++’<td class="td-age">Age ‘+yAge+’</td>’
++’<td class="td-inp"><input class="wi" type="number" inputmode="numeric" min="0" max="'+wbv+'" step="100" data-year="'+yr+'" data-fut="'+(isFut?1:0)+'" value="'+val+'" placeholder=""></td>’
++’<td class="td-n">$’+wbv.toLocaleString()+’</td>’
++’<td class="td-n" id="ix'+yr+'">—</td>’;
 tbody.appendChild(tr);
-
-// Mobile card
-const mrow = document.createElement('div');
-mrow.className = 'm-row' + (isCurrent?' m-current':'') + (isFuture?' m-future':'');
-mrow.innerHTML = `
-  <div class="m-year">${yr}${isCurrent?'<span class="badge badge-now">Now</span>':''}${isFuture?'<span class="badge badge-proj">Proj</span>':''}</div>
-  <div class="m-indexed indexed-m-${yr}">—</div>
-  <div class="m-input-row">
-    <span class="m-input-label">SS-Taxed $</span>
-    <input class="m-wage-input wage-input" type="number" inputmode="numeric" min="0" max="${wageBase}" step="100" data-year="${yr}" data-future="${isFuture?1:0}" placeholder="" value="${savedVal}">
-    <span class="m-cap">max $${(wageBase/1000).toFixed(0)}k</span>
-  </div>`;
-mobileContainer.appendChild(mrow);
-```
-
 }
-
-document.querySelectorAll(’.wage-input’).forEach(inp => {
-inp.addEventListener(‘input’, () => { syncPair(inp); updateRowCalc(inp); recalcAll(); debounceSave(); });
-updateRowCalc(inp);
+document.querySelectorAll(’.wi’).forEach(function(inp){
+inp.addEventListener(‘input’,function(){calcRow(inp);recalc();debounceSave();});
+calcRow(inp);
 });
-recalcAll();
+recalc();
 }
 
-function syncPair(inp) {
-const yr = inp.dataset.year;
-document.querySelectorAll(`.wage-input[data-year="${yr}"]`).forEach(i => { if (i !== inp) i.value = inp.value; });
+function calcRow(inp){
+var yr=parseInt(inp.dataset.year), raw=parseFloat(inp.value)||0, wbv=wb(yr);
+if(raw>wbv) inp.value=wbv;
+var taxed=Math.min(raw,wbv), iy=Math.min(birthYear+60,CY);
+var cell=document.getElementById(‘ix’+yr);
+if(cell) cell.textContent=taxed>0?’$’+Math.round(taxed*idx(yr,iy)).toLocaleString():’—’;
 }
 
-function updateRowCalc(inp) {
-const yr = parseInt(inp.dataset.year);
-const raw = parseFloat(inp.value) || 0;
-const wageBase = getWageBase(yr);
-const taxed = Math.min(raw, wageBase);
-if (raw > wageBase) document.querySelectorAll(`.wage-input[data-year="${yr}"]`).forEach(i => i.value = wageBase);
-const indexYear = Math.min(birthYear + 60, CURRENT_YEAR);
-const indexed = taxed * getIndexFactor(yr, indexYear);
-const display = taxed > 0 ? ‘$’ + Math.round(indexed).toLocaleString() : ‘—’;
-const dc = document.querySelector(`.indexed-${yr}`);
-if (dc) dc.textContent = display;
-const mc = document.querySelector(`.indexed-m-${yr}`);
-if (mc) mc.textContent = taxed > 0 ? ’↑ ’ + display : ‘—’;
-}
-
-function recalcAll() {
-if (!currentAge || currentAge < 22) { clearResults(); return; }
-const indexYear = Math.min(birthYear + 60, CURRENT_YEAR);
-const earningsMap = new Map();
-document.querySelectorAll(’.wage-input’).forEach(inp => {
-const yr = parseInt(inp.dataset.year);
-if (earningsMap.has(yr)) return;
-const taxed = parseFloat(inp.value) || 0;
-if (taxed <= 0) return;
-const capped = Math.min(taxed, getWageBase(yr));
-earningsMap.set(yr, { yr, raw: capped, indexed: capped * getIndexFactor(yr, indexYear) });
+/* ── RECALC ── */
+function recalc(){
+var iy=Math.min(birthYear+60,CY), map={};
+document.querySelectorAll(’.wi’).forEach(function(inp){
+var yr=parseInt(inp.dataset.year);
+if(map[yr]!==undefined) return;
+var taxed=Math.min(parseFloat(inp.value)||0,wb(yr));
+if(taxed>0) map[yr]={yr:yr,taxed:taxed,indexed:taxed*idx(yr,iy)};
 });
-const earningsArr = Array.from(earningsMap.values());
+document.querySelectorAll(’.td-n.hi’).forEach(function(el){el.classList.remove(‘hi’);});
+var arr=Object.values(map).sort(function(a,b){return b.indexed-a.indexed;});
+var top35=arr.slice(0,35);
+top35.forEach(function(e){var c=document.getElementById(‘ix’+e.yr);if(c)c.classList.add(‘hi’);});
+var sumIdx=top35.reduce(function(s,e){return s+e.indexed;},0), aime=sumIdx/420;
+var pia=0;
+if(aime<=BEND1) pia=aime*0.90;
+else if(aime<=BEND2) pia=BEND1*0.90+(aime-BEND1)*0.32;
+else pia=BEND1*0.90+(BEND2-BEND1)*0.32+(aime-BEND2)*0.15;
+var credits=Math.min(Object.keys(map).length*4,40);
+var fra=67;
+if(birthYear<1938) fra=65;
+else if(birthYear<1943) fra=65+(birthYear-1937)*(2/12);
+else if(birthYear<1955) fra=66;
+else if(birthYear<1960) fra=66+(birthYear-1954)*(2/12);
+document.getElementById(‘aimeOut’).textContent=aime>0?’$’+Math.round(aime).toLocaleString():’—’;
+document.getElementById(‘piaOut’).textContent=pia>0?’$’+Math.round(pia).toLocaleString():’—’;
+document.getElementById(‘credOut’).textContent=credits+’/40 ‘+(credits>=40?‘✓’:‘⚠’);
+document.getElementById(‘t35Out’).textContent=top35.length+’ yrs’;
+var grid=document.getElementById(‘bGrid’); grid.innerHTML=’’;
+for(var age=62;age<=70;age++){
+var mfra=(age-fra)*12, f=1;
+if(mfra<0){var e=Math.abs(mfra);f=1-(Math.min(e,36)*5/9/100)-(Math.max(e-36,0)*5/12/100);}
+else if(mfra>0) f=1+mfra*2/3/100;
+var mo=pia*f, yr2=mo*12, pct=((f-1)*100).toFixed(0);
+var framark=Math.abs(age-fra)<0.5, best=(age===70);
+var d=document.createElement(‘div’);
+d.className=‘bc’+(best?’ best’:’’);
+d.innerHTML=’<div class="bc-age">Age ‘+age+(framark?’ ★FRA’:’’)+’</div>’
++’<div class="bc-mo">$’+(mo>0?Math.round(mo).toLocaleString():’—’)+’</div>’
++’<div class="bc-yr">’+(yr2>0?’$’+Math.round(yr2).toLocaleString()+’/yr’:’—’)+’</div>’
++’<div class="bc-pct '+(+pct>0?'up':+pct<0?'dn':'ze')+'">’+(+pct>0?’+’:’’)+pct+’% vs FRA</div>’;
+grid.appendChild(d);
+}
+}
 
-// Reset highlights
-document.querySelectorAll(’.td-num.counted’).forEach(el => el.classList.remove(‘counted’));
-document.querySelectorAll(’.m-indexed.counted’).forEach(el => el.classList.remove(‘counted’));
+function clearResults(){
+[‘aimeOut’,‘piaOut’,‘credOut’,‘t35Out’].forEach(function(id){document.getElementById(id).textContent=’—’;});
+document.getElementById(‘bGrid’).innerHTML=’’;
+}
 
-const top35 = […earningsArr].sort((a,b) => b.indexed - a.indexed).slice(0,35);
-const top35Years = new Set(top35.map(e => e.yr));
-top35Years.forEach(yr => {
-const dc = document.querySelector(`.indexed-${yr}`);
-if (dc) dc.classList.add(‘counted’);
-const mc = document.querySelector(`.indexed-m-${yr}`);
-if (mc) mc.classList.add(‘counted’);
+/* ── HELPERS ── */
+function fillFuture(){
+var base=parseFloat(document.getElementById(‘futureWage’).value)||0;
+var rate=parseFloat(document.getElementById(‘raiseRate’).value)||0;
+var seen={};
+document.querySelectorAll(’.wi’).forEach(function(inp){
+if(inp.dataset.fut!==‘1’||inp.value!==’’) return;
+var yr=parseInt(inp.dataset.year);
+if(seen[yr]) return;
+var v=Math.round(Math.min(base*Math.pow(1+rate,yr-CY),wb(yr)));
+document.querySelectorAll(’.wi[data-year=”’+yr+’”]’).forEach(function(i){i.value=v;});
+calcRow(inp); seen[yr]=1;
 });
-
-const aime = top35.reduce((s,e) => s + e.indexed, 0) / 420;
-let pia = 0;
-if (aime <= BEND1) pia = aime * 0.90;
-else if (aime <= BEND2) pia = BEND1 * 0.90 + (aime - BEND1) * 0.32;
-else pia = BEND1 * 0.90 + (BEND2 - BEND1) * 0.32 + (aime - BEND2) * 0.15;
-
-const credits = Math.min(earningsArr.filter(e => e.raw > 0).length * 4, 40);
-const qualified = credits >= 40;
-
-let fra = 67;
-if (birthYear < 1938) fra = 65;
-else if (birthYear < 1943) fra = 65 + (birthYear - 1937) * (2/12);
-else if (birthYear < 1955) fra = 66;
-else if (birthYear < 1960) fra = 66 + (birthYear - 1954) * (2/12);
-
-document.getElementById(‘aimeDisplay’).textContent = aime > 0 ? ‘$’ + Math.round(aime).toLocaleString() : ‘—’;
-document.getElementById(‘piaDisplay’).textContent = pia > 0 ? ‘$’ + Math.round(pia).toLocaleString() + ‘/mo’ : ‘—’;
-document.getElementById(‘creditsDisplay’).textContent = `${credits}/40 ${qualified ? '✓' : '⚠'}`;
-document.getElementById(‘top35Display’).textContent = top35.length + ’ years’;
-
-const grid = document.getElementById(‘benefitGrid’);
-grid.innerHTML = ‘’;
-for (let claimAge = 62; claimAge <= 70; claimAge++) {
-const mfFRA = (claimAge - fra) * 12;
-let factor = 1.0;
-if (mfFRA < 0) {
-const early = Math.abs(mfFRA);
-factor = 1 - (Math.min(early,36) * 5/9/100) - (Math.max(early-36,0) * 5/12/100);
-} else if (mfFRA > 0) factor = 1 + mfFRA * 2/3/100;
-const monthly = pia * factor;
-const annual = monthly * 12;
-const pct = ((factor - 1) * 100).toFixed(0);
-const isFRA = Math.abs(claimAge - fra) < 0.5;
-const card = document.createElement(‘div’);
-card.className = ‘benefit-card’ + (claimAge === 70 ? ’ best’ : ‘’);
-card.innerHTML = ` <div class="bc-age">Age ${claimAge}${isFRA ? ' ★ FRA' : ''}</div> <div class="bc-monthly">$${monthly > 0 ? Math.round(monthly).toLocaleString() : '—'}</div> <div class="bc-annual">${annual > 0 ? '$' + Math.round(annual).toLocaleString() + '/yr' : '—'}</div> <div class="bc-pct ${+pct > 0 ? 'up' : +pct < 0 ? 'down' : 'zero'}">${+pct > 0 ? '+' : ''}${pct}% vs FRA</div>`;
-grid.appendChild(card);
+recalc(); debounceSave();
 }
-}
-
-function clearResults() {
-[‘aimeDisplay’,‘piaDisplay’,‘creditsDisplay’,‘top35Display’].forEach(id => document.getElementById(id).textContent = ‘—’);
-document.getElementById(‘benefitGrid’).innerHTML = ‘’;
-}
-
-function fillAllFuture() {
-const baseWage = parseFloat(document.getElementById(‘futureWage’).value) || 0;
-const raiseRate = parseFloat(document.getElementById(‘raiseRate’).value) || 0;
-const seen = new Set();
-document.querySelectorAll(’.wage-input’).forEach(inp => {
-if (inp.dataset.future !== ‘1’ || inp.value) return;
-const year = parseInt(inp.dataset.year);
-if (seen.has(year)) return;
-const val = Math.round(Math.min(baseWage * Math.pow(1 + raiseRate, year - CURRENT_YEAR), getWageBase(year)));
-document.querySelectorAll(`.wage-input[data-year="${year}"]`).forEach(i => i.value = val);
-updateRowCalc(inp); seen.add(year);
+function clearWages(){
+if(!confirm(‘Clear all entered earnings?’)) return;
+var seen={};
+document.querySelectorAll(’.wi’).forEach(function(inp){inp.value=’’;});
+document.querySelectorAll(’.wi’).forEach(function(inp){
+if(!seen[inp.dataset.year]){calcRow(inp);seen[inp.dataset.year]=1;}
 });
-recalcAll(); debounceSave();
+recalc(); debounceSave();
+}
+function toggleFml(){
+var b=document.getElementById(‘fmlBody’), c=document.getElementById(‘fmlChev’);
+var open=b.classList.toggle(‘open’);
+c.textContent=open?‘▴ collapse’:‘▾ expand’;
 }
 
-function clearAllWages() {
-if (!confirm(‘Clear all entered earnings?’)) return;
-const seen = new Set();
-document.querySelectorAll(’.wage-input’).forEach(inp => { inp.value = ‘’; });
-document.querySelectorAll(’.wage-input’).forEach(inp => {
-const yr = inp.dataset.year;
-if (!seen.has(yr)) { updateRowCalc(inp); seen.add(yr); }
-});
-recalcAll(); debounceSave();
+/* ── INIT ── */
+var prefs=lsGet(PK)||{};
+
+/* Theme */
+var tBtn=document.getElementById(‘themeBtn’);
+function applyTheme(light){
+document.documentElement.classList.toggle(‘light’,light);
+tBtn.textContent=light?‘🌙 Dark Mode’:‘☀️ Light Mode’;
 }
+tBtn.onclick=function(){applyTheme(!document.documentElement.classList.contains(‘light’));debounceSave();};
+if(prefs.theme===‘light’) applyTheme(true);
 
-function toggleFormula(btn) {
-const body = document.getElementById(‘formulaBody’);
-const chev = document.getElementById(‘formulaChevron’);
-const open = body.classList.toggle(‘open’);
-chev.textContent = open ? ‘▴ collapse’ : ‘▾ expand’;
+/* Privacy */
+var pBtn=document.getElementById(‘privToggle’);
+function applyPriv(priv){
+isPrivate=priv;
+pBtn.classList.toggle(‘on’,priv);
+var st=document.getElementById(‘privStatus’);
+st.textContent=priv?‘Private — saving locally’:‘Public / Shared — not saving’;
+st.className=‘priv-status’+(priv?’ on’:’’);
 }
+pBtn.onclick=function(){applyPriv(!isPrivate);if(!isPrivate)lsDel(SK);debounceSave();};
+if(prefs.private) applyPriv(true);
 
-// ─────────────────────────────────────────────────────────────
-// PRIVACY
-// ─────────────────────────────────────────────────────────────
-let isPrivate = false;
+/* Age input */
+document.getElementById(‘currentAge’).oninput=function(){
+clearTimeout(ageTimer);
+ageTimer=setTimeout(function(){ buildTable(null); debounceSave(); },300);
+};
 
-function setPrivacyMode(priv, save=false) {
-isPrivate = priv;
-document.getElementById(‘privToggle’).classList.toggle(‘on’, priv);
-const st = document.getElementById(‘privStatus’);
-st.textContent = priv ? ‘Private — saving locally’ : ‘Public / Shared — not saving’;
-st.className = ’privacy-status ’ + (priv ? ‘private’ : ‘public’);
-if (save) debounceSave();
-}
+document.getElementById(‘raiseRate’).onchange=debounceSave;
+document.getElementById(‘futureWage’).oninput=debounceSave;
 
-// ─────────────────────────────────────────────────────────────
-// INIT
-// ─────────────────────────────────────────────────────────────
-function dbg(msg) {
-let bar = document.getElementById(’_dbg’);
-if (!bar) {
-bar = document.createElement(‘div’);
-bar.id = ‘_dbg’;
-bar.style.cssText = ‘position:fixed;bottom:0;left:0;right:0;background:#000;color:#0f0;font:11px monospace;padding:4px 8px;z-index:9999;max-height:80px;overflow:auto’;
-document.body.appendChild(bar);
-}
-bar.innerHTML += msg + ‘<br>’;
-}
-
-function init() {
-dbg(‘init() started’);
-try { clearLegacyCookie(); } catch(e) { dbg(’cookie err: ’ + e); }
-
-let prefs = {};
-try { prefs = loadPrefs(); dbg(’prefs ok: ’ + JSON.stringify(prefs)); }
-catch(e) { dbg(’prefs err: ’ + e); }
-
-// Privacy toggle
-const privBtn = document.getElementById(‘privToggle’);
-if (privBtn) {
-privBtn.addEventListener(‘click’, () => {
-dbg(‘privToggle clicked’);
-setPrivacyMode(!isPrivate, true);
-if (!isPrivate) { try { clearWageState(); } catch(e) {} }
-});
-dbg(‘privToggle listener attached’);
-} else { dbg(‘privToggle NOT FOUND’); }
-
-// Theme toggle
-const btn = document.getElementById(‘themeBtn’);
-const lbl = document.getElementById(‘themeLabel’);
-function applyTheme(isLight) {
-document.documentElement.classList.toggle(‘light’, isLight);
-if (lbl) lbl.textContent = isLight ? ‘Dark Mode’ : ‘Light Mode’;
-const icon = btn ? btn.querySelector(’.tb-icon’) : null;
-if (icon) icon.textContent = isLight ? ‘🌙’ : ‘☀️’;
-}
-if (btn) {
-btn.addEventListener(‘click’, () => {
-dbg(‘theme clicked’);
-applyTheme(!document.documentElement.classList.contains(‘light’));
-debounceSave();
-});
-}
-
-if (prefs.theme === ‘light’) applyTheme(true);
-if (prefs.private) setPrivacyMode(true);
-
-// Age input — simplest possible approach
-const ageInput = document.getElementById(‘currentAge’);
-if (ageInput) {
-function handleAge() {
-const a = parseInt(ageInput.value) || 0;
-dbg(‘age event fired, value=’ + ageInput.value + ’ parsed=’ + a);
-const byEl = document.getElementById(‘birthYear’);
-if (byEl) byEl.value = a ? (CURRENT_YEAR - a) : ‘’;
-if (a >= 16 && a <= 85) {
-dbg(‘calling buildTable, age=’ + a);
-buildTable(null);
-debounceSave();
-}
-}
-ageInput.addEventListener(‘input’,  handleAge);
-ageInput.addEventListener(‘change’, handleAge);
-ageInput.addEventListener(‘keyup’,  handleAge);
-dbg(‘age listeners attached’);
-} else { dbg(‘currentAge NOT FOUND’); }
-
-const rr = document.getElementById(‘raiseRate’);
-if (rr) rr.addEventListener(‘change’, debounceSave);
-const fw = document.getElementById(‘futureWage’);
-if (fw) fw.addEventListener(‘input’, debounceSave);
-
-let saved = null;
-try { saved = prefs.private ? loadWageState() : null; }
-catch(e) { dbg(’loadWageState err: ’ + e); }
-
-if (saved) {
-dbg(‘restoring saved state’);
-try {
-if (saved.currentAge) {
-document.getElementById(‘currentAge’).value = saved.currentAge;
-document.getElementById(‘birthYear’).value = CURRENT_YEAR - parseInt(saved.currentAge);
-}
-if (saved.raiseRate)  document.getElementById(‘raiseRate’).value  = saved.raiseRate;
-if (saved.futureWage) document.getElementById(‘futureWage’).value = saved.futureWage;
-buildTable(saved.wages || {});
-} catch(e) { dbg(’restore err: ’ + e); }
+/* Restore */
+var saved=prefs.private?lsGet(SK):null;
+if(saved){
+if(saved.age) document.getElementById(‘currentAge’).value=saved.age;
+if(saved.raiseRate) document.getElementById(‘raiseRate’).value=saved.raiseRate;
+if(saved.future) document.getElementById(‘futureWage’).value=saved.future;
+buildTable(saved.wages||{});
 } else {
-dbg(‘no saved state, calling buildTable(null)’);
 buildTable(null);
-}
-dbg(‘init() complete’);
-}
-
-try { init(); } catch(e) {
-const bar = document.getElementById(’_dbg’) || document.createElement(‘div’);
-bar.id = ‘_dbg’;
-bar.style.cssText = ‘position:fixed;bottom:0;left:0;right:0;background:#000;color:red;font:11px monospace;padding:4px 8px;z-index:9999’;
-bar.textContent = ’INIT CRASHED: ’ + e + ’ | ’ + e.stack;
-document.body.appendChild(bar);
 }
 </script>
 
