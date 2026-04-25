@@ -10,52 +10,57 @@
 <style>
   /* Safari fix: force dark background on html root too */
   html {
-    background: #0d1b2a;
+    background: #111d2c;
   }
   html.light {
-    background: #f4f1eb;
+    background: #f2ede3;
   }
 
 :root {
-–bg:         #0d1b2a;
-–bg-mid:     #162235;
-–bg-raised:  #1e3251;
-–gold:       #c8a84b;
-–gold-light: #e8c96b;
-–text-hi:    #f5f0e8;
-–text-body:  #e8e4d8;
-–text-dim:   #8fa0b8;
-–text-muted: #566a85;
-–teal:       #2a9d8f;
-–red:        #e63946;
-–red-soft:   #e89a9f;
-–green:      #3aaa78;
-–border:     rgba(200,168,75,0.22);
-–row-sep:    rgba(200,168,75,0.07);
-–row-hover:  rgba(200,168,75,0.07);
-–row-cur:    rgba(200,168,75,0.05);
-–row-fut:    rgba(42,157,143,0.05);
+/* DARK MODE — solid colors, Safari-safe */
+–bg:           #111d2c;
+–bg-mid:       #192840;
+–bg-raised:    #243552;
+–bg-input:     #0d1825;
+–gold:         #d4aa50;
+–gold-light:   #ecc96a;
+–text-hi:      #f0ece2;
+–text-body:    #c8c2b4;
+–text-dim:     #7a90a8;
+–text-muted:   #4e6278;
+–teal:         #34b5a5;
+–red:          #e84a55;
+–red-soft:     #f0a0a6;
+–green:        #40c080;
+–border:       #2d4060;
+–border-gold:  #4a3a18;
+–row-sep:      #1e2f45;
+–row-hover:    #1f3048;
+–row-cur:      #1d2e40;
+–row-fut:      #182e30;
 }
 
 body.light {
-–bg:         #f2ede3;
-–bg-mid:     #faf7f2;
-–bg-raised:  #e6dfd2;
-–gold:       #8a6a12;
-–gold-light: #a07c18;
-–text-hi:    #120e04;
-–text-body:  #1e1a10;
-–text-dim:   #4a5568;
-–text-muted: #6b7280;
-–teal:       #0f6b5f;
-–red:        #b91c1c;
-–red-soft:   #991b1b;
-–green:      #166534;
-–border:     rgba(100,75,20,0.18);
-–row-sep:    rgba(100,75,20,0.06);
-–row-hover:  rgba(100,75,20,0.05);
-–row-cur:    rgba(100,75,20,0.06);
-–row-fut:    rgba(15,107,95,0.05);
+–bg:           #f7f4ee;
+–bg-mid:       #ffffff;
+–bg-raised:    #edeae2;
+–bg-input:     #ffffff;
+–gold:         #7a5c00;
+–gold-light:   #9a7500;
+–text-hi:      #0d0a04;
+–text-body:    #1a1610;
+–text-dim:     #3d4452;
+–text-muted:   #5a6070;
+–teal:         #0a5c52;
+–red:          #a81818;
+–red-soft:     #7a1818;
+–green:        #1a6830;
+–border:       #c8c0b0;
+–border-gold:  #b89840;
+–row-sep:      #e2ddd4;
+–row-hover:    #f0ebe0;
+–row-cur:      #faf5e0;
+–row-fut:      #e8f5f0;
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -64,31 +69,22 @@ body {
 background-color: var(–bg);
 color: var(–text-body);
 font-family: ‘IBM Plex Sans’, sans-serif;
-font-weight: 300;
+font-weight: 400;
 min-height: 100vh;
 overflow-x: hidden;
 transition: background-color 0.3s, color 0.3s;
 }
 
-/* Light mode body gradient override */
-body.light::before {
-background-image:
-radial-gradient(ellipse 80% 50% at 20% 10%, rgba(100,75,20,0.04) 0%, transparent 60%),
-radial-gradient(ellipse 60% 80% at 80% 90%, rgba(15,107,95,0.03) 0%, transparent 60%);
-}
-
-/* Background texture */
+/* Subtle ambient glow — kept simple for Safari */
 body::before {
 content: ‘’;
 position: fixed;
 inset: 0;
-background-image:
-radial-gradient(ellipse 80% 50% at 20% 10%, rgba(200,168,75,0.04) 0%, transparent 60%),
-radial-gradient(ellipse 60% 80% at 80% 90%, rgba(42,157,143,0.03) 0%, transparent 60%);
+background: radial-gradient(ellipse 70% 40% at 15% 0%, #1a2e20 0%, transparent 55%);
 pointer-events: none;
 z-index: 0;
-transition: background-image 0.3s;
 }
+body.light::before { display: none; }
 
 .container {
 position: relative;
@@ -119,8 +115,12 @@ font-family: ‘IBM Plex Mono’, monospace;
 font-size: 22px;
 color: var(–gold);
 flex-shrink: 0;
-background: radial-gradient(circle, rgba(200,168,75,0.08), transparent);
-box-shadow: 0 0 20px rgba(200,168,75,0.15);
+background: #1a2a18;
+box-shadow: 0 0 16px #2a3c10;
+}
+body.light .seal {
+background: #fffbf0;
+box-shadow: 0 0 12px #c8a820;
 }
 
 .header-text h1 {
@@ -144,21 +144,28 @@ text-transform: uppercase;
 
 /* SECURITY BANNER */
 .security-banner {
-background: rgba(42,157,143,0.08);
-border: 1px solid rgba(42,157,143,0.3);
+background: #152e2c;
+border: 1px solid #2a5550;
 border-left: 3px solid var(–teal);
-border-radius: 4px;
+border-radius: 4px 4px 0 0;
 padding: 10px 16px;
-margin-bottom: 10px;
+margin-bottom: 0;
 display: flex;
 align-items: center;
 gap: 10px;
 font-size: 0.78rem;
-color: var(–teal);
+color: #7dd8cf;
 line-height: 1.5;
 }
+.security-banner strong { color: #a8e8e2; }
 .security-banner .lock-icon { font-size: 1rem; flex-shrink: 0; }
-body.light .security-banner { background: rgba(15,107,95,0.06); border-color: rgba(15,107,95,0.25); color: var(–teal); }
+body.light .security-banner {
+background: #e6f4f2;
+border-color: #7cbdb5;
+border-left-color: var(–teal);
+color: #0a5c52;
+}
+body.light .security-banner strong { color: #073d36; }
 
 /* PRIVACY TOGGLE ROW */
 .privacy-row {
@@ -166,17 +173,22 @@ display: flex;
 align-items: center;
 gap: 10px;
 padding: 8px 16px 8px 14px;
-background: rgba(42,157,143,0.05);
-border: 1px solid rgba(42,157,143,0.2);
-border-top: none;
+background: #111f2e;
+border: 1px solid #2a5550;
+border-top: 1px solid #1e4040;
 border-radius: 0 0 4px 4px;
-margin-bottom: 20px;
+margin-bottom: 18px;
 flex-wrap: wrap;
+}
+body.light .privacy-row {
+background: #d8eeea;
+border-color: #7cbdb5;
+border-top-color: #a8d8d2;
 }
 .privacy-row .priv-label {
 font-family: ‘IBM Plex Mono’, monospace;
 font-size: 0.7rem;
-letter-spacing: 0.08em;
+letter-spacing: 0.06em;
 text-transform: uppercase;
 color: var(–text-dim);
 flex: 1;
@@ -215,18 +227,24 @@ transition: transform 0.25s cubic-bezier(0.4,0,0.2,1), background 0.3s;
 
 /* DISCLAIMER (financial) — smaller */
 .disclaimer {
-background: rgba(230, 57, 70, 0.07);
-border: 1px solid rgba(230,57,70,0.25);
+background: #2a1218;
+border: 1px solid #5a2428;
 border-left: 3px solid var(–red);
 border-radius: 4px;
 padding: 10px 14px;
 margin-bottom: 24px;
 font-size: 0.74rem;
-color: var(–red-soft);
+color: #d88890;
 line-height: 1.5;
 }
 .disclaimer strong { color: var(–red); font-weight: 600; }
-body.light .disclaimer { background: rgba(185,28,28,0.06); border-color: rgba(185,28,28,0.22); border-left-color: var(–red); }
+body.light .disclaimer {
+background: #fdf0f0;
+border-color: #d89090;
+border-left-color: var(–red);
+color: #6a1818;
+}
+body.light .disclaimer strong { color: #a81818; }
 
 /* FORMULA NOTE — collapsible, smaller */
 .formula-note {
@@ -308,7 +326,7 @@ font-weight: 500;
 }
 
 .field-group input, .field-group select {
-background: var(–bg);
+background: var(–bg-input);
 border: 1px solid var(–border);
 border-radius: 4px;
 color: var(–text-hi);
@@ -325,10 +343,10 @@ appearance: none;
 
 .field-group input:focus, .field-group select:focus {
 border-color: var(–gold);
-box-shadow: 0 0 0 2px rgba(200,168,75,0.15);
+box-shadow: 0 0 0 2px #3a2c08;
 }
 
-.field-group select option { background: var(–bg); color: var(–text-hi); }
+.field-group select option { background: var(–bg-input); color: var(–text-hi); }
 
 /* EARNINGS TABLE */
 .earnings-section {
@@ -391,8 +409,8 @@ flex-shrink: 0;
 }
 
 body.light .toggle-track {
-background: var(–gold);
-border-color: var(–gold);
+background: #d0c8b8;
+border-color: #b0a890;
 }
 
 .toggle-knob {
@@ -422,7 +440,7 @@ border-collapse: collapse;
 }
 
 thead th {
-background: var(–bg);
+background: var(–bg-raised);
 padding: 10px 14px;
 font-family: ‘IBM Plex Mono’, monospace;
 font-size: 0.68rem;
@@ -494,7 +512,7 @@ border-bottom-color: var(–gold);
 color: var(–gold);
 }
 
-.wage-input::placeholder { color: var(–text-muted); opacity: 0.5; }
+.wage-input::placeholder { color: var(–text-muted); }
 
 td.indexed-val {
 font-family: ‘IBM Plex Mono’, monospace;
@@ -583,8 +601,9 @@ transform: translateY(-2px);
 
 .benefit-card.highlight {
 border-color: var(–gold);
-background: var(–bg-raised);
+background: #1e2e1a;
 }
+body.light .benefit-card.highlight { background: #fffae8; border-color: #b89820; }
 .benefit-card.highlight::before { background: var(–gold); }
 
 .benefit-card .age-label {
@@ -701,8 +720,10 @@ text-transform: uppercase;
 vertical-align: middle;
 margin-left: 6px;
 }
-.badge-now { background: rgba(200,168,75,0.15); color: var(–gold); border: 1px solid var(–border); }
-.badge-future { background: rgba(42,157,143,0.12); color: var(–teal); border: 1px solid rgba(42,157,143,0.25); }
+.badge-now { background: #2e2210; color: var(–gold); border: 1px solid var(–border-gold); }
+.badge-future { background: #102820; color: var(–teal); border: 1px solid #2a5545; }
+body.light .badge-now { background: #fdf0c8; color: #6a4800; border-color: #c8a030; }
+body.light .badge-future { background: #d8f0ea; color: #0a5040; border-color: #60b8a8; }
 
 .m-indexed.m-indexed-counted { color: var(–green) !important; font-weight: 700; }
 
@@ -854,7 +875,7 @@ font-family: ‘IBM Plex Mono’, monospace;
 
 .m-wage-input {
 flex: 1;
-background: var(–bg);
+background: var(–bg-input);
 border: 1px solid var(–border);
 border-radius: 4px;
 color: var(–text-hi);
@@ -871,6 +892,25 @@ appearance: none;
 }
 .m-wage-input:focus { border-color: var(–gold); }
 .m-wage-input::placeholder { color: var(–text-muted); font-weight: 400; }
+
+/* Light mode: ensure formula body text is dark enough */
+body.light .formula-body { color: #2a2820; }
+body.light .formula-body .gold { color: #6a4800; }
+
+/* Light mode: m-indexed-counted green needs to be darker */
+body.light .m-indexed.m-indexed-counted { color: #1a6830 !important; }
+
+/* Light mode: btn-outline text needs more contrast */
+body.light .btn-outline { border-color: #a8a098; color: #3a3830; }
+body.light .btn-outline:hover { border-color: var(–gold); color: var(–gold); }
+
+/* Light mode: panel-title gold needs to be darker */
+body.light .panel-title { color: #6a4800; }
+body.light .formula-toggle-title { color: #6a4800; }
+
+/* Light mode: scrollbar */
+body.light .earnings-table-wrap::-webkit-scrollbar-track { background: var(–bg-raised); }
+body.light .earnings-table-wrap::-webkit-scrollbar-thumb { background: #b8b0a0; }
 </style>
 
 </head>
@@ -1026,7 +1066,7 @@ appearance: none;
   <footer>
     This is an independent estimation tool and is <strong>not affiliated with the Social Security Administration</strong>.<br>
     Official estimates: <a href="https://www.ssa.gov/myaccount/" target="_blank">my Social Security account at ssa.gov</a> &bull;
-    Your data is encrypted locally and never transmitted.
+    No data is ever transmitted — calculations are 100% local.
   </footer>
 </div>
 
