@@ -103,30 +103,41 @@ display: flex; align-items: center; gap: 8px;
 }
 .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
 
-.inputs-grid {
-display: grid; grid-template-columns: 1fr; gap: 13px;
+/* ── PROFILE ROWS ── */
+.profile-row {
+display: grid; gap: 14px;
+margin-bottom: 16px;
 }
-@media (min-width: 480px) { .inputs-grid { grid-template-columns: 1fr 1fr; } }
-@media (min-width: 760px) { .inputs-grid { grid-template-columns: repeat(3,1fr); } }
-@media (min-width: 900px) { .inputs-grid.wide { grid-template-columns: repeat(5,1fr); } }
+.profile-row:last-child { margin-bottom: 0; }
+/* Row 1: numeric inputs — 3 equal cols on tablet+, stacked on mobile */
+.profile-row-values {
+grid-template-columns: 1fr;
+}
+@media (min-width: 480px) { .profile-row-values { grid-template-columns: repeat(3, 1fr); } }
 
-.field { display: flex; flex-direction: column; gap: 5px; }
+/* Row 2: toggles — stack on mobile, side by side on tablet+ */
+.profile-row-toggles {
+grid-template-columns: 1fr;
+}
+@media (min-width: 480px) { .profile-row-toggles { grid-template-columns: repeat(3, 1fr); } }
+
+.field { display: flex; flex-direction: column; gap: 7px; }
 .field label {
-font-size: 0.74rem; font-weight: 600;
-text-transform: uppercase; letter-spacing: 0.055em;
+font-size: 0.72rem; font-weight: 700;
+text-transform: uppercase; letter-spacing: 0.07em;
 }
 .field input[type=“number”] {
-border-width: 1.5px; border-style: solid; border-radius: 8px;
-font-size: 0.97rem; font-weight: 500;
-padding: 8px 11px; outline: none; width: 100%;
+border-width: 2px; border-style: solid; border-radius: 10px;
+font-size: 1.15rem; font-weight: 500;
+padding: 12px 14px; outline: none; width: 100%;
 transition: border-color 0.18s;
 }
 
-.btn-group { display: flex; gap: 4px; flex-wrap: wrap; }
+.btn-group { display: flex; gap: 5px; flex-wrap: nowrap; }
 .btn-group button {
-flex: 1; min-width: 55px; padding: 8px 9px;
-border-width: 1.5px; border-style: solid; border-radius: 8px;
-font-size: 0.8rem; font-weight: 500;
+flex: 1; padding: 11px 8px;
+border-width: 2px; border-style: solid; border-radius: 10px;
+font-size: 0.88rem; font-weight: 500;
 transition: opacity 0.15s; white-space: nowrap;
 }
 
@@ -168,16 +179,16 @@ display: grid; grid-template-columns: 1fr auto auto;
 align-items: center; gap: 9px;
 padding: 6px 10px; border-radius: 7px;
 }
-.sub-label { font-size: 0.83rem; }
+.sub-label { font-size: 0.88rem; }
 .sub-input-wrap { display: flex; align-items: center; gap: 3px; }
-.sub-dollar { font-size: 0.82rem; }
+.sub-dollar { font-size: 0.88rem; }
 .sub-input {
-width: 86px; border-width: 1.5px; border-style: solid;
-border-radius: 6px; font-size: 0.88rem; font-weight: 500;
-padding: 5px 7px; text-align: right; outline: none;
+width: 96px; border-width: 1.5px; border-style: solid;
+border-radius: 7px; font-size: 0.95rem; font-weight: 500;
+padding: 6px 9px; text-align: right; outline: none;
 transition: border-color 0.16s;
 }
-.sub-fx { font-size: 0.72rem; text-align: right; min-width: 68px; }
+.sub-fx { font-size: 0.74rem; text-align: right; min-width: 72px; }
 
 /* Floating summary */
 .summary-bar {
@@ -292,9 +303,10 @@ vertical-align: middle;
 
   <div class="card" id="profileCard">
     <div class="card-title"><span class="dot" id="dot1"></span>Household Profile</div>
-    <div class="inputs-grid wide" id="profileGrid">
 
 ```
+<!-- Row 1: numeric value entries -->
+<div class="profile-row profile-row-values">
   <div class="field">
     <label id="lbl_income">Monthly Net Income</label>
     <input type="number" id="income" min="0" step="100" value="5000" placeholder="5000">
@@ -307,8 +319,12 @@ vertical-align: middle;
     <label id="lbl_children">Children</label>
     <input type="number" id="children" min="0" max="15" step="1" value="0">
   </div>
+</div>
+
+<!-- Row 2: toggle selectors -->
+<div class="profile-row profile-row-toggles">
   <div class="field">
-    <label id="lbl_housing">Housing</label>
+    <label id="lbl_housing">Housing Status</label>
     <div class="btn-group" id="housingGroup">
       <button data-val="rent" onclick="setToggle('housing','rent',this)">Rent</button>
       <button data-val="mortgage" onclick="setToggle('housing','mortgage',this)">Mortgage</button>
@@ -316,7 +332,7 @@ vertical-align: middle;
     </div>
   </div>
   <div class="field">
-    <label id="lbl_vehicle">Vehicle</label>
+    <label id="lbl_vehicle">Vehicle Status</label>
     <div class="btn-group" id="vehicleGroup">
       <button data-val="none" onclick="setToggle('vehicle','none',this)">None</button>
       <button data-val="lease" onclick="setToggle('vehicle','lease',this)">Lease</button>
@@ -330,7 +346,6 @@ vertical-align: middle;
       <button data-val="retired" onclick="setToggle('work','retired',this)">Retired</button>
     </div>
   </div>
-
 </div>
 ```
 
