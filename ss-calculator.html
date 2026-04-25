@@ -4,536 +4,841 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SS Benefit Estimator</title>
+<title>Social Security Benefit Estimator</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { min-height: 100vh; background: #0f1923; color: #e8edf2; font-family: system-ui, -apple-system, sans-serif; font-size: 16px; }
-html.light, html.light body { background: #f0f2f5; color: #0d1520; }
-.page { max-width: 1000px; margin: 0 auto; padding: 16px; }
-
-/* HEADER */
-.hdr { display:flex; align-items:center; justify-content:space-between; padding:14px 0; border-bottom:1px solid #243048; margin-bottom:14px; gap:12px; flex-wrap:wrap; }
-html.light .hdr { border-bottom-color:#d0d8e0; }
-.hdr h1 { font-size:20px; font-weight:700; }
-.hdr h1 span { color:#c8a050; }
-html.light .hdr h1 span { color:#7a5800; }
-.theme-btn { padding:7px 14px; background:#1a2840; border:1px solid #2e3e58; border-radius:6px; color:#e8edf2; font-size:14px; cursor:pointer; white-space:nowrap; }
-html.light .theme-btn { background:#fff; border-color:#c0c8d0; color:#0d1520; }
-
-/* SECURITY */
-.sec-wrap { border:1px solid #1a6858; border-radius:6px; overflow:hidden; margin-bottom:12px; }
-html.light .sec-wrap { border-color:#28a898; }
-.sec-bar { padding:10px 14px; background:#162030; font-size:13px; color:#8ca0b8; }
-html.light .sec-bar { background:#fff; color:#384858; }
-.sec-bar strong { color:#e8edf2; }
-html.light .sec-bar strong { color:#0d1520; }
-.priv-bar { display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding:8px 14px; background:#1a2840; border-top:1px solid #243048; }
-html.light .priv-bar { background:#e8edf4; border-top-color:#d0d8e0; }
-.priv-lbl { flex:1; min-width:160px; font-size:11px; color:#4e6278; text-transform:uppercase; letter-spacing:0.08em; }
-html.light .priv-lbl { color:#506070; }
-.priv-status { font-size:12px; font-weight:600; color:#4e6278; }
-.priv-status.on { color:#28a898; }
-html.light .priv-status { color:#889098; }
-html.light .priv-status.on { color:#0a6858; }
-.pill { width:40px; height:22px; border-radius:11px; background:#243048; border:1px solid #2e3e58; position:relative; cursor:pointer; padding:0; outline:none; -webkit-appearance:none; appearance:none; transition:background 0.2s; flex-shrink:0; }
-.pill.on { background:#28a898; border-color:#28a898; }
-html.light .pill { background:#d0d8e0; border-color:#b0b8c0; }
-html.light .pill.on { background:#0a6858; border-color:#0a6858; }
-.pill::after { content:’’; position:absolute; top:2px; left:2px; width:16px; height:16px; border-radius:50%; background:#8ca0b8; transition:transform 0.2s, background 0.2s; }
-.pill.on::after { transform:translateX(18px); background:#fff; }
-html.light .pill::after { background:#fff; }
-.priv-note { font-size:11px; color:#4e6278; }
-html.light .priv-note { color:#889098; }
-
-/* DISCLAIMER */
-.disc { padding:9px 14px; margin-bottom:12px; background:#162030; border:1px solid #8a2020; border-left:3px solid #e04040; border-radius:6px; font-size:12px; color:#8ca0b8; }
-html.light .disc { background:#fff8f8; border-color:#d08080; border-left-color:#b81818; color:#384858; }
-.disc a { color:#e04040; }
-html.light .disc a { color:#b81818; }
-
-/* CARDS */
-.card { background:#162030; border:1px solid #243048; border-radius:8px; margin-bottom:12px; overflow:hidden; }
-html.light .card { background:#fff; border-color:#d0d8e0; }
-.card-hdr { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; padding:10px 14px; background:#1a2840; border-bottom:1px solid #243048; }
-html.light .card-hdr { background:#e8edf4; border-bottom-color:#d0d8e0; }
-.card-title { display:flex; align-items:center; gap:8px; font-size:11px; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; color:#8ca0b8; }
-html.light .card-title { color:#384858; }
-.bar { width:3px; height:14px; border-radius:2px; flex-shrink:0; }
-.gold { background:#c8a050; } html.light .gold { background:#7a5800; }
-.teal { background:#28a898; } html.light .teal { background:#0a6858; }
-.card-body { padding:16px 14px; }
-
-/* FIELDS */
-.fields { display:grid; grid-template-columns:repeat(auto-fill, minmax(175px,1fr)); gap:12px; }
-.field { display:flex; flex-direction:column; gap:5px; }
-.field label { font-size:11px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:#6a8098; }
-html.light .field label { color:#506070; }
-.field input, .field select {
-background:#0d1620; background-color:#0d1620;
-border:1px solid #2e3e58; border-radius:5px;
-padding:10px 12px; font-size:16px; font-weight:600;
-color:#e8edf2; -webkit-text-fill-color:#e8edf2;
--webkit-appearance:none; appearance:none;
-outline:none; width:100%; touch-action:manipulation;
-}
-html.light .field input, html.light .field select {
-background:#fff; background-color:#fff; border-color:#c0c8d0;
-color:#0d1520; -webkit-text-fill-color:#0d1520;
-}
-.field input:focus, .field select:focus { border-color:#c8a050; }
-html.light .field input:focus, html.light .field select:focus { border-color:#7a5800; }
-.field input[readonly] { opacity:0.5; cursor:not-allowed; }
-.field select option { background:#0d1620; color:#e8edf2; }
-html.light .field select option { background:#fff; color:#0d1520; }
-input:-webkit-autofill { -webkit-box-shadow:0 0 0 1000px #0d1620 inset; -webkit-text-fill-color:#e8edf2; }
-html.light input:-webkit-autofill { -webkit-box-shadow:0 0 0 1000px #fff inset; -webkit-text-fill-color:#0d1520; }
-
-/* TABLE */
-.tbl-scroll { overflow-x:auto; overflow-y:auto; max-height:480px; }
-table { width:100%; border-collapse:collapse; }
-thead th {
-position:sticky; top:0; z-index:2;
-background:#1a2840; background-color:#1a2840;
-padding:8px 10px; font-size:10px; font-weight:600;
-letter-spacing:0.12em; text-transform:uppercase;
-color:#6a8098; -webkit-text-fill-color:#6a8098;
-text-align:left; border-bottom:1px solid #2e3e58; white-space:nowrap;
-}
-html.light thead th { background:#e8edf4; background-color:#e8edf4; color:#506070; -webkit-text-fill-color:#506070; border-bottom-color:#c0c8d0; }
-thead th:nth-child(n+3) { text-align:right; }
-tbody tr { border-bottom:1px solid #1e2f45; }
-html.light tbody tr { border-bottom-color:#e0e8f0; }
-tbody tr:hover { background:#1e2e3e; }
-html.light tbody tr:hover { background:#f0f4f8; }
-tr.now { background:#1a2618; border-left:2px solid #c8a050; }
-html.light tr.now { background:#fffbe0; border-left-color:#7a5800; }
-tr.fut { background:#101e28; }
-html.light tr.fut { background:#eef8f5; }
-td { padding:6px 10px; font-size:14px; vertical-align:middle; }
-.td-yr { font-size:13px; font-weight:700; color:#e8edf2; -webkit-text-fill-color:#e8edf2; white-space:nowrap; }
-html.light .td-yr { color:#0d1520; -webkit-text-fill-color:#0d1520; }
-.fut .td-yr { color:#28a898; -webkit-text-fill-color:#28a898; }
-html.light .fut .td-yr { color:#0a6858; -webkit-text-fill-color:#0a6858; }
-.td-age { font-size:12px; color:#4e6278; -webkit-text-fill-color:#4e6278; }
-html.light .td-age { color:#889098; -webkit-text-fill-color:#889098; }
-.td-inp { text-align:right; padding:3px 6px; }
-.wi {
-background:#0d1620; background-color:#0d1620;
-border:1px solid #2e3e58; border-radius:4px;
-padding:5px 8px; font-size:16px; font-weight:600;
-color:#e8edf2; -webkit-text-fill-color:#e8edf2;
-text-align:right; width:128px;
--webkit-appearance:none; appearance:none;
-outline:none; touch-action:manipulation;
-}
-html.light .wi { background:#fff; background-color:#fff; border-color:#b0b8c0; color:#0d1520; -webkit-text-fill-color:#0d1520; }
-.wi:focus { border-color:#c8a050; }
-html.light .wi:focus { border-color:#7a5800; }
-.td-n { font-size:12px; text-align:right; color:#8ca0b8; -webkit-text-fill-color:#8ca0b8; white-space:nowrap; }
-html.light .td-n { color:#384858; -webkit-text-fill-color:#384858; }
-.td-n.hi { color:#38b878; -webkit-text-fill-color:#38b878; font-weight:700; }
-html.light .td-n.hi { color:#186838; -webkit-text-fill-color:#186838; }
-.badge { display:inline-block; font-size:9px; font-weight:700; padding:1px 5px; border-radius:3px; margin-left:4px; vertical-align:middle; }
-.bn { background:#2a1800; color:#c8a050; border:1px solid #4a3010; }
-html.light .bn { background:#fdf0c0; color:#7a5800; border-color:#c8a050; }
-.bf { background:#0a2820; color:#28a898; border:1px solid #1a5040; }
-html.light .bf { background:#d0f0e8; color:#0a6858; border-color:#50a898; }
-
-/* BTNS */
-.btn-row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
-.btn { padding:6px 12px; background:#0d1620; border:1px solid #2e3e58; border-radius:5px; color:#8ca0b8; font-size:11px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; cursor:pointer; white-space:nowrap; }
-html.light .btn { background:#fff; border-color:#c0c8d0; color:#384858; }
-.btn:hover { border-color:#28a898; color:#28a898; }
-.btn.red:hover { border-color:#e04040; color:#e04040; }
-.flash { font-size:11px; color:#28a898; opacity:0; transition:opacity 0.3s; }
-html.light .flash { color:#0a6858; }
-.flash.on { opacity:1; }
-
-/* RESULTS */
-.stats { display:flex; flex-wrap:wrap; gap:0; margin-bottom:16px; padding-bottom:16px; border-bottom:1px solid #243048; }
-html.light .stats { border-bottom-color:#d0d8e0; }
-.stat { flex:1; min-width:110px; padding:0 14px 0 0; }
-.stat+.stat { border-left:1px solid #243048; padding-left:14px; }
-html.light .stat+.stat { border-left-color:#d0d8e0; }
-.stat-lbl { font-size:10px; font-weight:600; letter-spacing:0.12em; text-transform:uppercase; color:#4e6278; -webkit-text-fill-color:#4e6278; margin-bottom:3px; }
-html.light .stat-lbl { color:#889098; -webkit-text-fill-color:#889098; }
-.stat-val { font-size:24px; font-weight:700; color:#c8a050; -webkit-text-fill-color:#c8a050; line-height:1; }
-html.light .stat-val { color:#7a5800; -webkit-text-fill-color:#7a5800; }
-.stat-val.sm { font-size:17px; color:#e8edf2; -webkit-text-fill-color:#e8edf2; }
-html.light .stat-val.sm { color:#0d1520; -webkit-text-fill-color:#0d1520; }
-
-/* BENEFIT CARDS */
-.b-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(100px,1fr)); gap:8px; }
-.bc { background:#1a2840; border:1px solid #243048; border-radius:6px; padding:10px; position:relative; overflow:hidden; }
-html.light .bc { background:#f4f6f8; border-color:#d0d8e0; }
-.bc::before { content:’’; position:absolute; top:0; left:0; right:0; height:2px; background:#243048; }
-html.light .bc::before { background:#d0d8e0; }
-.bc.best { border-color:#4a3010; background:#1a2010; }
-html.light .bc.best { border-color:#c8a050; background:#fffbe0; }
-.bc.best::before { background:#c8a050; }
-html.light .bc.best::before { background:#7a5800; }
-.bc-age { font-size:10px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:#4e6278; -webkit-text-fill-color:#4e6278; margin-bottom:4px; }
-html.light .bc-age { color:#889098; -webkit-text-fill-color:#889098; }
-.bc.best .bc-age { color:#c8a050; -webkit-text-fill-color:#c8a050; }
-html.light .bc.best .bc-age { color:#7a5800; -webkit-text-fill-color:#7a5800; }
-.bc-mo { font-size:17px; font-weight:700; color:#e8edf2; -webkit-text-fill-color:#e8edf2; line-height:1; margin-bottom:2px; }
-html.light .bc-mo { color:#0d1520; -webkit-text-fill-color:#0d1520; }
-.bc.best .bc-mo { color:#c8a050; -webkit-text-fill-color:#c8a050; }
-html.light .bc.best .bc-mo { color:#7a5800; -webkit-text-fill-color:#7a5800; }
-.bc-yr { font-size:11px; color:#4e6278; -webkit-text-fill-color:#4e6278; margin-bottom:2px; }
-html.light .bc-yr { color:#889098; -webkit-text-fill-color:#889098; }
-.bc-pct { font-size:11px; font-weight:600; }
-.up { color:#38b878; -webkit-text-fill-color:#38b878; } html.light .up { color:#186838; -webkit-text-fill-color:#186838; }
-.dn { color:#e04040; -webkit-text-fill-color:#e04040; } html.light .dn { color:#b81818; -webkit-text-fill-color:#b81818; }
-.ze { color:#4e6278; -webkit-text-fill-color:#4e6278; } html.light .ze { color:#889098; -webkit-text-fill-color:#889098; }
-
-/* FORMULA */
-.fml { background:#162030; border:1px solid #243048; border-radius:8px; margin-bottom:14px; overflow:hidden; }
-html.light .fml { background:#fff; border-color:#d0d8e0; }
-.fml-hdr { display:flex; align-items:center; justify-content:space-between; padding:10px 14px; cursor:pointer; background:#1a2840; user-select:none; }
-html.light .fml-hdr { background:#e8edf4; }
-.fml-hdr:hover { background:#1e2e3e; } html.light .fml-hdr:hover { background:#dce4ee; }
-.fml-t { font-size:11px; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; color:#8ca0b8; }
-html.light .fml-t { color:#384858; }
-.fml-c { font-size:11px; color:#4e6278; }
-html.light .fml-c { color:#889098; }
-.fml-body { display:none; padding:12px 14px; font-size:12px; line-height:1.8; color:#8ca0b8; border-top:1px solid #243048; }
-html.light .fml-body { color:#384858; border-top-color:#d0d8e0; }
-.fml-body.open { display:block; }
-.fml-body b { color:#c8a050; } html.light .fml-body b { color:#7a5800; }
-
-/* FOOTER */
-footer { text-align:center; padding-top:14px; border-top:1px solid #243048; font-size:12px; color:#4e6278; line-height:1.8; }
-html.light footer { border-top-color:#d0d8e0; color:#889098; }
-footer a { color:#28a898; } html.light footer a { color:#0a6858; }
-footer strong { color:#8ca0b8; } html.light footer strong { color:#384858; }
-
-/* RESPONSIVE */
-@media (max-width:600px) {
-.fields { grid-template-columns:1fr 1fr; }
-.b-grid { grid-template-columns:repeat(2,1fr); }
-.stats { flex-direction:column; gap:10px; }
-.stat { border-left:none !important; padding-left:0 !important; }
-.hdr h1 { font-size:17px; }
-}
+  :root {
+    --bg: #0f1117;
+    --bg2: #161822;
+    --bg3: #1e2030;
+    --bg4: #252840;
+    --border: #2e3150;
+    --border2: #3a3e60;
+    --text: #e8eaf6;
+    --text2: #9fa8c7;
+    --text3: #6b74a0;
+    --accent: #5c6bc0;
+    --accent2: #7986cb;
+    --accent3: #3949ab;
+    --green: #4caf50;
+    --green2: #81c784;
+    --yellow: #ffd54f;
+    --red: #ef5350;
+    --orange: #ff8a65;
+    --teal: #4db6ac;
+    --shadow: 0 4px 24px rgba(0,0,0,0.5);
+    --radius: 14px;
+    --radius-sm: 8px;
+  }
+  .light {
+    --bg: #f0f2fc;
+    --bg2: #ffffff;
+    --bg3: #e8eaf6;
+    --bg4: #dde0f5;
+    --border: #c5c9e8;
+    --border2: #9fa8da;
+    --text: #1a1f3c;
+    --text2: #3a3f6e;
+    --text3: #6b74a0;
+    --accent: #3949ab;
+    --accent2: #5c6bc0;
+    --accent3: #283593;
+    --shadow: 0 4px 24px rgba(60,70,140,0.12);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Sora', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    transition: background 0.3s, color 0.3s;
+    font-size: 14px;
+  }
+  /* ─── HEADER ─── */
+  header {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 60px;
+    position: sticky; top: 0; z-index: 100;
+    box-shadow: var(--shadow);
+  }
+  .logo { display:flex; align-items:center; gap:10px; }
+  .logo-icon { font-size:22px; }
+  .logo-text { font-size:17px; font-weight:700; color:var(--accent2); letter-spacing:-.3px; }
+  .logo-sub { font-size:11px; color:var(--text3); font-weight:400; margin-left:2px; }
+  .header-controls { display:flex; gap:10px; align-items:center; }
+  .toggle-btn {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    color: var(--text2);
+    padding: 6px 14px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 12px;
+    font-family: 'Sora', sans-serif;
+    font-weight: 500;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .toggle-btn:hover { background: var(--bg4); border-color: var(--border2); color: var(--text); }
+  .toggle-btn.active { background: var(--accent3); border-color: var(--accent); color: #fff; }
+  /* ─── HERO ─── */
+  .hero {
+    background: linear-gradient(135deg, var(--bg2) 0%, var(--bg3) 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 28px 24px 24px;
+    text-align: center;
+  }
+  .hero h1 { font-size: 26px; font-weight: 700; color: var(--text); letter-spacing: -.5px; margin-bottom: 8px; }
+  .hero p { font-size: 13px; color: var(--text2); max-width: 600px; margin: 0 auto 10px; line-height: 1.6; }
+  .privacy-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--bg4); border: 1px solid var(--border2);
+    border-radius: 20px; padding: 5px 14px; font-size: 11.5px; color: var(--text2);
+    margin-top: 4px;
+  }
+  .disclaimer-bar {
+    background: rgba(255,213,79,0.08);
+    border: 1px solid rgba(255,213,79,0.2);
+    border-radius: var(--radius-sm);
+    padding: 9px 16px;
+    font-size: 11.5px;
+    color: var(--yellow);
+    max-width: 700px;
+    margin: 10px auto 0;
+    text-align: center;
+    line-height: 1.5;
+  }
+  /* ─── LAYOUT ─── */
+  .main { max-width: 1100px; margin: 0 auto; padding: 24px 16px 48px; }
+  .section-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 20px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  .section-header {
+    background: var(--bg3);
+    border-bottom: 1px solid var(--border);
+    padding: 13px 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .section-header .icon { font-size: 18px; }
+  .section-body { padding: 20px; }
+  /* ─── INPUTS GRID ─── */
+  .inputs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+  }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field label { font-size: 12px; font-weight: 600; color: var(--text2); letter-spacing: .3px; text-transform: uppercase; }
+  .field input, .field select {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    padding: 9px 12px;
+    font-family: 'Sora', sans-serif;
+    font-size: 14px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    width: 100%;
+  }
+  .field input:focus, .field select:focus {
+    outline: none;
+    border-color: var(--accent2);
+    box-shadow: 0 0 0 3px rgba(92,107,192,0.15);
+  }
+  .field .hint { font-size: 11px; color: var(--text3); }
+  /* ─── INFO ROW ─── */
+  .info-row {
+    display: flex; gap: 12px; flex-wrap: wrap; margin-top: 16px;
+  }
+  .info-chip {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 8px 14px;
+    display: flex; flex-direction: column; gap: 2px;
+  }
+  .info-chip .label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: .5px; font-weight: 600; }
+  .info-chip .value { font-size: 15px; font-weight: 700; color: var(--accent2); font-family: 'JetBrains Mono', monospace; }
+  /* ─── EARNINGS TABLE ─── */
+  .table-controls {
+    display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+    margin-bottom: 14px;
+  }
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 16px; border-radius: var(--radius-sm);
+    font-family: 'Sora', sans-serif; font-size: 13px; font-weight: 600;
+    cursor: pointer; border: none; transition: all 0.2s;
+  }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: var(--accent2); }
+  .btn-danger { background: transparent; border: 1px solid var(--red); color: var(--red); }
+  .btn-danger:hover { background: rgba(239,83,80,0.1); }
+  .btn-outline { background: transparent; border: 1px solid var(--border2); color: var(--text2); }
+  .btn-outline:hover { border-color: var(--accent2); color: var(--accent2); }
+  .table-wrap { overflow-x: auto; }
+  table.earnings-table {
+    width: 100%; border-collapse: collapse; font-size: 13px;
+    min-width: 520px;
+  }
+  .earnings-table th {
+    background: var(--bg3); color: var(--text2);
+    font-size: 11px; font-weight: 600; letter-spacing: .4px; text-transform: uppercase;
+    padding: 9px 12px; text-align: left; border-bottom: 1px solid var(--border);
+    position: sticky; top: 0;
+  }
+  .earnings-table td {
+    padding: 5px 8px; border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+  .earnings-table tr:last-child td { border-bottom: none; }
+  .earnings-table tr.top35 { background: rgba(92,107,192,0.08); }
+  .earnings-table tr.top35 .star-col { color: var(--accent2); }
+  .earnings-table tr.future td { color: var(--text3); font-style: italic; }
+  .earnings-table tr:hover { background: var(--bg4); }
+  .age-col { color: var(--text3); font-family: 'JetBrains Mono', monospace; font-size: 12px; width: 46px; }
+  .year-col { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text2); width: 58px; }
+  .star-col { width: 24px; text-align: center; font-size: 13px; color: transparent; }
+  .wage-input-cell input {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 5px; color: var(--text);
+    padding: 5px 8px; width: 130px; max-width: 100%;
+    font-family: 'JetBrains Mono', monospace; font-size: 13px;
+    transition: border-color 0.15s;
+  }
+  .wage-input-cell input:focus { outline: none; border-color: var(--accent2); }
+  .wage-input-cell input.future-year { color: var(--text3); }
+  .cap-col, .indexed-col {
+    font-family: 'JetBrains Mono', monospace; font-size: 12px;
+    color: var(--text2); text-align: right; padding-right: 12px;
+  }
+  .indexed-col .top35val { color: var(--green2); font-weight: 600; }
+  .credits-col { text-align: center; font-size: 12px; color: var(--text3); }
+  /* ─── RESULTS ─── */
+  .results-summary {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px;
+    margin-bottom: 20px;
+  }
+  .summary-card {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 14px 16px;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .summary-card .s-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: .5px; font-weight: 600; }
+  .summary-card .s-value { font-size: 20px; font-weight: 700; color: var(--accent2); font-family: 'JetBrains Mono', monospace; }
+  .summary-card .s-sub { font-size: 11px; color: var(--text3); }
+  /* ─── BENEFIT CARDS ─── */
+  .benefit-cards {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 14px;
+  }
+  .benefit-card {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 16px 16px 14px;
+    display: flex; flex-direction: column; gap: 6px;
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+    position: relative; overflow: hidden;
+  }
+  .benefit-card::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:3px;
+    background: var(--card-accent, var(--accent));
+  }
+  .benefit-card:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,0,0,0.3); border-color: var(--border2); }
+  .benefit-card.fra-card { border-color: var(--accent2); }
+  .benefit-card.fra-card::before { background: var(--accent2); }
+  .bc-age { font-size: 11px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: .5px; }
+  .bc-label { font-size: 12px; color: var(--text2); }
+  .bc-monthly { font-size: 26px; font-weight: 700; color: var(--text); font-family: 'JetBrains Mono', monospace; line-height: 1; }
+  .bc-annual { font-size: 12px; color: var(--text2); font-family: 'JetBrains Mono', monospace; }
+  .bc-pct {
+    display: inline-block; font-size: 11px; font-weight: 700;
+    padding: 2px 8px; border-radius: 10px; margin-top: 2px;
+  }
+  .bc-pct.early { background: rgba(239,83,80,0.15); color: var(--red); }
+  .bc-pct.fra { background: rgba(92,107,192,0.2); color: var(--accent2); }
+  .bc-pct.late { background: rgba(76,175,80,0.15); color: var(--green2); }
+  .bc-fra-tag { font-size: 10px; font-weight: 700; color: var(--accent2); text-transform: uppercase; letter-spacing: .5px; }
+  /* ─── PLACEHOLDER ─── */
+  .placeholder {
+    text-align: center; padding: 40px 20px; color: var(--text3);
+  }
+  .placeholder .icon { font-size: 48px; margin-bottom: 12px; }
+  .placeholder p { font-size: 14px; line-height: 1.6; }
+  /* ─── FOOTER ─── */
+  footer {
+    border-top: 1px solid var(--border); padding: 20px 24px;
+    text-align: center; color: var(--text3); font-size: 11.5px; line-height: 1.6;
+    background: var(--bg2);
+  }
+  /* ─── SCROLLABLE TABLE CONTAINER ─── */
+  .table-container { max-height: 480px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); }
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 600px) {
+    header { padding: 0 14px; }
+    .logo-text { font-size: 14px; }
+    .main { padding: 16px 10px 40px; }
+    .hero h1 { font-size: 20px; }
+    .hero { padding: 20px 14px; }
+  }
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg3); }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
 </style>
-
 </head>
 <body>
-<div class="page">
 
-  <header class="hdr">
-    <h1>Social Security <span>Benefit Estimator</span></h1>
-    <button class="theme-btn" id="themeBtn">☀️ Light Mode</button>
-  </header>
-
-  <div class="sec-wrap">
-    <div class="sec-bar">🔒 <strong>Your data never leaves this device.</strong> All calculations run locally in your browser. In Private mode, data is saved only in your browser's local storage — never transmitted anywhere.</div>
-    <div class="priv-bar">
-      <span class="priv-lbl">🖥 Computer type — controls whether data is saved:</span>
-      <span class="priv-status" id="privStatus">Public / Shared — not saving</span>
-      <button class="pill" id="privToggle" aria-label="Toggle private mode"></button>
-      <span class="priv-note">Private</span>
+<header>
+  <div class="logo">
+    <span class="logo-icon">🏛️</span>
+    <div>
+      <span class="logo-text">Social Security Estimator</span>
+      <span class="logo-sub"> — Retirement Benefit Calculator</span>
     </div>
   </div>
+  <div class="header-controls">
+    <button class="toggle-btn" id="privacyBtn" onclick="togglePrivacy()">🔒 Private</button>
+    <button class="toggle-btn" id="themeBtn" onclick="toggleTheme()">☀️ Light Mode</button>
+  </div>
+</header>
 
-  <div class="disc">⚠ <strong>Guidance only.</strong> Estimates may differ from actual SSA benefits. <strong>Consult <a href="https://www.ssa.gov" target="_blank">ssa.gov</a> or a financial/tax professional</strong> before making retirement decisions.</div>
+<div class="hero">
+  <h1>Social Security Benefit Estimator</h1>
+  <p>Estimates your monthly SS retirement benefit for claiming ages 62–70, based on your annual earnings history and the SSA bend-point formula.</p>
+  <div class="privacy-badge" id="privacyBadge">🔒 Private Mode — data saved locally in your browser</div>
+  <div class="disclaimer-bar">⚠️ Educational tool only — not affiliated with SSA. Estimates only. Consult SSA.gov or a financial advisor for real decisions.</div>
+</div>
 
-  <div class="card">
-    <div class="card-hdr">
-      <div class="card-title"><span class="bar gold"></span> 👤 Personal Information</div>
-    </div>
-    <div class="card-body">
-      <div class="fields">
-        <div class="field"><label>Current Age</label><input type="number" id="currentAge" inputmode="numeric" min="16" max="85" placeholder="e.g. 51"></div>
-        <div class="field"><label>Birth Year</label><input type="number" id="birthYear" readonly placeholder="—"></div>
-        <div class="field"><label>Projected Annual Raises</label>
-          <select id="raiseRate">
-            <option value="0">0% — No raises</option>
-            <option value="0.02" selected>2% — Moderate</option>
-            <option value="0.03">3% — Inflation+</option>
-            <option value="0.04">4% — Strong</option>
-            <option value="0.05">5% — Aggressive</option>
-          </select>
+<div class="main">
+
+  <!-- ═══ INPUTS ═══ -->
+
+  <div class="section-card">
+    <div class="section-header"><span class="icon">🎯</span> Your Profile</div>
+    <div class="section-body">
+      <div class="inputs-grid">
+        <div class="field">
+          <label>Current Age</label>
+          <input type="number" id="currentAge" min="16" max="70" value="50" oninput="onAgeChange()">
+          <span class="hint">Age 16–70</span>
         </div>
-        <div class="field"><label>Est. Future Taxed SS Earnings / yr</label><input type="number" id="futureWage" inputmode="numeric" min="0" placeholder="e.g. 80000"></div>
+        <div class="field">
+          <label>Projected Annual Raise %</label>
+          <input type="number" id="raiseRate" min="0" max="20" step="0.1" value="3.0">
+          <span class="hint">Used for Auto-fill Future years</span>
+        </div>
+        <div class="field">
+          <label>Birth Year (auto)</label>
+          <input type="text" id="birthYearDisplay" readonly style="background:var(--bg4);color:var(--text3);">
+        </div>
+      </div>
+      <div class="info-row" id="infoRow">
+        <div class="info-chip"><span class="label">Birth Year</span><span class="value" id="chipBirthYear">—</span></div>
+        <div class="info-chip"><span class="label">Full Retirement Age</span><span class="value" id="chipFRA">—</span></div>
+        <div class="info-chip"><span class="label">Years to FRA</span><span class="value" id="chipYearsToFRA">—</span></div>
       </div>
     </div>
   </div>
 
-  <div class="card">
-    <div class="card-hdr">
-      <div class="card-title"><span class="bar teal"></span> 📋 Annual Earnings — enter SS-taxed wages (W-2 Box 3)</div>
-      <div class="btn-row">
-        <span class="flash" id="saveFlash">● Saved</span>
-        <button class="btn" onclick="fillFuture()">Auto-fill Future</button>
-        <button class="btn red" onclick="clearWages()">Clear All</button>
+  <!-- ═══ EARNINGS TABLE ═══ -->
+
+  <div class="section-card">
+    <div class="section-header"><span class="icon">💼</span> Annual SS-Taxed Earnings (W-2 Box 3)</div>
+    <div class="section-body">
+      <div class="table-controls">
+        <button class="btn btn-primary" onclick="autoFillFuture()">⚡ Auto-fill Future</button>
+        <button class="btn btn-danger" onclick="clearAll()">🗑 Clear All</button>
+        <button class="btn btn-outline" onclick="calculate()">🔄 Recalculate</button>
+        <span style="font-size:11px;color:var(--text3);margin-left:4px;">★ = top-35 year counted toward AIME</span>
+      </div>
+      <div class="table-container">
+        <table class="earnings-table" id="earningsTable">
+          <thead>
+            <tr>
+              <th class="star-col">★</th>
+              <th class="age-col">Age</th>
+              <th class="year-col">Year</th>
+              <th>W-2 Box 3 Wages ($)</th>
+              <th style="text-align:right;padding-right:12px;">SS Wage Cap</th>
+              <th style="text-align:right;padding-right:12px;">Indexed Earnings</th>
+              <th class="credits-col">Credits</th>
+            </tr>
+          </thead>
+          <tbody id="earningsTbody"></tbody>
+        </table>
       </div>
     </div>
-    <div class="tbl-scroll">
-      <table>
-        <thead><tr>
-          <th>Year</th><th>Age</th>
-          <th style="text-align:right;color:#c8a050">✎ Taxed SS Earnings</th>
-          <th style="text-align:right">Wage Base Cap</th>
-          <th style="text-align:right">Indexed Earnings</th>
-        </tr></thead>
-        <tbody id="tBody"></tbody>
-      </table>
-    </div>
   </div>
 
-  <div class="card">
-    <div class="card-hdr">
-      <div class="card-title"><span class="bar gold"></span> 📊 Benefit Projections (PIA Calculation)</div>
-    </div>
-    <div class="card-body">
-      <div class="stats">
-        <div class="stat"><div class="stat-lbl">AIME</div><div class="stat-val" id="aimeOut">—</div></div>
-        <div class="stat"><div class="stat-lbl">PIA / mo</div><div class="stat-val sm" id="piaOut">—</div></div>
-        <div class="stat"><div class="stat-lbl">Credits</div><div class="stat-val sm" id="credOut">—</div></div>
-        <div class="stat"><div class="stat-lbl">Top-35 yrs</div><div class="stat-val sm" id="t35Out">—</div></div>
+  <!-- ═══ RESULTS ═══ -->
+
+  <div class="section-card" id="resultsCard">
+    <div class="section-header"><span class="icon">📊</span> Calculated Results</div>
+    <div class="section-body" id="resultsBody">
+      <div class="placeholder">
+        <div class="icon">🏛️</div>
+        <p>Enter your earnings above and click <strong>Recalculate</strong> — or wages update automatically as you type.</p>
       </div>
-      <div class="b-grid" id="bGrid"></div>
     </div>
   </div>
-
-  <div class="fml">
-    <div class="fml-hdr" onclick="toggleFml()">
-      <span class="fml-t">▸ How this is calculated</span>
-      <span class="fml-c" id="fmlChev">▾ expand</span>
-    </div>
-    <div class="fml-body" id="fmlBody">
-      <b>Input:</b> Your W-2 Box 3 wages (SS-taxed, capped at each year's wage base). Future years are projected.<br>
-      <b>Step 1 — Index:</b> Past earnings indexed to today's dollars via SSA Average Wage Index (AWI).<br>
-      <b>Step 2 — AIME:</b> Top 35 years of indexed earnings ÷ 420 months.<br>
-      <b>Step 3 — PIA (2025):</b> 90% of first $1,226 + 32% of next $6,172 + 15% above $7,398.<br>
-      <b>Step 4 — Age:</b> FRA = 67 (born 1960+). Early at 62 = up to −30%. Delay to 70 = +24%.<br>
-      <b>AWI growth:</b> 3.5%/yr projected (SSA long-range assumption).
-    </div>
-  </div>
-
-  <footer>
-    Independent tool — <strong>not affiliated with SSA</strong>.<br>
-    Official estimates: <a href="https://www.ssa.gov/myaccount/" target="_blank">ssa.gov/myaccount</a> · No data ever transmitted.
-  </footer>
 
 </div>
+
+<footer>
+  <strong>Not affiliated with the Social Security Administration.</strong> This is an educational planning tool — estimates only.<br>
+  Consult <a href="https://www.ssa.gov" target="_blank" style="color:var(--accent2)">ssa.gov</a> or a qualified financial advisor before making any Social Security claiming decisions.<br>
+  No data is ever transmitted to any server. All calculations run entirely in your browser.
+</footer>
+
 <script>
-/* ── SSA DATA ── */
-var WAGE_BASE = {1984:37800,1985:39600,1986:42000,1987:43800,1988:45000,1989:48000,1990:51300,1991:53400,1992:55500,1993:57600,1994:60600,1995:61200,1996:62700,1997:65400,1998:68400,1999:72600,2000:76200,2001:80400,2002:84900,2003:87000,2004:87900,2005:90000,2006:94200,2007:97500,2008:102000,2009:106800,2010:106800,2011:106800,2012:110100,2013:113700,2014:117000,2015:118500,2016:118500,2017:127200,2018:128400,2019:132900,2020:137700,2021:142800,2022:147000,2023:160200,2024:168600,2025:176100};
-var AWI_DATA = {1984:16135,1985:16822,1986:17321,1987:18426,1988:19334,1989:20099,1990:21027,1991:21811,1992:22935,1993:23132,1994:23753,1995:24705,1996:25913,1997:27426,1998:28861,1999:30469,2000:32154,2001:32921,2002:33252,2003:34064,2004:35648,2005:36952,2006:38651,2007:40405,2008:41334,2009:40711,2010:41673,2011:42979,2012:44321,2013:44888,2014:46481,2015:48098,2016:48642,2017:50321,2018:52145,2019:54099,2020:55628,2021:60575,2022:63795,2023:66621,2024:69000,2025:71415};
-var BEND1=1226, BEND2=7398, CY=new Date().getFullYear();
+// ═══════════════════════════════════════════════════
+// SSA DATA
+// ═══════════════════════════════════════════════════
 
-function wb(y){ return WAGE_BASE[y] || Math.round(WAGE_BASE[2025]*Math.pow(1.04,y-2025)/100)*100; }
-function awi(y){ return AWI_DATA[y] || AWI_DATA[2025]*Math.pow(1.035,y-2025); }
-function idx(y,iy){ return y>=iy?1:awi(iy)/awi(y); }
-
-/* ── STORAGE ── */
-var SK=‘ss_v5_wages’, PK=‘ss_v5_prefs’;
-function lsGet(k){ try{return JSON.parse(localStorage.getItem(k)||‘null’);}catch(e){return null;} }
-function lsSet(k,v){ try{localStorage.setItem(k,JSON.stringify(v));}catch(e){} }
-function lsDel(k){ try{localStorage.removeItem(k);}catch(e){} }
-
-/* ── STATE ── */
-var isPrivate=false, birthYear=0, saveTimer, ageTimer;
-
-function persist(){
-var prefs=lsGet(PK)||{};
-prefs.theme=document.documentElement.classList.contains(‘light’)?‘light’:‘dark’;
-prefs.private=isPrivate;
-lsSet(PK,prefs);
-if(!isPrivate){lsDel(SK);return;}
-var wages={}, seen={};
-document.querySelectorAll(’.wi’).forEach(function(inp){
-var yr=inp.dataset.year;
-if(seen[yr])return; seen[yr]=1;
-if(inp.value!==’’) wages[yr]=inp.value;
-});
-lsSet(SK,{age:document.getElementById(‘currentAge’).value,raiseRate:document.getElementById(‘raiseRate’).value,future:document.getElementById(‘futureWage’).value,wages:wages});
-}
-function debounceSave(){ clearTimeout(saveTimer); saveTimer=setTimeout(persist,700); }
-function flashSaved(){ var e=document.getElementById(‘saveFlash’); e.classList.add(‘on’); setTimeout(function(){e.classList.remove(‘on’);},1600); }
-
-/* ── BUILD TABLE ── */
-function buildTable(wages){
-var ageEl=document.getElementById(‘currentAge’);
-var age=parseInt(ageEl.value)||0;
-birthYear=age?CY-age:0;
-document.getElementById(‘birthYear’).value=birthYear||’’;
-var tbody=document.getElementById(‘tBody’);
-var hint=’<tr><td colspan="5" style="text-align:center;padding:24px;color:#4e6278;font-size:14px">Enter your current age above to populate the table.</td></tr>’;
-if(!age||age<16||age>85){tbody.innerHTML=hint;clearResults();return;}
-var merged={};
-if(wages){ Object.keys(wages).forEach(function(k){if(wages[k]!==’’)merged[String(k)]=wages[k];}); }
-document.querySelectorAll(’.wi’).forEach(function(inp){
-var yr=String(inp.dataset.year);
-if(inp.value!==’’&&merged[yr]===undefined) merged[yr]=inp.value;
-});
-var startYr=Math.max(birthYear+16,CY-50), endYr=birthYear+70;
-tbody.innerHTML=’’;
-for(var yr=startYr;yr<=endYr;yr++){
-var yAge=yr-birthYear;
-if(yAge<16||yAge>70) continue;
-var isCur=(yr===CY), isFut=(yr>CY);
-var wbv=wb(yr), val=merged[String(yr)]!==undefined?merged[String(yr)]:’’;
-var tr=document.createElement(‘tr’);
-if(isCur) tr.className=‘now’; else if(isFut) tr.className=‘fut’;
-tr.innerHTML=’<td class="td-yr">’+yr+(isCur?’<span class="badge bn">Now</span>’:’’)+(isFut?’<span class="badge bf">Proj</span>’:’’)+’</td>’
-+’<td class="td-age">Age ‘+yAge+’</td>’
-+’<td class="td-inp"><input class="wi" type="number" inputmode="numeric" min="0" max="'+wbv+'" step="100" data-year="'+yr+'" data-fut="'+(isFut?1:0)+'" value="'+val+'" placeholder=""></td>’
-+’<td class="td-n">$’+wbv.toLocaleString()+’</td>’
-+’<td class="td-n" id="ix'+yr+'">—</td>’;
-tbody.appendChild(tr);
-}
-document.querySelectorAll(’.wi’).forEach(function(inp){
-inp.addEventListener(‘input’,function(){calcRow(inp);recalc();debounceSave();});
-calcRow(inp);
-});
-recalc();
+// SS Wage Base by year (1951–2025; 2026+ estimated)
+const WAGE_BASE = {
+  1951:3600,1952:3600,1953:3600,1954:3600,1955:4200,1956:4200,1957:4200,1958:4200,
+  1959:4800,1960:4800,1961:4800,1962:4800,1963:4800,1964:4800,1965:4800,1966:6600,
+  1967:6600,1968:7800,1969:7800,1970:7800,1971:7800,1972:9000,1973:10800,1974:13200,
+  1975:14100,1976:15300,1977:16500,1978:17700,1979:22900,1980:25900,1981:29700,
+  1982:32400,1983:35700,1984:37800,1985:39600,1986:42000,1987:43800,1988:45000,
+  1989:48000,1990:51300,1991:53400,1992:55500,1993:57600,1994:60600,1995:61200,
+  1996:62700,1997:65400,1998:68400,1999:72600,2000:76200,2001:80400,2002:84900,
+  2003:87000,2004:87900,2005:90000,2006:94200,2007:97500,2008:102000,2009:106800,
+  2010:106800,2011:106800,2012:110100,2013:113700,2014:117000,2015:118500,2016:118500,
+  2017:127200,2018:128400,2019:132900,2020:137700,2021:142800,2022:147000,2023:160200,
+  2024:168600,2025:176100
+};
+// Estimate future wage bases (roughly +4% per year)
+for (let y = 2026; y <= 2070; y++) {
+  WAGE_BASE[y] = Math.round((WAGE_BASE[y-1] || 176100) * 1.04 / 300) * 300;
 }
 
-function calcRow(inp){
-var yr=parseInt(inp.dataset.year), raw=parseFloat(inp.value)||0, wbv=wb(yr);
-if(raw>wbv) inp.value=wbv;
-var taxed=Math.min(raw,wbv), iy=Math.min(birthYear+60,CY);
-var cell=document.getElementById(‘ix’+yr);
-if(cell) cell.textContent=taxed>0?’$’+Math.round(taxed*idx(yr,iy)).toLocaleString():’—’;
+// SSA National Average Wage Index by year (used for indexing)
+// Source: SSA AWI table; 2024–2070 estimated
+const AWI = {
+  1951:2799.16,1952:2973.32,1953:3139.44,1954:3155.64,1955:3301.44,1956:3532.36,
+  1957:3641.72,1958:3673.80,1959:3855.80,1960:4007.12,1961:4086.76,1962:4291.40,
+  1963:4396.64,1964:4576.32,1965:4658.72,1966:4938.36,1967:5213.44,1968:5571.76,
+  1969:5893.76,1970:6186.24,1971:6497.08,1972:7133.80,1973:7580.16,1974:8030.76,
+  1975:8630.92,1976:9226.48,1977:9779.44,1978:10556.03,1979:11479.46,1980:12513.46,
+  1981:13773.10,1982:14531.34,1983:15239.24,1984:16135.07,1985:16822.51,1986:17321.82,
+  1987:18426.51,1988:19334.04,1989:20099.55,1990:21027.98,1991:21811.60,1992:22935.42,
+  1993:23132.67,1994:23753.53,1995:24705.66,1996:25913.90,1997:27426.00,1998:28861.44,
+  1999:30469.84,2000:32154.82,2001:32921.92,2002:33252.09,2003:34064.95,2004:35648.55,
+  2005:36952.94,2006:38651.41,2007:40405.48,2008:41334.97,2009:40711.61,2010:41673.83,
+  2011:42979.61,2012:44321.67,2013:44888.16,2014:46481.52,2015:48098.63,2016:48642.15,
+  2017:50321.89,2018:52145.80,2019:54099.99,2020:55628.60,2021:60575.07,2022:63795.13,
+  2023:66621.80,2024:69700.00
+};
+// Estimate future AWI
+for (let y = 2025; y <= 2070; y++) {
+  AWI[y] = (AWI[y-1] || 69700) * 1.037;
 }
 
-/* ── RECALC ── */
-function recalc(){
-var iy=Math.min(birthYear+60,CY), map={};
-document.querySelectorAll(’.wi’).forEach(function(inp){
-var yr=parseInt(inp.dataset.year);
-if(map[yr]!==undefined) return;
-var taxed=Math.min(parseFloat(inp.value)||0,wb(yr));
-if(taxed>0) map[yr]={yr:yr,taxed:taxed,indexed:taxed*idx(yr,iy)};
-});
-document.querySelectorAll(’.td-n.hi’).forEach(function(el){el.classList.remove(‘hi’);});
-var arr=Object.values(map).sort(function(a,b){return b.indexed-a.indexed;});
-var top35=arr.slice(0,35);
-top35.forEach(function(e){var c=document.getElementById(‘ix’+e.yr);if(c)c.classList.add(‘hi’);});
-var sumIdx=top35.reduce(function(s,e){return s+e.indexed;},0), aime=sumIdx/420;
-var pia=0;
-if(aime<=BEND1) pia=aime*0.90;
-else if(aime<=BEND2) pia=BEND1*0.90+(aime-BEND1)*0.32;
-else pia=BEND1*0.90+(BEND2-BEND1)*0.32+(aime-BEND2)*0.15;
-var credits=Math.min(Object.keys(map).length*4,40);
-var fra=67;
-if(birthYear<1938) fra=65;
-else if(birthYear<1943) fra=65+(birthYear-1937)*(2/12);
-else if(birthYear<1955) fra=66;
-else if(birthYear<1960) fra=66+(birthYear-1954)*(2/12);
-document.getElementById(‘aimeOut’).textContent=aime>0?’$’+Math.round(aime).toLocaleString():’—’;
-document.getElementById(‘piaOut’).textContent=pia>0?’$’+Math.round(pia).toLocaleString():’—’;
-document.getElementById(‘credOut’).textContent=credits+’/40 ‘+(credits>=40?‘✓’:‘⚠’);
-document.getElementById(‘t35Out’).textContent=top35.length+’ yrs’;
-var grid=document.getElementById(‘bGrid’); grid.innerHTML=’’;
-for(var age=62;age<=70;age++){
-var mfra=(age-fra)*12, f=1;
-if(mfra<0){var e=Math.abs(mfra);f=1-(Math.min(e,36)*5/9/100)-(Math.max(e-36,0)*5/12/100);}
-else if(mfra>0) f=1+mfra*2/3/100;
-var mo=pia*f, yr2=mo*12, pct=((f-1)*100).toFixed(0);
-var framark=Math.abs(age-fra)<0.5, best=(age===70);
-var d=document.createElement(‘div’);
-d.className=‘bc’+(best?’ best’:’’);
-d.innerHTML=’<div class="bc-age">Age ‘+age+(framark?’ ★FRA’:’’)+’</div>’
-+’<div class="bc-mo">$’+(mo>0?Math.round(mo).toLocaleString():’—’)+’</div>’
-+’<div class="bc-yr">’+(yr2>0?’$’+Math.round(yr2).toLocaleString()+’/yr’:’—’)+’</div>’
-+’<div class="bc-pct '+(+pct>0?'up':+pct<0?'dn':'ze')+'">’+(+pct>0?’+’:’’)+pct+’% vs FRA</div>’;
-grid.appendChild(d);
+// Indexing year = 2 years before age 62 (i.e., birth year + 60)
+// PIA bend points (2025 base; adjust by AWI growth)
+const PIA_BP_2025 = [1226, 7391]; // bend points for 2025
+const PIA_RATES = [0.90, 0.32, 0.15];
+
+// FRA table by birth year
+function getFRA(birthYear) {
+  if (birthYear <= 1937) return {years:65, months:0};
+  if (birthYear === 1938) return {years:65, months:2};
+  if (birthYear === 1939) return {years:65, months:4};
+  if (birthYear === 1940) return {years:65, months:6};
+  if (birthYear === 1941) return {years:65, months:8};
+  if (birthYear === 1942) return {years:65, months:10};
+  if (birthYear >= 1943 && birthYear <= 1954) return {years:66, months:0};
+  if (birthYear === 1955) return {years:66, months:2};
+  if (birthYear === 1956) return {years:66, months:4};
+  if (birthYear === 1957) return {years:66, months:6};
+  if (birthYear === 1958) return {years:66, months:8};
+  if (birthYear === 1959) return {years:66, months:10};
+  return {years:67, months:0};
 }
+function fraDecimal(fra) { return fra.years + fra.months/12; }
+function fraLabel(fra) {
+  if (fra.months === 0) return `${fra.years}`;
+  return `${fra.years} & ${fra.months} mo`;
 }
 
-function clearResults(){
-[‘aimeOut’,‘piaOut’,‘credOut’,‘t35Out’].forEach(function(id){document.getElementById(id).textContent=’—’;});
-document.getElementById(‘bGrid’).innerHTML=’’;
+// Claiming factor: fraction of PIA at each age
+function claimingFactor(claimAge, fraObj) {
+  const fra = fraDecimal(fraObj);
+  const diff = claimAge - fra; // negative=early, positive=late
+  if (diff >= 0) {
+    // delay credits: +8%/yr past FRA, up to age 70
+    return 1 + Math.min(diff, 70 - fra) * 0.08;
+  } else {
+    // early reduction: first 36 months: 5/9% per month; beyond: 5/12% per month
+    const monthsEarly = Math.round(-diff * 12);
+    const first36 = Math.min(monthsEarly, 36);
+    const beyond = Math.max(0, monthsEarly - 36);
+    return 1 - (first36 * 5/9 + beyond * 5/12) / 100;
+  }
 }
 
-/* ── HELPERS ── */
-function fillFuture(){
-var base=parseFloat(document.getElementById(‘futureWage’).value)||0;
-var rate=parseFloat(document.getElementById(‘raiseRate’).value)||0;
-var seen={};
-document.querySelectorAll(’.wi’).forEach(function(inp){
-if(inp.dataset.fut!==‘1’||inp.value!==’’) return;
-var yr=parseInt(inp.dataset.year);
-if(seen[yr]) return;
-var v=Math.round(Math.min(base*Math.pow(1+rate,yr-CY),wb(yr)));
-document.querySelectorAll(’.wi[data-year=”’+yr+’”]’).forEach(function(i){i.value=v;});
-calcRow(inp); seen[yr]=1;
-});
-recalc(); debounceSave();
-}
-function clearWages(){
-if(!confirm(‘Clear all entered earnings?’)) return;
-var seen={};
-document.querySelectorAll(’.wi’).forEach(function(inp){inp.value=’’;});
-document.querySelectorAll(’.wi’).forEach(function(inp){
-if(!seen[inp.dataset.year]){calcRow(inp);seen[inp.dataset.year]=1;}
-});
-recalc(); debounceSave();
-}
-function toggleFml(){
-var b=document.getElementById(‘fmlBody’), c=document.getElementById(‘fmlChev’);
-var open=b.classList.toggle(‘open’);
-c.textContent=open?‘▴ collapse’:‘▾ expand’;
+// ═══════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════
+let isDark = true;
+let isPrivate = true;
+let wages = {}; // {year: amount}
+const CURRENT_YEAR = new Date().getFullYear();
+
+// ═══════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════
+function init() {
+  loadFromStorage();
+  buildTable();
+  calculate();
 }
 
-/* ── INIT ── */
-var prefs=lsGet(PK)||{};
-
-/* Theme */
-var tBtn=document.getElementById(‘themeBtn’);
-function applyTheme(light){
-document.documentElement.classList.toggle(‘light’,light);
-tBtn.textContent=light?‘🌙 Dark Mode’:‘☀️ Light Mode’;
+function loadFromStorage() {
+  if (!isPrivate) return;
+  try {
+    const saved = localStorage.getItem('ss_estimator_v1');
+    if (saved) {
+      const d = JSON.parse(saved);
+      if (d.currentAge) document.getElementById('currentAge').value = d.currentAge;
+      if (d.raiseRate !== undefined) document.getElementById('raiseRate').value = d.raiseRate;
+      if (d.wages) wages = d.wages;
+    }
+  } catch(e) {}
 }
-tBtn.onclick=function(){applyTheme(!document.documentElement.classList.contains(‘light’));debounceSave();};
-if(prefs.theme===‘light’) applyTheme(true);
 
-/* Privacy */
-var pBtn=document.getElementById(‘privToggle’);
-function applyPriv(priv){
-isPrivate=priv;
-pBtn.classList.toggle(‘on’,priv);
-var st=document.getElementById(‘privStatus’);
-st.textContent=priv?‘Private — saving locally’:‘Public / Shared — not saving’;
-st.className=‘priv-status’+(priv?’ on’:’’);
+function saveToStorage() {
+  if (!isPrivate) return;
+  try {
+    const d = {
+      currentAge: document.getElementById('currentAge').value,
+      raiseRate: document.getElementById('raiseRate').value,
+      wages
+    };
+    localStorage.setItem('ss_estimator_v1', JSON.stringify(d));
+  } catch(e) {}
 }
-pBtn.onclick=function(){applyPriv(!isPrivate);if(!isPrivate)lsDel(SK);debounceSave();};
-if(prefs.private) applyPriv(true);
 
-/* Age input — fire immediately on any interaction */
-var ageEl=document.getElementById(‘currentAge’);
-function onAge(){
-var a=parseInt(ageEl.value)||0;
-if(a>=16&&a<=85){
-document.getElementById(‘birthYear’).value=CY-a;
-clearTimeout(ageTimer);
-ageTimer=setTimeout(function(){ buildTable(null); debounceSave(); },50);
-} else {
-document.getElementById(‘birthYear’).value=’’;
+function clearStorage() {
+  try { localStorage.removeItem('ss_estimator_v1'); } catch(e) {}
 }
-}
-ageEl.oninput=onAge;
-ageEl.onchange=onAge;
-ageEl.onkeyup=onAge;
 
-document.getElementById(‘raiseRate’).onchange=debounceSave;
-document.getElementById(‘futureWage’).oninput=debounceSave;
+// ═══════════════════════════════════════════════════
+// TABLE BUILD
+// ═══════════════════════════════════════════════════
+function getCurrentAge() { return parseInt(document.getElementById('currentAge').value) || 50; }
+function getBirthYear() { return CURRENT_YEAR - getCurrentAge(); }
 
-/* Restore */
-var saved=prefs.private?lsGet(SK):null;
-if(saved){
-if(saved.age) document.getElementById(‘currentAge’).value=saved.age;
-if(saved.raiseRate) document.getElementById(‘raiseRate’).value=saved.raiseRate;
-if(saved.future) document.getElementById(‘futureWage’).value=saved.future;
-buildTable(saved.wages||{});
-} else {
-buildTable(null);
+function onAgeChange() { buildTable(); calculate(); }
+
+function buildTable() {
+  const age = getCurrentAge();
+  const birthYear = getBirthYear();
+  const fra = getFRA(birthYear);
+
+  document.getElementById('birthYearDisplay').value = birthYear;
+  document.getElementById('chipBirthYear').textContent = birthYear;
+  document.getElementById('chipFRA').textContent = fraLabel(fra);
+  const yearsToFRA = Math.max(0, fraDecimal(fra) - age);
+  document.getElementById('chipYearsToFRA').textContent = yearsToFRA <= 0 ? 'Reached' : yearsToFRA.toFixed(1);
+
+  const tbody = document.getElementById('earningsTbody');
+  tbody.innerHTML = '';
+
+  const startYear = birthYear + 16;
+  const endYear = birthYear + 70; // earnings thru age 70
+
+  for (let yr = startYear; yr <= endYear; yr++) {
+    const rowAge = yr - birthYear;
+    const isFuture = yr > CURRENT_YEAR;
+    const tr = document.createElement('tr');
+    if (isFuture) tr.classList.add('future');
+    tr.dataset.year = yr;
+
+    const cap = WAGE_BASE[yr] || 176100;
+
+    tr.innerHTML = `
+      <td class="star-col" id="star_${yr}"></td>
+      <td class="age-col">${rowAge}</td>
+      <td class="year-col">${yr}</td>
+      <td class="wage-input-cell">
+        <input type="text" id="wage_${yr}" 
+          placeholder="${isFuture ? 'future' : '0'}"
+          class="${isFuture ? 'future-year' : ''}"
+          data-year="${yr}"
+          oninput="onWageInput(${yr})"
+          value="${wages[yr] !== undefined ? formatNum(wages[yr]) : ''}">
+      </td>
+      <td class="cap-col">${fmtDollar(cap)}</td>
+      <td class="indexed-col" id="idx_${yr}">—</td>
+      <td class="credits-col" id="cred_${yr}">—</td>
+    `;
+    tbody.appendChild(tr);
+  }
 }
+
+function onWageInput(yr) {
+  const val = parseFloat(document.getElementById('wage_'+yr).value.replace(/,/g,'')) || 0;
+  wages[yr] = val;
+  saveToStorage();
+  calculate();
+}
+
+// ═══════════════════════════════════════════════════
+// AUTO-FILL
+// ═══════════════════════════════════════════════════
+function autoFillFuture() {
+  const birthYear = getBirthYear();
+  const raise = (parseFloat(document.getElementById('raiseRate').value) || 3) / 100;
+
+  // Find last entered year
+  let lastYear = null, lastWage = 0;
+  for (const y in wages) {
+    if (wages[y] > 0 && parseInt(y) > (lastYear || 0)) {
+      lastYear = parseInt(y);
+      lastWage = wages[y];
+    }
+  }
+  if (!lastYear) { alert('Enter at least one year of earnings first.'); return; }
+
+  const endYear = birthYear + 70;
+  let w = lastWage;
+  for (let yr = lastYear + 1; yr <= endYear; yr++) {
+    if (yr > CURRENT_YEAR) {
+      w = w * (1 + raise);
+      wages[yr] = Math.round(w);
+      const inp = document.getElementById('wage_'+yr);
+      if (inp) inp.value = formatNum(Math.round(w));
+    }
+  }
+  saveToStorage();
+  calculate();
+}
+
+function clearAll() {
+  if (!confirm('Clear all entered wages?')) return;
+  wages = {};
+  const inputs = document.querySelectorAll('.wage-input-cell input');
+  inputs.forEach(i => i.value = '');
+  clearStorage();
+  calculate();
+}
+
+// ═══════════════════════════════════════════════════
+// CALCULATION
+// ═══════════════════════════════════════════════════
+function calculate() {
+  const birthYear = getBirthYear();
+  const fra = getFRA(birthYear);
+  const indexYear = birthYear + 60; // AWI index year (age 60)
+  const baseAWI = AWI[indexYear] || AWI[2024] || 69700;
+
+  const startYear = birthYear + 16;
+  const endYear = birthYear + 70;
+
+  // Step 1: Index each year's earnings
+  let indexedList = [];
+  let totalCredits = 0;
+
+  for (let yr = startYear; yr <= endYear; yr++) {
+    const raw = wages[yr] || 0;
+    const cap = WAGE_BASE[yr] || 176100;
+    const capped = Math.min(raw, cap);
+
+    // Indexing: multiply by (baseAWI / AWI[yr]) for years <= indexYear; no multiplier for later years
+    const awiYr = AWI[yr] || AWI[2024];
+    let indexed;
+    if (yr <= indexYear) {
+      indexed = capped * (baseAWI / awiYr);
+    } else {
+      indexed = capped; // years after age 60 are not indexed upward
+    }
+
+    // Credits: 4 per year if >= ~$7240 (2025 threshold; simplify: $1730/credit)
+    const creditsThisYear = raw > 0 ? Math.min(4, Math.floor(raw / 1730)) : 0;
+    totalCredits = Math.min(40, totalCredits + creditsThisYear);
+
+    indexedList.push({ yr, raw, capped, indexed, credits: creditsThisYear });
+  }
+
+  // Step 2: Top 35 indexed years
+  const sorted = [...indexedList].sort((a,b) => b.indexed - a.indexed);
+  const top35Set = new Set(sorted.slice(0,35).map(x=>x.yr));
+  const top35Sum = sorted.slice(0,35).reduce((s,x)=>s+x.indexed,0);
+  const AIME = Math.floor(top35Sum / 420);
+
+  // Step 3: PIA bend points scaled to indexYear
+  const bpScale = baseAWI / (AWI[2023] || 66621.80); // 2023 is the bend point base year
+  const bp1 = Math.round(PIA_BP_2025[0] * bpScale);
+  const bp2 = Math.round(PIA_BP_2025[1] * bpScale);
+
+  let PIA = 0;
+  if (AIME <= bp1) {
+    PIA = AIME * 0.90;
+  } else if (AIME <= bp2) {
+    PIA = bp1 * 0.90 + (AIME - bp1) * 0.32;
+  } else {
+    PIA = bp1 * 0.90 + (bp2 - bp1) * 0.32 + (AIME - bp2) * 0.15;
+  }
+  PIA = Math.floor(PIA * 10) / 10; // truncate to dime
+
+  const qualifies = totalCredits >= 40;
+
+  // Step 4: Update table UI
+  indexedList.forEach(row => {
+    const starEl = document.getElementById('star_'+row.yr);
+    const idxEl = document.getElementById('idx_'+row.yr);
+    const credEl = document.getElementById('cred_'+row.yr);
+    const tr = document.querySelector(`tr[data-year="${row.yr}"]`);
+
+    const isTop = top35Set.has(row.yr);
+    if (tr) {
+      tr.classList.toggle('top35', isTop && row.indexed > 0);
+    }
+    if (starEl) starEl.textContent = (isTop && row.indexed > 0) ? '★' : '';
+    if (idxEl) {
+      if (row.indexed > 0) {
+        idxEl.innerHTML = `<span class="${isTop ? 'top35val' : ''}">${fmtDollar(Math.round(row.indexed))}</span>`;
+      } else {
+        idxEl.textContent = '—';
+      }
+    }
+    if (credEl) {
+      credEl.textContent = row.credits > 0 ? row.credits : (row.raw > 0 ? '0' : '—');
+    }
+  });
+
+  // Render results
+  renderResults(AIME, PIA, fra, totalCredits, top35Set, qualifies, bp1, bp2);
+}
+
+function renderResults(AIME, PIA, fra, credits, top35Set, qualifies, bp1, bp2) {
+  const body = document.getElementById('resultsBody');
+
+  if (AIME === 0) {
+    body.innerHTML = `<div class="placeholder"><div class="icon">📝</div><p>Enter some earnings to see your estimated benefit.</p></div>`;
+    return;
+  }
+
+  const top35Count = [...top35Set].filter(yr => (wages[yr]||0) > 0).length;
+  const fraStr = fraLabel(fra);
+  const fraAge = fraDecimal(fra);
+
+  // Benefits for ages 62–70
+  const benefitHTML = [62,63,64,65,66,67,68,69,70].map(age => {
+    const isFRA = Math.abs(age - fraAge) < 0.01 || (fra.months===0 && age===fra.years);
+    const factor = claimingFactor(age, fra);
+    const monthly = Math.floor(PIA * factor);
+    const annual = monthly * 12;
+    const pct = Math.round(factor * 100);
+    const diff = pct - 100;
+    const pctClass = diff < 0 ? 'early' : diff === 0 ? 'fra' : 'late';
+    const pctSign = diff > 0 ? '+' : '';
+    const cardAccent = diff < 0 ? 'var(--red)' : diff === 0 ? 'var(--accent2)' : 'var(--green2)';
+    return `
+      <div class="benefit-card${isFRA?' fra-card':''}" style="--card-accent:${cardAccent}">
+        <div class="bc-age">Claim at ${age}</div>
+        ${isFRA ? `<div class="bc-fra-tag">✦ Full Retirement Age (${fraStr})</div>` : ''}
+        <div class="bc-monthly">$${monthly.toLocaleString()}<span style="font-size:14px;color:var(--text2)">/mo</span></div>
+        <div class="bc-annual">$${annual.toLocaleString()} / year</div>
+        <span class="bc-pct ${pctClass}">${pctSign}${diff}% vs FRA</span>
+      </div>
+    `;
+  }).join('');
+
+  body.innerHTML = `
+    <div class="results-summary">
+      <div class="summary-card">
+        <div class="s-label">AIME</div>
+        <div class="s-value">$${AIME.toLocaleString()}</div>
+        <div class="s-sub">Avg Indexed Monthly Earnings</div>
+      </div>
+      <div class="summary-card">
+        <div class="s-label">PIA (FRA Benefit)</div>
+        <div class="s-value" style="color:var(--green2)">$${Math.floor(PIA).toLocaleString()}</div>
+        <div class="s-sub">Primary Insurance Amount/mo</div>
+      </div>
+      <div class="summary-card">
+        <div class="s-label">Bend Points</div>
+        <div class="s-value" style="font-size:13px">$${bp1.toLocaleString()} / $${bp2.toLocaleString()}</div>
+        <div class="s-sub">90% / 32% / 15% brackets</div>
+      </div>
+      <div class="summary-card">
+        <div class="s-label">SS Credits</div>
+        <div class="s-value" style="color:${credits>=40?'var(--green2)':'var(--yellow)'}">${credits}/40</div>
+        <div class="s-sub">${qualifies ? '✓ Qualifies for benefits' : '⚠ Need ' + (40-credits) + ' more'}</div>
+      </div>
+      <div class="summary-card">
+        <div class="s-label">Top-35 Years</div>
+        <div class="s-value">${top35Count}<span style="font-size:13px">/35</span></div>
+        <div class="s-sub">${top35Count<35?'Zero-fill '+(35-top35Count)+' year(s)':' Full 35 years'}</div>
+      </div>
+      <div class="summary-card">
+        <div class="s-label">Full Retirement Age</div>
+        <div class="s-value" style="font-size:16px">${fraLabel(fra)}</div>
+        <div class="s-sub">Based on your birth year</div>
+      </div>
+    </div>
+    <div style="margin-bottom:14px;font-size:13px;font-weight:600;color:var(--text2);">Monthly Benefit by Claiming Age</div>
+    <div class="benefit-cards">${benefitHTML}</div>
+  `;
+}
+
+// ═══════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════
+function fmtDollar(n) {
+  return '$' + Math.round(n).toLocaleString();
+}
+function formatNum(n) {
+  return n > 0 ? n.toLocaleString() : '';
+}
+
+// ═══════════════════════════════════════════════════
+// THEME / PRIVACY TOGGLES
+// ═══════════════════════════════════════════════════
+function toggleTheme() {
+  isDark = !isDark;
+  document.body.classList.toggle('light', !isDark);
+  document.getElementById('themeBtn').textContent = isDark ? '☀️ Light Mode' : '🌙 Dark Mode';
+}
+
+function togglePrivacy() {
+  isPrivate = !isPrivate;
+  const btn = document.getElementById('privacyBtn');
+  const badge = document.getElementById('privacyBadge');
+  if (isPrivate) {
+    btn.textContent = '🔒 Private';
+    btn.classList.remove('active');
+    badge.innerHTML = '🔒 Private Mode — data saved locally in your browser';
+    saveToStorage();
+  } else {
+    btn.textContent = '🌐 Public';
+    btn.classList.add('active');
+    badge.innerHTML = '🌐 Public Mode — no data stored anywhere';
+    clearStorage();
+  }
+}
+
+// ═══════════════════════════════════════════════════
+// START
+// ═══════════════════════════════════════════════════
+init();
 </script>
 
 </body>
