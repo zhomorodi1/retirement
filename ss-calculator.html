@@ -422,9 +422,10 @@ const WAGE_BASE = {
   2017:127200,2018:128400,2019:132900,2020:137700,2021:142800,2022:147000,2023:160200,
   2024:168600,2025:176100
 };
+const WAGE_LATEST_YEAR = 2025;
 // Estimate future wage bases (roughly +4% per year)
-for (let y = 2026; y <= 2070; y++) {
-  WAGE_BASE[y] = Math.round((WAGE_BASE[y-1] || 176100) * 1.04 / 300) * 300;
+for (let y = WAGE_LATEST_YEAR+1; y <= 2070; y++) {
+  WAGE_BASE[y] = Math.round((WAGE_BASE[y-1] || WAGE_LATEST_YEAR) * 1.04 / 300) * 300;
 }
 
 // SSA National Average Wage Index by year (used for indexing)
@@ -444,10 +445,108 @@ const AWI = {
   2017:50321.89,2018:52145.80,2019:54099.99,2020:55628.60,2021:60575.07,2022:63795.13,
   2023:66621.80,2024:69846.57
 };
+const AWI_LATEST_YEAR = 2024;
 // Estimate future AWI
-for (let y = 2025; y <= 2070; y++) {
-  AWI[y] = (AWI[y-1] || AWI[2024]) * 1.037;
+for (let y = AWI_LATEST_YEAR+1; y <= 2070; y++) {
+  AWI[y] = (AWI[y-1] || AWI[AWI_LATEST_YEAR]) * 1.037;
 }
+
+const BP1 = {
+  1979: 180,  1980: 194,
+  1981: 211,  1982: 230,
+  1983: 254,  1984: 267,
+  1985: 280,  1986: 297,
+  1987: 310,  1988: 319,
+  1989: 339,  1990: 356,
+  1991: 370,
+  1992: 387,
+  1993: 401,
+  1994: 422,
+  1995: 426,
+  1996: 437,
+  1997: 455,
+  1998: 477,
+  1999: 505,
+  2000: 531,
+  2001: 561,
+  2002: 592,
+  2003: 606,
+  2004: 612,
+  2005: 627,
+  2006: 656,
+  2007: 680,
+  2008: 711,
+  2009: 744,
+  2010: 761,
+  2011: 749,
+  2012: 767,
+  2013: 791,
+  2014: 816,
+  2015: 826,
+  2016: 856,
+  2017: 885,
+  2018: 895,
+  2019: 926,
+  2020: 960,
+  2021: 996,
+  2022: 1024,
+  2023: 1115,
+  2024: 1174,
+  2025: 1226,
+  2026: 1286
+};
+
+const BP2 = {
+  1979: 1085,
+  1980: 1171,
+  1981: 1274,
+  1982: 1388,
+  1983: 1528,
+  1984: 1612,
+  1985: 1691,
+  1986: 1790,
+  1987: 1866,
+  1988: 1922,
+  1989: 2044,
+  1990: 2145,
+  1991: 2230,
+  1992: 2333,
+  1993: 2420,
+  1994: 2545,
+  1995: 2567,
+  1996: 2635,
+  1997: 2741,
+  1998: 2875,
+  1999: 3043,
+  2000: 3202,
+  2001: 3381,
+  2002: 3567,
+  2003: 3653,
+  2004: 3689,
+  2005: 3779,
+  2006: 3955,
+  2007: 4100,
+  2008: 4288,
+  2009: 4483,
+  2010: 4586,
+  2011: 4517,
+  2012: 4624,
+  2013: 4768,
+  2014: 4917,
+  2015: 4980,
+  2016: 5157,
+  2017: 5336,
+  2018: 5397,
+  2019: 5583,
+  2020: 5785,
+  2021: 6002,
+  2022: 6172,
+  2023: 6721,
+  2024: 7078,
+  2025: 7391,
+  2026: 7749
+};
+const BP_LATEST_YEAR = 2026;
 
 // Indexing year = 2 years before age 62 (i.e., birth year + 60)
 // PIA bend point rates
@@ -569,7 +668,7 @@ function buildTable() {
     if (isFuture) tr.classList.add('future');
     tr.dataset.year = yr;
 
-    const cap = WAGE_BASE[yr] || WAGE_BASE[2025];
+    const cap = WAGE_BASE[yr] || WAGE_BASE[WAGE_LATEST_YEAR];
 
     tr.innerHTML = `
       <td class="star-col" id="star_${yr}"></td>
@@ -632,7 +731,7 @@ function autoFillFuture() {
   for (let yr = lastYear + 1; yr <= endYear; yr++) {
     if (yr > CURRENT_YEAR) {
       w = w * (1 + raise);
-      const cap = WAGE_BASE[yr] || WAGE_BASE[2025];
+      const cap = WAGE_BASE[yr] || WAGE_BASE[WAGE_LATEST_YEAR];
       const clamped = Math.min(Math.round(w), cap);
       wages[yr] = clamped;
       const inp = document.getElementById('wage_'+yr);
@@ -661,10 +760,11 @@ function calculate() {
   // SSA indexes earnings to the AWI of the year the worker turns 60.
   // For workers who haven't reached 60 yet, SSA's online estimator uses the
   // latest published AWI rather than a speculative future projection.
-  const AWI_LATEST_YEAR = 2026;
-  const indexYear = birthYear + 60;
-  const effectiveIndexYear = Math.min(indexYear, AWI_LATEST_YEAR);
+  const indexYear = birthYear + 62;
+  const effectiveIndexYearBp = Math.min(indexYear, BP_LATEST_YEAR);
+  const effectiveIndexYear = Math.min(effectiveIndexYearBp-2, AWI_LATEST_YEAR);
   const baseAWI = AWI[effectiveIndexYear] || AWI[AWI_LATEST_YEAR];
+
 
   const startYear = birthYear + 16;
   const endYear = birthYear + 70;
@@ -675,11 +775,11 @@ function calculate() {
 
   for (let yr = startYear; yr <= endYear; yr++) {
     const raw = wages[yr] || 0;
-    const cap = WAGE_BASE[yr] || WAGE_BASE[2025];
+    const cap = WAGE_BASE[yr] || WAGE_BASE[WAGE_LATEST_YEAR];
     const capped = Math.min(raw, cap);
 
     // Indexing: multiply by (baseAWI / AWI[yr]) for years <= indexYear; no multiplier for later years
-    const awiYr = AWI[yr] || AWI[2024];
+    const awiYr = AWI[yr] || AWI[AWI_LATEST_YEAR];
     let indexed;
     if (yr <= indexYear) {
       indexed = capped * (baseAWI / awiYr);
@@ -701,17 +801,13 @@ function calculate() {
   const AIME = Math.floor(top35Sum / 420);
 
   // Step 3: PIA bend points for this cohort.
-  // SSA publishes bend points annually. The 2024 official bend points are
-  // $1,174 and $7,078, anchored to AWI[2022] = $63,795.13.
-  // For workers whose index year is in the future, we scale from this anchor.
-  // Because baseAWI is already capped at AWI_LATEST_YEAR (2024), workers not
-  // yet at 60 get today's bend points — matching SSA's online estimator behavior.
-  const BP_2026_1 = 1286;
-  const BP_2026_2 = 7749;
-  const AWI_2024  = AWI[2024] || AWI[2026]; // anchor year for 2026 bend points
-  const bpScale = baseAWI / AWI_2024;
-  const bp1 = Math.round(BP_2026_1 * bpScale);
-  const bp2 = Math.round(BP_2026_2 * bpScale);
+  // SSA publishes bend points annually.
+  const BP_1 = BP1[effectiveIndexYearBp] || BP1[BP_LATEST_YEAR];
+  const BP_2 = BP2[effectiveIndexYearBp] || BP2[BP_LATEST_YEAR];
+  const AWI_ANCHOR  = AWI[effectiveIndexYear] || AWI[AWI_LATEST_YEAR];
+  const bpScale = baseAWI / AWI_ANCHOR;
+  const bp1 = Math.round(BP_1 * bpScale);
+  const bp2 = Math.round(BP_2 * bpScale);
 
   let PIA = 0;
   if (AIME <= bp1) {
