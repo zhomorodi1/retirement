@@ -274,6 +274,96 @@ padding: 22px 28px;
 margin-bottom: 24px;
 }
 
+/* ── SECTION PANELS ── */
+.section-panel {
+background: var(–bg-mid);
+border: 1px solid var(–border);
+border-top: 3px solid var(–border);
+border-radius: 8px;
+margin-bottom: 20px;
+overflow: hidden;
+}
+
+.section-panel-header {
+display: flex;
+align-items: center;
+justify-content: space-between;
+gap: 12px;
+padding: 14px 24px;
+background: var(–bg-raised);
+border-bottom: 1px solid var(–border);
+flex-wrap: wrap;
+}
+
+.section-panel-label {
+display: flex;
+align-items: center;
+gap: 10px;
+font-family: ‘IBM Plex Mono’, monospace;
+font-size: 0.7rem;
+font-weight: 600;
+letter-spacing: 0.18em;
+text-transform: uppercase;
+color: var(–text-dim);
+}
+
+.section-panel-label .section-icon {
+font-size: 1rem;
+line-height: 1;
+flex-shrink: 0;
+}
+
+.section-panel-label::before {
+content: ‘’;
+display: inline-block;
+width: 3px;
+height: 16px;
+background: var(–gold);
+border-radius: 2px;
+flex-shrink: 0;
+}
+
+.section-panel-body {
+padding: 24px;
+}
+
+/* Legacy aliases — keep old classes working */
+.setup-panel {
+background: var(–bg-mid);
+border: 1px solid var(–border);
+border-top: 3px solid var(–gold);
+border-radius: 8px;
+margin-bottom: 20px;
+overflow: hidden;
+}
+
+.setup-panel-header {
+display: flex;
+align-items: center;
+gap: 10px;
+padding: 14px 24px;
+background: var(–bg-raised);
+border-bottom: 1px solid var(–border);
+font-family: ‘IBM Plex Mono’, monospace;
+font-size: 0.7rem;
+font-weight: 600;
+letter-spacing: 0.18em;
+text-transform: uppercase;
+color: var(–text-dim);
+}
+
+.setup-panel-header::before {
+content: ‘’;
+display: inline-block;
+width: 3px;
+height: 16px;
+background: var(–gold);
+border-radius: 2px;
+flex-shrink: 0;
+}
+
+.setup-panel-body { padding: 20px 24px 24px; }
+
 .panel-title {
 font-family: ‘IBM Plex Mono’, monospace;
 font-size: 0.72rem;
@@ -339,13 +429,15 @@ color: var(–text-hi);
 .earnings-section {
 background: var(–bg-mid);
 border: 1px solid var(–border);
+border-top: 3px solid var(–teal);
 border-radius: 8px;
-margin-bottom: 24px;
+margin-bottom: 20px;
 overflow: hidden;
 }
 
 .section-header {
-padding: 18px 28px;
+padding: 14px 24px;
+background: var(–bg-raised);
 border-bottom: 1px solid var(–border);
 display: flex;
 align-items: center;
@@ -353,6 +445,65 @@ justify-content: space-between;
 gap: 12px;
 flex-wrap: wrap;
 }
+
+.section-header-label {
+display: flex;
+align-items: center;
+gap: 10px;
+font-family: ‘IBM Plex Mono’, monospace;
+font-size: 0.7rem;
+font-weight: 600;
+letter-spacing: 0.18em;
+text-transform: uppercase;
+color: var(–text-dim);
+}
+
+.section-header-label::before {
+content: ‘’;
+display: inline-block;
+width: 3px;
+height: 16px;
+background: var(–teal);
+border-radius: 2px;
+flex-shrink: 0;
+}
+
+/* RESULTS */
+.results-section {
+background: var(–bg-mid);
+border: 1px solid var(–border);
+border-top: 3px solid var(–gold);
+border-radius: 8px;
+overflow: hidden;
+margin-bottom: 20px;
+}
+
+.results-section-header {
+display: flex;
+align-items: center;
+gap: 10px;
+padding: 14px 24px;
+background: var(–bg-raised);
+border-bottom: 1px solid var(–border);
+font-family: ‘IBM Plex Mono’, monospace;
+font-size: 0.7rem;
+font-weight: 600;
+letter-spacing: 0.18em;
+text-transform: uppercase;
+color: var(–text-dim);
+}
+
+.results-section-header::before {
+content: ‘’;
+display: inline-block;
+width: 3px;
+height: 16px;
+background: var(–gold);
+border-radius: 2px;
+flex-shrink: 0;
+}
+
+.results-section-body { padding: 24px; }
 
 .earnings-table-wrap {
 overflow-x: auto;
@@ -520,15 +671,6 @@ text-align: right;
 }
 
 td.indexed-val.counted { color: var(–green); font-weight: 600; }
-
-/* RESULTS */
-.results-section {
-background: var(–bg-mid);
-border: 1px solid var(–border);
-border-radius: 8px;
-padding: 24px 28px;
-margin-bottom: 24px;
-}
 
 .aime-display {
 display: flex;
@@ -749,8 +891,8 @@ body.light .badge-future { background: #d8f0ea; color: #0a5040; border-color: #6
 .benefit-grid { grid-template-columns: repeat(5, 1fr); gap: 10px; }
 .benefit-card { padding: 14px 12px; }
 .benefit-card .monthly { font-size: 1.15rem; }
-.results-section { padding: 24px 20px; }
-.setup-panel { padding: 22px 20px; }
+.results-section-body { padding: 20px; }
+.setup-panel-body { padding: 16px 20px 20px; }
 }
 
 /* ── MOBILE: ≤640px ── */
@@ -782,8 +924,10 @@ header {
 .field-group label { font-size: 0.68rem; }
 .field-group input, .field-group select { font-size: 0.95rem; padding: 10px 10px; }
 
-/* Section header buttons */
-.section-header { padding: 12px 14px; gap: 8px; }
+/* Section headers */
+.setup-panel-header,
+.section-header,
+.results-section-header { padding: 10px 14px; font-size: 0.65rem; gap: 8px; }
 .btn { font-size: 0.7rem; padding: 9px 12px; }
 .save-indicator { font-size: 0.65rem; }
 
@@ -794,7 +938,8 @@ table { display: none; }  /* hide desktop table */
 #mobileRows { display: block; } /* show mobile card list */
 
 /* Results section */
-.results-section { padding: 16px; margin-bottom: 20px; }
+.results-section-body { padding: 16px; }
+.setup-panel-body { padding: 14px 14px 16px; }
 .panel-title { font-size: 0.68rem; margin-bottom: 14px; }
 .aime-display { gap: 16px; margin-bottom: 20px; padding-bottom: 16px; }
 .aime-stat .stat-label { font-size: 0.6rem; }
@@ -913,9 +1058,16 @@ body.light { color: #1a1610; }
 
 /* Page & panel backgrounds */
 body.light .container { color: #1a1610; }
-body.light .setup-panel { background: #ffffff; border-color: #b0a898; }
-body.light .earnings-section { background: #ffffff; border-color: #b0a898; }
-body.light .results-section { background: #ffffff; border-color: #b0a898; }
+body.light .setup-panel { background: #ffffff; border-color: #b0a898; border-top-color: #8a6800; }
+body.light .earnings-section { background: #ffffff; border-color: #b0a898; border-top-color: #085248; }
+body.light .results-section { background: #ffffff; border-color: #b0a898; border-top-color: #8a6800; }
+body.light .setup-panel-header,
+body.light .results-section-header { background: #eeebe2; border-bottom-color: #c0b8a8; color: #1a1610; }
+body.light .section-header { background: #e8f4f0; border-bottom-color: #a8d8d0; }
+body.light .section-header-label { color: #1a1610; }
+body.light .setup-panel-header::before { background: #8a6800; }
+body.light .section-header-label::before { background: #085248; }
+body.light .results-section-header::before { background: #8a6800; }
 body.light .section-header { background: #f5f2ec; border-bottom-color: #c8c0b0; }
 
 /* Header text */
@@ -1093,7 +1245,10 @@ body.light .earnings-table-wrap::-webkit-scrollbar-thumb { background: #a8a098; 
   <!-- SETUP -->
 
   <div class="setup-panel">
-    <div class="panel-title">▸ Personal Information</div>
+    <div class="setup-panel-header">
+      <span class="section-icon">👤</span> Personal Information
+    </div>
+    <div class="setup-panel-body">
     <div class="setup-grid">
       <div class="field-group">
         <label>Current Age</label>
@@ -1118,13 +1273,16 @@ body.light .earnings-table-wrap::-webkit-scrollbar-thumb { background: #a8a098; 
         <input type="number" id="futureWage" min="0" placeholder="e.g. 80000" value="">
       </div>
     </div>
+    </div>
   </div>
 
   <!-- EARNINGS TABLE -->
 
   <div class="earnings-section">
     <div class="section-header">
-      <div class="panel-title" style="margin:0">▸ Annual Earnings History &amp; Projection</div>
+      <div class="section-header-label">
+        <span>📋</span> Annual Earnings History &amp; Projection
+      </div>
       <div class="btn-row">
         <span class="save-indicator" id="saveIndicator">● Saved</span>
         <button class="btn btn-outline" onclick="fillAllFuture()">Auto-fill Future</button>
@@ -1151,33 +1309,32 @@ body.light .earnings-table-wrap::-webkit-scrollbar-thumb { background: #a8a098; 
   <!-- RESULTS -->
 
   <div class="results-section">
-    <div class="panel-title">▸ Benefit Projections (PIA Calculation)</div>
-
-```
-<div class="aime-display">
-  <div class="aime-stat">
-    <span class="stat-label">AIME (Avg Indexed Monthly Earnings)</span>
-    <span class="stat-value" id="aimeDisplay">—</span>
-  </div>
-  <div class="aime-stat">
-    <span class="stat-label">PIA (Primary Insurance Amount)</span>
-    <span class="stat-value small" id="piaDisplay">—</span>
-  </div>
-  <div class="aime-stat">
-    <span class="stat-label">Qualifying Credits</span>
-    <span class="stat-value small" id="creditsDisplay">—</span>
-  </div>
-  <div class="aime-stat">
-    <span class="stat-label">Top-35 Years Counted</span>
-    <span class="stat-value small" id="top35Display">—</span>
-  </div>
-</div>
-
-<div class="benefit-grid" id="benefitGrid">
-  <!-- cards injected by JS -->
-</div>
-```
-
+    <div class="results-section-header">
+      <span>📊</span> Benefit Projections (PIA Calculation)
+    </div>
+    <div class="results-section-body">
+    <div class="aime-display">
+      <div class="aime-stat">
+        <span class="stat-label">AIME (Avg Indexed Monthly Earnings)</span>
+        <span class="stat-value" id="aimeDisplay">—</span>
+      </div>
+      <div class="aime-stat">
+        <span class="stat-label">PIA (Primary Insurance Amount)</span>
+        <span class="stat-value small" id="piaDisplay">—</span>
+      </div>
+      <div class="aime-stat">
+        <span class="stat-label">Qualifying Credits</span>
+        <span class="stat-value small" id="creditsDisplay">—</span>
+      </div>
+      <div class="aime-stat">
+        <span class="stat-label">Top-35 Years Counted</span>
+        <span class="stat-value small" id="top35Display">—</span>
+      </div>
+    </div>
+    <div class="benefit-grid" id="benefitGrid">
+      <!-- cards injected by JS -->
+    </div>
+    </div>
   </div>
 
   <!-- FORMULA NOTE (collapsible) -->
