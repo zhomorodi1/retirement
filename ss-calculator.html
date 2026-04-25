@@ -505,11 +505,21 @@ st.className=‘priv-status’+(priv?’ on’:’’);
 pBtn.onclick=function(){applyPriv(!isPrivate);if(!isPrivate)lsDel(SK);debounceSave();};
 if(prefs.private) applyPriv(true);
 
-/* Age input */
-document.getElementById(‘currentAge’).oninput=function(){
+/* Age input — fire immediately on any interaction */
+var ageEl=document.getElementById(‘currentAge’);
+function onAge(){
+var a=parseInt(ageEl.value)||0;
+if(a>=16&&a<=85){
+document.getElementById(‘birthYear’).value=CY-a;
 clearTimeout(ageTimer);
-ageTimer=setTimeout(function(){ buildTable(null); debounceSave(); },300);
-};
+ageTimer=setTimeout(function(){ buildTable(null); debounceSave(); },50);
+} else {
+document.getElementById(‘birthYear’).value=’’;
+}
+}
+ageEl.oninput=onAge;
+ageEl.onchange=onAge;
+ageEl.onkeyup=onAge;
 
 document.getElementById(‘raiseRate’).onchange=debounceSave;
 document.getElementById(‘futureWage’).oninput=debounceSave;
