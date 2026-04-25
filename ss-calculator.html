@@ -442,11 +442,11 @@ const AWI = {
   2005:36952.94,2006:38651.41,2007:40405.48,2008:41334.97,2009:40711.61,2010:41673.83,
   2011:42979.61,2012:44321.67,2013:44888.16,2014:46481.52,2015:48098.63,2016:48642.15,
   2017:50321.89,2018:52145.80,2019:54099.99,2020:55628.60,2021:60575.07,2022:63795.13,
-  2023:66621.80,2024:69700.00
+  2023:66621.80,2024:69846.57
 };
 // Estimate future AWI
 for (let y = 2025; y <= 2070; y++) {
-  AWI[y] = (AWI[y-1] || 69700) * 1.037;
+  AWI[y] = (AWI[y-1] || AWI[2024]) * 1.037;
 }
 
 // Indexing year = 2 years before age 62 (i.e., birth year + 60)
@@ -569,7 +569,7 @@ function buildTable() {
     if (isFuture) tr.classList.add('future');
     tr.dataset.year = yr;
 
-    const cap = WAGE_BASE[yr] || 176100;
+    const cap = WAGE_BASE[yr] || WAGE_BASE[2025];
 
     tr.innerHTML = `
       <td class="star-col" id="star_${yr}"></td>
@@ -632,7 +632,7 @@ function autoFillFuture() {
   for (let yr = lastYear + 1; yr <= endYear; yr++) {
     if (yr > CURRENT_YEAR) {
       w = w * (1 + raise);
-      const cap = WAGE_BASE[yr] || 176100;
+      const cap = WAGE_BASE[yr] || WAGE_BASE[2025];
       const clamped = Math.min(Math.round(w), cap);
       wages[yr] = clamped;
       const inp = document.getElementById('wage_'+yr);
@@ -661,7 +661,7 @@ function calculate() {
   // SSA indexes earnings to the AWI of the year the worker turns 60.
   // For workers who haven't reached 60 yet, SSA's online estimator uses the
   // latest published AWI rather than a speculative future projection.
-  const AWI_LATEST_YEAR = 2024;
+  const AWI_LATEST_YEAR = 2026;
   const indexYear = birthYear + 60;
   const effectiveIndexYear = Math.min(indexYear, AWI_LATEST_YEAR);
   const baseAWI = AWI[effectiveIndexYear] || AWI[AWI_LATEST_YEAR];
@@ -675,7 +675,7 @@ function calculate() {
 
   for (let yr = startYear; yr <= endYear; yr++) {
     const raw = wages[yr] || 0;
-    const cap = WAGE_BASE[yr] || 176100;
+    const cap = WAGE_BASE[yr] || WAGE_BASE[2025];
     const capped = Math.min(raw, cap);
 
     // Indexing: multiply by (baseAWI / AWI[yr]) for years <= indexYear; no multiplier for later years
@@ -706,12 +706,12 @@ function calculate() {
   // For workers whose index year is in the future, we scale from this anchor.
   // Because baseAWI is already capped at AWI_LATEST_YEAR (2024), workers not
   // yet at 60 get today's bend points — matching SSA's online estimator behavior.
-  const BP_2024_1 = 1174;
-  const BP_2024_2 = 7078;
-  const AWI_2022  = AWI[2022] || 63795.13; // anchor year for 2024 bend points
-  const bpScale = baseAWI / AWI_2022;
-  const bp1 = Math.round(BP_2024_1 * bpScale);
-  const bp2 = Math.round(BP_2024_2 * bpScale);
+  const BP_2026_1 = 1286;
+  const BP_2026_2 = 7749;
+  const AWI_2024  = AWI[2024] || AWI[2026]; // anchor year for 2026 bend points
+  const bpScale = baseAWI / AWI_2024;
+  const bp1 = Math.round(BP_2026_1 * bpScale);
+  const bp2 = Math.round(BP_2026_2 * bpScale);
 
   let PIA = 0;
   if (AIME <= bp1) {
