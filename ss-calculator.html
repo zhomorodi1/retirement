@@ -43,26 +43,26 @@ color-scheme: dark;
 
 body.light {
 color-scheme: light;
-–bg:           #f7f4ee;
-–bg-mid:       #ffffff;
-–bg-raised:    #edeae2;
+–bg:           #f0ece2;
+–bg-mid:       #faf8f4;
+–bg-raised:    #e4e0d6;
 –bg-input:     #ffffff;
-–gold:         #7a5c00;
-–gold-light:   #9a7500;
-–text-hi:      #0d0a04;
+–gold:         #6a4e00;
+–gold-light:   #8a6800;
+–text-hi:      #0a0804;
 –text-body:    #1a1610;
-–text-dim:     #3d4452;
-–text-muted:   #5a6070;
-–teal:         #0a5c52;
-–red:          #a81818;
-–red-soft:     #7a1818;
-–green:        #1a6830;
-–border:       #c8c0b0;
-–border-gold:  #b89840;
-–row-sep:      #e2ddd4;
-–row-hover:    #f0ebe0;
-–row-cur:      #faf5e0;
-–row-fut:      #e8f5f0;
+–text-dim:     #38404e;
+–text-muted:   #606880;
+–teal:         #085248;
+–red:          #980e0e;
+–red-soft:     #6e0e0e;
+–green:        #145c28;
+–border:       #a8a098;
+–border-gold:  #a08030;
+–row-sep:      #d8d2c8;
+–row-hover:    #eae6dc;
+–row-cur:      #faf4d8;
+–row-fut:      #e0f0ec;
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -93,7 +93,7 @@ position: relative;
 z-index: 1;
 max-width: 1100px;
 margin: 0 auto;
-padding: 40px 20px 80px;
+padding: 28px 20px 60px;
 }
 
 header {
@@ -121,8 +121,10 @@ background: #1a2a18;
 box-shadow: 0 0 16px #2a3c10;
 }
 body.light .seal {
-background: #fffbf0;
-box-shadow: 0 0 12px #c8a820;
+background: #fdf8ee;
+box-shadow: 0 0 10px #c8a020;
+border-color: var(–gold);
+color: var(–gold);
 }
 
 .header-text h1 {
@@ -294,8 +296,8 @@ display: none;
 background: var(–bg-mid);
 border: 1px solid var(–border);
 border-radius: 8px;
-padding: 28px 32px;
-margin-bottom: 36px;
+padding: 22px 28px;
+margin-bottom: 24px;
 }
 
 .panel-title {
@@ -364,7 +366,7 @@ color: var(–text-hi);
 background: var(–bg-mid);
 border: 1px solid var(–border);
 border-radius: 8px;
-margin-bottom: 36px;
+margin-bottom: 24px;
 overflow: hidden;
 }
 
@@ -503,31 +505,47 @@ td.age-label { color: var(–text-dim); font-size: 0.75rem; }
 
 td:not(:first-child):not(:last-child) { text-align: right; }
 
+/* Editable column — make it obviously a data entry zone */
+td.td-input {
+background: var(–bg-input);
+background-color: var(–bg-input);
+padding: 4px 10px;
+}
+body.light td.td-input { background: #f5f2ec; background-color: #f5f2ec; border-left: 2px solid var(–border-gold); }
+
 .wage-input {
-background: transparent;
-border: none;
-border-bottom: 1px solid var(–border);
+background: var(–bg-input);
+background-color: var(–bg-input);
+border: 1px solid var(–border);
+border-radius: 3px;
 color: var(–text-hi);
 -webkit-text-fill-color: var(–text-hi);
 font-family: ‘IBM Plex Mono’, monospace;
-font-size: 0.88rem;
+font-size: 0.85rem;
 font-weight: 600;
 text-align: right;
-width: 130px;
-padding: 3px 4px;
+width: 140px;
+padding: 5px 8px;
 outline: none;
 -webkit-appearance: none;
 appearance: none;
 transition: border-color 0.2s;
+box-shadow: none;
 }
 
 .wage-input:focus {
-border-bottom-color: var(–gold);
+border-color: var(–gold);
 -webkit-text-fill-color: var(–gold);
 color: var(–gold);
+box-shadow: none;
 }
 
-.wage-input::placeholder { color: var(–text-muted); -webkit-text-fill-color: var(–text-muted); }
+.wage-input::placeholder {
+color: var(–text-muted);
+-webkit-text-fill-color: var(–text-muted);
+font-weight: 400;
+font-style: italic;
+}
 
 td.indexed-val {
 font-family: ‘IBM Plex Mono’, monospace;
@@ -543,8 +561,8 @@ td.indexed-val.counted { color: var(–green); font-weight: 600; }
 background: var(–bg-mid);
 border: 1px solid var(–border);
 border-radius: 8px;
-padding: 32px;
-margin-bottom: 36px;
+padding: 24px 28px;
+margin-bottom: 24px;
 }
 
 .aime-display {
@@ -699,6 +717,15 @@ display: flex;
 gap: 10px;
 flex-wrap: wrap;
 align-items: center;
+}
+
+/* Safari autofill background fix */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+-webkit-box-shadow: 0 0 0px 1000px var(–bg-input) inset;
+-webkit-text-fill-color: var(–text-hi);
+caret-color: var(–text-hi);
 }
 
 /* SAVE INDICATOR */
@@ -891,41 +918,100 @@ font-family: ‘IBM Plex Mono’, monospace;
 .m-wage-input {
 flex: 1;
 background: var(–bg-input);
+background-color: var(–bg-input);
 border: 1px solid var(–border);
 border-radius: 4px;
 color: var(–text-hi);
+-webkit-text-fill-color: var(–text-hi);
 font-family: ‘IBM Plex Mono’, monospace;
 font-size: 1rem;
 font-weight: 600;
 padding: 8px 10px;
 text-align: right;
 outline: none;
-transition: border-color 0.2s;
-min-width: 0;
 -webkit-appearance: none;
 appearance: none;
+transition: border-color 0.2s;
+min-width: 0;
+box-shadow: none;
 }
-.m-wage-input:focus { border-color: var(–gold); }
-.m-wage-input::placeholder { color: var(–text-muted); font-weight: 400; }
+.m-wage-input:focus { border-color: var(–gold); -webkit-text-fill-color: var(–gold); }
+.m-wage-input::placeholder { color: var(–text-muted); -webkit-text-fill-color: var(–text-muted); font-weight: 400; }
 
-/* Light mode: ensure formula body text is dark enough */
+/* Light mode: explicit input/select overrides to defeat Safari system styles */
+body.light .field-group input,
+body.light .field-group select {
+background: #ffffff;
+background-color: #ffffff;
+border-color: #8a8278;
+color: #0a0804;
+-webkit-text-fill-color: #0a0804;
+}
+body.light .field-group select option {
+background: #ffffff;
+background-color: #ffffff;
+color: #0a0804;
+-webkit-text-fill-color: #0a0804;
+}
+body.light .field-group input:focus,
+body.light .field-group select:focus {
+border-color: #6a4e00;
+}
+/* Light mode wage input — white box, strong border */
+body.light .wage-input {
+background: #ffffff;
+background-color: #ffffff;
+border-color: #8a8278;
+color: #0a0804;
+-webkit-text-fill-color: #0a0804;
+}
+body.light .wage-input:focus {
+border-color: #6a4e00;
+-webkit-text-fill-color: #6a4e00;
+}
+body.light .wage-input::placeholder {
+color: #909898;
+-webkit-text-fill-color: #909898;
+}
+body.light .m-wage-input {
+background: #ffffff;
+background-color: #ffffff;
+border-color: #8a8278;
+color: #0a0804;
+-webkit-text-fill-color: #0a0804;
+}
 body.light .formula-body { color: #2a2820; }
 body.light .formula-body .gold { color: #6a4800; }
 
+/* Light mode table: stronger contrast for all cells */
+body.light td { color: #1a1610; }
+body.light td:first-child { color: #222838; }
+body.light td.year-label { color: #0a0804; font-weight: 700; }
+body.light td.age-label { color: #384050; }
+body.light td.indexed-val { color: #384050; }
+body.light thead th { color: #222838; background: #dedad0; }
+body.light tbody tr { border-bottom-color: #ccc8be; }
+
 /* Light mode: m-indexed-counted green needs to be darker */
-body.light .m-indexed.m-indexed-counted { color: #1a6830 !important; }
+body.light .m-indexed.m-indexed-counted { color: #145c28 !important; }
 
 /* Light mode: btn-outline text needs more contrast */
-body.light .btn-outline { border-color: #a8a098; color: #3a3830; }
-body.light .btn-outline:hover { border-color: var(–gold); color: var(–gold); }
+body.light .btn-outline { border-color: #8a8278; color: #2a2820; background: #ffffff; }
+body.light .btn-outline:hover { border-color: #6a4e00; color: #6a4e00; }
 
 /* Light mode: panel-title gold needs to be darker */
-body.light .panel-title { color: #6a4800; }
-body.light .formula-toggle-title { color: #6a4800; }
+body.light .panel-title { color: #5a3e00; }
+body.light .formula-toggle-title { color: #5a3e00; }
+
+/* Light mode: section/panel backgrounds need more contrast vs page */
+body.light .setup-panel,
+body.light .earnings-section,
+body.light .results-section { background: #faf8f4; border-color: #a8a098; }
+body.light .section-header { border-bottom-color: #ccc8be; }
 
 /* Light mode: scrollbar */
-body.light .earnings-table-wrap::-webkit-scrollbar-track { background: var(–bg-raised); }
-body.light .earnings-table-wrap::-webkit-scrollbar-thumb { background: #b8b0a0; }
+body.light .earnings-table-wrap::-webkit-scrollbar-track { background: #e4e0d6; }
+body.light .earnings-table-wrap::-webkit-scrollbar-thumb { background: #a8a098; }
 </style>
 
 </head>
@@ -980,7 +1066,7 @@ body.light .earnings-table-wrap::-webkit-scrollbar-thumb { background: #b8b0a0; 
       </div>
       <div class="field-group">
         <label>Birth Year</label>
-        <input type="number" id="birthYear" min="1930" max="2010" placeholder="e.g. 1970" value="" readonly style="opacity:0.6;cursor:not-allowed">
+        <input type="number" id="birthYear" min="1930" max="2010" placeholder="—" value="" readonly style="opacity:0.5;cursor:not-allowed;background:var(--bg-raised);background-color:var(--bg-raised)">
       </div>
       <div class="field-group">
         <label>Projected Annual Raises</label>
@@ -1016,7 +1102,7 @@ body.light .earnings-table-wrap::-webkit-scrollbar-thumb { background: #b8b0a0; 
           <tr>
             <th>Year</th>
             <th>Age</th>
-            <th>Taxed SS Earnings ($)</th>
+            <th><span style="color:var(--gold)">✎</span> Taxed SS Earnings — enter yours</th>
             <th>SS Wage Base Cap</th>
             <th>Indexed Earnings</th>
           </tr>
@@ -1279,7 +1365,7 @@ function buildTable(savedWages) {
         ${isFuture ? '<span class="badge badge-future">Proj</span>' : ''}
       </td>
       <td class="age-label">Age ${yrAge}</td>
-      <td style="text-align:right"><input ${inputAttrs}></td>
+      <td class="td-input" style="text-align:right"><input ${inputAttrs}></td>
       <td class="indexed-val">$${wageBase.toLocaleString()}</td>
       <td class="indexed-val indexed-${yr}">—</td>
     `;
