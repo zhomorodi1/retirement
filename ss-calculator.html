@@ -1547,54 +1547,88 @@ if (save) debounceSave();
 // ─────────────────────────────────────────────────────────────
 // INIT
 // ─────────────────────────────────────────────────────────────
+function dbg(msg) {
+let bar = document.getElementById(’_dbg’);
+if (!bar) {
+bar = document.createElement(‘div’);
+bar.id = ‘_dbg’;
+bar.style.cssText = ‘position:fixed;bottom:0;left:0;right:0;background:#000;color:#0f0;font:11px monospace;padding:4px 8px;z-index:9999;max-height:80px;overflow:auto’;
+document.body.appendChild(bar);
+}
+bar.innerHTML += msg + ‘<br>’;
+}
+
 function init() {
-clearLegacyCookie();
-const prefs = loadPrefs();
+dbg(‘init() started’);
+try { clearLegacyCookie(); } catch(e) { dbg(’cookie err: ’ + e); }
 
-// Privacy
-document.getElementById(‘privToggle’).addEventListener(‘click’, () => {
+let prefs = {};
+try { prefs = loadPrefs(); dbg(’prefs ok: ’ + JSON.stringify(prefs)); }
+catch(e) { dbg(’prefs err: ’ + e); }
+
+// Privacy toggle
+const privBtn = document.getElementById(‘privToggle’);
+if (privBtn) {
+privBtn.addEventListener(‘click’, () => {
+dbg(‘privToggle clicked’);
 setPrivacyMode(!isPrivate, true);
-if (!isPrivate) clearWageState();
+if (!isPrivate) { try { clearWageState(); } catch(e) {} }
 });
+dbg(‘privToggle listener attached’);
+} else { dbg(‘privToggle NOT FOUND’); }
 
-// Theme — matches 401k tool (button style, toggles .light on <html>)
+// Theme toggle
 const btn = document.getElementById(‘themeBtn’);
 const lbl = document.getElementById(‘themeLabel’);
 function applyTheme(isLight) {
 document.documentElement.classList.toggle(‘light’, isLight);
-lbl.textContent = isLight ? ‘Dark Mode’ : ‘Light Mode’;
-btn.querySelector(’.tb-icon’).textContent = isLight ? ‘🌙’ : ‘☀️’;
+if (lbl) lbl.textContent = isLight ? ‘Dark Mode’ : ‘Light Mode’;
+const icon = btn ? btn.querySelector(’.tb-icon’) : null;
+if (icon) icon.textContent = isLight ? ‘🌙’ : ‘☀️’;
 }
+if (btn) {
 btn.addEventListener(‘click’, () => {
+dbg(‘theme clicked’);
 applyTheme(!document.documentElement.classList.contains(‘light’));
 debounceSave();
 });
+}
 
 if (prefs.theme === ‘light’) applyTheme(true);
 if (prefs.private) setPrivacyMode(true);
 
+// Age input — simplest possible approach
 const ageInput = document.getElementById(‘currentAge’);
-let ageTimer;
-function onAgeChange() {
+if (ageInput) {
+function handleAge() {
 const a = parseInt(ageInput.value) || 0;
-document.getElementById(‘birthYear’).value = a ? (CURRENT_YEAR - a) : ‘’;
-clearTimeout(ageTimer);
-ageTimer = setTimeout(() => {
+dbg(‘age event fired, value=’ + ageInput.value + ’ parsed=’ + a);
+const byEl = document.getElementById(‘birthYear’);
+if (byEl) byEl.value = a ? (CURRENT_YEAR - a) : ‘’;
+if (a >= 16 && a <= 85) {
+dbg(‘calling buildTable, age=’ + a);
 buildTable(null);
 debounceSave();
-}, a >= 18 ? 400 : 0);
 }
-ageInput.addEventListener(‘input’,  onAgeChange);
-ageInput.addEventListener(‘change’, onAgeChange);
-ageInput.addEventListener(‘blur’,   () => {
-const a = parseInt(ageInput.value) || 0;
-if (a >= 18 && a <= 85) { buildTable(null); debounceSave(); }
-});
-document.getElementById(‘raiseRate’).addEventListener(‘change’, debounceSave);
-document.getElementById(‘futureWage’).addEventListener(‘input’, debounceSave);
+}
+ageInput.addEventListener(‘input’,  handleAge);
+ageInput.addEventListener(‘change’, handleAge);
+ageInput.addEventListener(‘keyup’,  handleAge);
+dbg(‘age listeners attached’);
+} else { dbg(‘currentAge NOT FOUND’); }
 
-const saved = prefs.private ? loadWageState() : null;
+const rr = document.getElementById(‘raiseRate’);
+if (rr) rr.addEventListener(‘change’, debounceSave);
+const fw = document.getElementById(‘futureWage’);
+if (fw) fw.addEventListener(‘input’, debounceSave);
+
+let saved = null;
+try { saved = prefs.private ? loadWageState() : null; }
+catch(e) { dbg(’loadWageState err: ’ + e); }
+
 if (saved) {
+dbg(‘restoring saved state’);
+try {
 if (saved.currentAge) {
 document.getElementById(‘currentAge’).value = saved.currentAge;
 document.getElementById(‘birthYear’).value = CURRENT_YEAR - parseInt(saved.currentAge);
@@ -1602,12 +1636,21 @@ document.getElementById(‘birthYear’).value = CURRENT_YEAR - parseInt(saved.c
 if (saved.raiseRate)  document.getElementById(‘raiseRate’).value  = saved.raiseRate;
 if (saved.futureWage) document.getElementById(‘futureWage’).value = saved.futureWage;
 buildTable(saved.wages || {});
+} catch(e) { dbg(’restore err: ’ + e); }
 } else {
+dbg(‘no saved state, calling buildTable(null)’);
 buildTable(null);
 }
+dbg(‘init() complete’);
 }
 
-init();
+try { init(); } catch(e) {
+const bar = document.getElementById(’_dbg’) || document.createElement(‘div’);
+bar.id = ‘_dbg’;
+bar.style.cssText = ‘position:fixed;bottom:0;left:0;right:0;background:#000;color:red;font:11px monospace;padding:4px 8px;z-index:9999’;
+bar.textContent = ’INIT CRASHED: ’ + e + ’ | ’ + e.stack;
+document.body.appendChild(bar);
+}
 </script>
 
 </body>
