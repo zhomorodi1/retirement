@@ -658,8 +658,13 @@ function clearAll() {
 function calculate() {
   const birthYear = getBirthYear();
   const fra = getFRA(birthYear);
-  const indexYear = birthYear + 60; // AWI index year (age 60)
-  const baseAWI = AWI[indexYear] || AWI[2024] || 69700;
+  // SSA indexes earnings to the AWI of the year the worker turns 60.
+  // For workers who haven't reached 60 yet, SSA's online estimator uses the
+  // latest published AWI rather than a speculative future projection.
+  const AWI_LATEST_YEAR = 2024;
+  const indexYear = birthYear + 60;
+  const effectiveIndexYear = Math.min(indexYear, AWI_LATEST_YEAR);
+  const baseAWI = AWI[effectiveIndexYear] || AWI[AWI_LATEST_YEAR];
 
   const startYear = birthYear + 16;
   const endYear = birthYear + 70;
@@ -695,16 +700,18 @@ function calculate() {
   const top35Sum = sorted.slice(0,35).reduce((s,x)=>s+x.indexed,0);
   const AIME = Math.floor(top35Sum / 420);
 
-  // Step 3: PIA bend points for this cohort
-  // SSA bend points are set each year based on AWI[indexYear-2] / AWI[2021] ratio
-  // 2023 official bend points ($1,115 / $6,721) correspond to AWI index year 2021
-  // Scale those to this worker's index year AWI
-  const BP_BASE_1 = 1115;  // 2023 bend point 1 (age-62 year 2023, index year 2021)
-  const BP_BASE_2 = 6721;  // 2023 bend point 2
-  const AWI_2021  = AWI[2021] || 60575.07; // AWI that anchors 2023 bend points
-  const bpScale = baseAWI / AWI_2021;
-  const bp1 = Math.round(BP_BASE_1 * bpScale);
-  const bp2 = Math.round(BP_BASE_2 * bpScale);
+  // Step 3: PIA bend points for this cohort.
+  // SSA publishes bend points annually. The 2024 official bend points are
+  // $1,174 and $7,078, anchored to AWI[2022] = $63,795.13.
+  // For workers whose index year is in the future, we scale from this anchor.
+  // Because baseAWI is already capped at AWI_LATEST_YEAR (2024), workers not
+  // yet at 60 get today's bend points — matching SSA's online estimator behavior.
+  const BP_2024_1 = 1174;
+  const BP_2024_2 = 7078;
+  const AWI_2022  = AWI[2022] || 63795.13; // anchor year for 2024 bend points
+  const bpScale = baseAWI / AWI_2022;
+  const bp1 = Math.round(BP_2024_1 * bpScale);
+  const bp2 = Math.round(BP_2024_2 * bpScale);
 
   let PIA = 0;
   if (AIME <= bp1) {
