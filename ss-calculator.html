@@ -1326,7 +1326,7 @@ birthYear = CURRENT_YEAR - age;
 document.getElementById(‘birthYear’).value = birthYear || ‘’;
 
 const emptyMsg = ‘Enter your current age above to populate the earnings table.’;
-if (!age || age < 22) {
+if (!age || age < 18 || age > 85) {
 document.getElementById(‘tableBody’).innerHTML =
 `<tr><td colspan="5" style="text-align:center;padding:28px;color:var(--tx-muted);font-size:13px">${emptyMsg}</td></tr>`;
 document.getElementById(‘mobileRows’).innerHTML =
@@ -1562,12 +1562,19 @@ debounceSave();
 if (prefs.theme === ‘light’) applyTheme(true);
 if (prefs.private) setPrivacyMode(true);
 
-document.getElementById(‘currentAge’).addEventListener(‘input’, function() {
-const a = parseInt(this.value) || 0;
+const ageInput = document.getElementById(‘currentAge’);
+function onAgeChange() {
+const a = parseInt(ageInput.value) || 0;
 document.getElementById(‘birthYear’).value = a ? (CURRENT_YEAR - a) : ‘’;
+if (a >= 18 && a <= 85) {
 buildTable(null);
 debounceSave();
-});
+} else if (!a) {
+buildTable(null); // clears table
+}
+}
+ageInput.addEventListener(‘change’, onAgeChange);
+ageInput.addEventListener(‘blur’,   onAgeChange);
 document.getElementById(‘raiseRate’).addEventListener(‘change’, debounceSave);
 document.getElementById(‘futureWage’).addEventListener(‘input’, debounceSave);
 
