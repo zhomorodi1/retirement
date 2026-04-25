@@ -450,8 +450,7 @@ for (let y = 2025; y <= 2070; y++) {
 }
 
 // Indexing year = 2 years before age 62 (i.e., birth year + 60)
-// PIA bend points (2025 base; adjust by AWI growth)
-const PIA_BP_2025 = [1226, 7391]; // bend points for 2025
+// PIA bend point rates
 const PIA_RATES = [0.90, 0.32, 0.15];
 
 // FRA table by birth year
@@ -593,8 +592,20 @@ function buildTable() {
 }
 
 function onWageInput(yr) {
-  const val = parseFloat(document.getElementById('wage_'+yr).value.replace(/,/g,'')) || 0;
-  wages[yr] = val;
+  const inp = document.getElementById('wage_'+yr);
+  const raw = parseFloat(inp.value.replace(/,/g,'')) || 0;
+  const cap = WAGE_BASE[yr] || 176100;
+  const clamped = Math.min(raw, cap);
+  wages[yr] = clamped;
+  // Visual feedback if over cap
+  if (raw > cap) {
+    inp.style.borderColor = 'var(--yellow)';
+    inp.title = `Capped at $${cap.toLocaleString()} — SS wage base for ${yr}`;
+    inp.value = formatNum(clamped); // rewrite input to capped value
+  } else {
+    inp.style.borderColor = '';
+    inp.title = '';
+  }
   saveToStorage();
   calculate();
 }
@@ -621,9 +632,11 @@ function autoFillFuture() {
   for (let yr = lastYear + 1; yr <= endYear; yr++) {
     if (yr > CURRENT_YEAR) {
       w = w * (1 + raise);
-      wages[yr] = Math.round(w);
+      const cap = WAGE_BASE[yr] || 176100;
+      const clamped = Math.min(Math.round(w), cap);
+      wages[yr] = clamped;
       const inp = document.getElementById('wage_'+yr);
-      if (inp) inp.value = formatNum(Math.round(w));
+      if (inp) inp.value = formatNum(clamped);
     }
   }
   saveToStorage();
@@ -682,10 +695,16 @@ function calculate() {
   const top35Sum = sorted.slice(0,35).reduce((s,x)=>s+x.indexed,0);
   const AIME = Math.floor(top35Sum / 420);
 
-  // Step 3: PIA bend points scaled to indexYear
-  const bpScale = baseAWI / (AWI[2023] || 66621.80); // 2023 is the bend point base year
-  const bp1 = Math.round(PIA_BP_2025[0] * bpScale);
-  const bp2 = Math.round(PIA_BP_2025[1] * bpScale);
+  // Step 3: PIA bend points for this cohort
+  // SSA bend points are set each year based on AWI[indexYear-2] / AWI[2021] ratio
+  // 2023 official bend points ($1,115 / $6,721) correspond to AWI index year 2021
+  // Scale those to this worker's index year AWI
+  const BP_BASE_1 = 1115;  // 2023 bend point 1 (age-62 year 2023, index year 2021)
+  const BP_BASE_2 = 6721;  // 2023 bend point 2
+  const AWI_2021  = AWI[2021] || 60575.07; // AWI that anchors 2023 bend points
+  const bpScale = baseAWI / AWI_2021;
+  const bp1 = Math.round(BP_BASE_1 * bpScale);
+  const bp2 = Math.round(BP_BASE_2 * bpScale);
 
   let PIA = 0;
   if (AIME <= bp1) {
