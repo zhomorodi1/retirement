@@ -73,8 +73,10 @@ color-scheme: dark;
 html { scroll-behavior: smooth; }
 
 /* Safari needs explicit bg/color on html+body, not just vars */
-html[data-theme=“dark”] { background-color: #121110; }
-html[data-theme=“light”] { background-color: #f5f2ed; }
+html[data-theme=“dark”],
+html[data-theme=“dark”] body { background-color: #121110 !important; color: #f0ece4 !important; }
+html[data-theme=“light”],
+html[data-theme=“light”] body { background-color: #f5f2ed !important; color: #1a1714 !important; }
 
 body {
 font-family: var(–font-body);
@@ -479,99 +481,81 @@ vertical-align: middle;
 .color-7 { background: #4a6aa8; }
 
 /* ── SAFARI EXPLICIT OVERRIDES ──
-Safari on iOS/macOS does not reliably inherit CSS custom properties
-on form elements. We force exact hex values per theme. */
+Safari on iOS/macOS ignores CSS custom properties on form elements and
+sometimes on arbitrary elements too. Every color is hardcoded per theme.
+Active states declared AFTER base states so specificity is correct. */
 
-/* Light mode inputs */
+/* LIGHT MODE */
+html[data-theme=“light”] body { background-color: #f5f2ed !important; color: #1a1714 !important; }
+html[data-theme=“light”] .header { background-color: #ffffff !important; border-color: #d8d3c8 !important; }
+html[data-theme=“light”] .card,
+html[data-theme=“light”] .summary-mobile { background-color: #ffffff !important; border-color: #d8d3c8 !important; }
+html[data-theme=“light”] .card-title { color: #1a1714 !important; }
+html[data-theme=“light”] .card-title .dot { background-color: #c4521a !important; }
+html[data-theme=“light”] .summary-bar { background-color: #ffffff !important; border-top-color: #c4521a !important; }
+html[data-theme=“light”] .logo { color: #c4521a !important; }
+html[data-theme=“light”] .logo span { color: #1a1714 !important; }
+html[data-theme=“light”] .notice { background-color: #e8f5ee !important; border-color: #2d7a4f !important; color: #2d7a4f !important; }
+html[data-theme=“light”] .disclaimer { background-color: #faf4e0 !important; border-color: #a07820 !important; color: #a07820 !important; }
+html[data-theme=“light”] .cat-header { background-color: #edeae3 !important; border-color: #d8d3c8 !important; }
+html[data-theme=“light”] .cat-header:hover { background-color: #e4e0d8 !important; }
+html[data-theme=“light”] .cat-name,
+html[data-theme=“light”] .cat-total-usd { color: #1a1714 !important; }
+html[data-theme=“light”] .sub-label { color: #4a4540 !important; }
+html[data-theme=“light”] .sub-dollar, html[data-theme=“light”] .sub-fx,
+html[data-theme=“light”] .cat-total-fx, html[data-theme=“light”] .sum-fx,
+html[data-theme=“light”] .smob-fx, html[data-theme=“light”] .sum-label,
+html[data-theme=“light”] .smob-label, html[data-theme=“light”] .toggle-label,
+html[data-theme=“light”] .fx-status, html[data-theme=“light”] .section-divider { color: #7a726a !important; }
+html[data-theme=“light”] .sum-val, html[data-theme=“light”] .smob-val { color: #1a1714 !important; }
+html[data-theme=“light”] .sum-val.positive, html[data-theme=“light”] .smob-val.positive { color: #2d7a4f !important; }
+html[data-theme=“light”] .sum-val.negative, html[data-theme=“light”] .smob-val.negative { color: #c41a1a !important; }
+html[data-theme=“light”] .toggle-track { background-color: #c4521a !important; border-color: #c4521a !important; }
 html[data-theme=“light”] input[type=“number”],
-html[data-theme=“light”] .sub-input {
-background-color: #edeae3 !important;
-color: #1a1714 !important;
-border-color: #d8d3c8 !important;
-}
+html[data-theme=“light”] .sub-input { background-color: #edeae3 !important; color: #1a1714 !important; border-color: #d8d3c8 !important; }
 html[data-theme=“light”] input[type=“number”]:focus,
-html[data-theme=“light”] .sub-input:focus {
-background-color: #ffffff !important;
-border-color: #c4521a !important;
-}
-html[data-theme=“light”] select.currency-select {
-background-color: #edeae3 !important;
-color: #1a1714 !important;
-border-color: #d8d3c8 !important;
-}
-html[data-theme=“light”] .btn-group button {
-background-color: #edeae3 !important;
-color: #4a4540 !important;
-border-color: #d8d3c8 !important;
-}
-html[data-theme=“light”] .btn-group button.active {
-background-color: #c4521a !important;
-border-color: #c4521a !important;
-color: #ffffff !important;
-}
-html[data-theme=“light”] .cat-header {
-background-color: #edeae3 !important;
-border-color: #d8d3c8 !important;
-}
+html[data-theme=“light”] .sub-input:focus { background-color: #ffffff !important; border-color: #c4521a !important; }
+html[data-theme=“light”] select.currency-select { background-color: #edeae3 !important; color: #1a1714 !important; border-color: #d8d3c8 !important; }
+html[data-theme=“light”] .btn-group button { background-color: #edeae3 !important; color: #4a4540 !important; border-color: #d8d3c8 !important; }
+html[data-theme=“light”] .btn-group button.active { background-color: #c4521a !important; border-color: #c4521a !important; color: #ffffff !important; }
 
-/* Dark mode inputs */
+/* DARK MODE */
+html[data-theme=“dark”] body { background-color: #121110 !important; color: #f0ece4 !important; }
+html[data-theme=“dark”] .header { background-color: #1e1c1a !important; border-color: #38342e !important; }
+html[data-theme=“dark”] .card,
+html[data-theme=“dark”] .summary-mobile { background-color: #1e1c1a !important; border-color: #38342e !important; }
+html[data-theme=“dark”] .card-title { color: #f0ece4 !important; }
+html[data-theme=“dark”] .card-title .dot { background-color: #e8733d !important; }
+html[data-theme=“dark”] .summary-bar { background-color: #1e1c1a !important; border-top-color: #e8733d !important; }
+html[data-theme=“dark”] .logo { color: #e8733d !important; }
+html[data-theme=“dark”] .logo span { color: #f0ece4 !important; }
+html[data-theme=“dark”] .notice { background-color: #0e1f15 !important; border-color: #4ab870 !important; color: #4ab870 !important; }
+html[data-theme=“dark”] .disclaimer { background-color: #1f1a08 !important; border-color: #c9a030 !important; color: #c9a030 !important; }
+html[data-theme=“dark”] .cat-header { background-color: #1a1917 !important; border-color: #38342e !important; }
+html[data-theme=“dark”] .cat-header:hover { background-color: #222019 !important; }
+html[data-theme=“dark”] .cat-name,
+html[data-theme=“dark”] .cat-total-usd { color: #f0ece4 !important; }
+html[data-theme=“dark”] .sub-label { color: #c0b9ae !important; }
+html[data-theme=“dark”] .sub-dollar, html[data-theme=“dark”] .sub-fx,
+html[data-theme=“dark”] .cat-total-fx, html[data-theme=“dark”] .sum-fx,
+html[data-theme=“dark”] .smob-fx, html[data-theme=“dark”] .sum-label,
+html[data-theme=“dark”] .smob-label, html[data-theme=“dark”] .toggle-label,
+html[data-theme=“dark”] .fx-status, html[data-theme=“dark”] .section-divider { color: #857c70 !important; }
+html[data-theme=“dark”] .section-divider::before,
+html[data-theme=“dark”] .section-divider::after { background-color: #38342e !important; }
+html[data-theme=“dark”] .sum-val, html[data-theme=“dark”] .smob-val { color: #f0ece4 !important; }
+html[data-theme=“dark”] .sum-val.positive, html[data-theme=“dark”] .smob-val.positive { color: #4ab870 !important; }
+html[data-theme=“dark”] .sum-val.negative, html[data-theme=“dark”] .smob-val.negative { color: #e05555 !important; }
+html[data-theme=“dark”] .sum-item { border-color: #38342e !important; }
+html[data-theme=“dark”] .toggle-track { background-color: #222019 !important; border-color: #4a4438 !important; }
 html[data-theme=“dark”] input[type=“number”],
-html[data-theme=“dark”] .sub-input {
-background-color: #1a1917 !important;
-color: #f0ece4 !important;
-border-color: #38342e !important;
-}
+html[data-theme=“dark”] .sub-input { background-color: #1a1917 !important; color: #f0ece4 !important; border-color: #38342e !important; }
 html[data-theme=“dark”] input[type=“number”]:focus,
-html[data-theme=“dark”] .sub-input:focus {
-background-color: #1e1c1a !important;
-border-color: #e8733d !important;
-}
-html[data-theme=“dark”] select.currency-select {
-background-color: #1a1917 !important;
-color: #f0ece4 !important;
-border-color: #38342e !important;
-}
-html[data-theme=“dark”] .btn-group button {
-background-color: #1a1917 !important;
-color: #c0b9ae !important;
-border-color: #38342e !important;
-}
-html[data-theme=“dark”] .btn-group button.active {
-background-color: #e8733d !important;
-border-color: #e8733d !important;
-color: #ffffff !important;
-}
-html[data-theme=“dark”] .cat-header {
-background-color: #1a1917 !important;
-border-color: #38342e !important;
-}
-html[data-theme=“dark”] .header {
-background-color: #1e1c1a !important;
-}
-html[data-theme=“dark”] .card {
-background-color: #1e1c1a !important;
-border-color: #38342e !important;
-}
-html[data-theme=“dark”] .summary-bar {
-background-color: #1e1c1a !important;
-}
-html[data-theme=“dark”] .summary-mobile {
-background-color: #1e1c1a !important;
-border-color: #38342e !important;
-}
-html[data-theme=“dark”] .notice {
-background-color: #0e1f15 !important;
-border-color: #4ab870 !important;
-color: #4ab870 !important;
-}
-html[data-theme=“dark”] .disclaimer {
-background-color: #1f1a08 !important;
-border-color: #c9a030 !important;
-color: #c9a030 !important;
-}
-html[data-theme=“dark”] .sub-row:hover {
-background-color: #1a1917 !important;
-}
+html[data-theme=“dark”] .sub-input:focus { background-color: #1e1c1a !important; border-color: #e8733d !important; }
+html[data-theme=“dark”] select.currency-select { background-color: #1a1917 !important; color: #f0ece4 !important; border-color: #38342e !important; }
+html[data-theme=“dark”] .btn-group button { background-color: #1a1917 !important; color: #c0b9ae !important; border-color: #38342e !important; }
+html[data-theme=“dark”] .btn-group button.active { background-color: #e8733d !important; border-color: #e8733d !important; color: #ffffff !important; }
+html[data-theme=“dark”] .sub-row:hover { background-color: #1a1917 !important; }
 </style>
 
 </head>
@@ -609,8 +593,9 @@ background-color: #1a1917 !important;
       </select>
       <label class="theme-toggle" id="themeToggle" title="Toggle dark/light mode">
         <div class="toggle-track"><div class="toggle-thumb"></div></div>
-        <span class="toggle-label" id="toggleLabel">Light</span>
+        <span class="toggle-label" id="toggleLabel">Dark</span>
       </label>
+      <button id="resetBtn" title="Reset all saved preferences" style="background:none;border:none;cursor:pointer;font-size:0.72rem;color:var(--text3);padding:4px 6px;border-radius:6px;font-family:var(--font-body);" onclick="resetAll()">↺ Reset</button>
     </div>
   </div>
 </header>
@@ -764,9 +749,13 @@ background-color: #1a1917 !important;
     const raw = document.cookie.split(';').map(c=>c.trim()).find(c=>c.startsWith('sb_state='));
     if (raw) {
       const saved = JSON.parse(decodeURIComponent(raw.split('=').slice(1).join('=')));
-      if (saved.theme) document.documentElement.setAttribute('data-theme', saved.theme);
+      document.documentElement.setAttribute('data-theme', saved.theme || 'dark');
+    } else {
+      document.documentElement.setAttribute('data-theme', 'dark');
     }
-  } catch(e) {}
+  } catch(e) {
+    document.documentElement.setAttribute('data-theme', 'dark');
+  }
 })();
 
 // ─────────────────────────────────────────
@@ -924,7 +913,9 @@ function loadState() {
   if (!raw) return;
   try {
     const saved = JSON.parse(raw);
+    // Always keep dark as default - only accept saved theme if explicitly set
     Object.assign(state, saved);
+    if (!saved.theme) state.theme = 'dark'; // default dark if old cookie missing theme
   } catch(e) {}
 }
 
@@ -1171,7 +1162,17 @@ function recalc() {
 // ─────────────────────────────────────────
 function applyTheme(theme) {
   document.documentElement.setAttribute('data-theme', theme);
-  document.getElementById('toggleLabel').textContent = theme === 'dark' ? 'Dark' : 'Light';
+  const lbl = document.getElementById('toggleLabel');
+  if (lbl) lbl.textContent = theme === 'dark' ? 'Dark' : 'Light';
+}
+
+function resetAll() {
+  // Expire cookie
+  document.cookie = 'sb_state=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;SameSite=Strict';
+  // Reset state to defaults
+  state = { income:5000, adults:1, children:0, housing:'mortgage', vehicle:'own', work:'working', currency:'USD', theme:'dark', budgets:{} };
+  // Reload page fresh
+  location.reload();
 }
 
 // ─────────────────────────────────────────
