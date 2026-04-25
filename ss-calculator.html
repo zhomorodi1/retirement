@@ -254,6 +254,14 @@ position: relative;
 cursor: pointer;
 flex-shrink: 0;
 transition: background 0.2s, border-color 0.2s;
+touch-action: manipulation;
+-webkit-tap-highlight-color: transparent;
+user-select: none;
+-webkit-user-select: none;
+padding: 0;
+outline: none;
+-webkit-appearance: none;
+appearance: none;
 }
 .pill-toggle.on { background: #28a898; border-color: #28a898; }
 html.light .pill-toggle { background: #e8edf4; border-color: #c0c8d0; }
@@ -392,7 +400,7 @@ border: 1px solid #2e3e58;
 border-radius: 5px;
 padding: 9px 12px;
 font-family: ‘JetBrains Mono’, monospace;
-font-size: 14px;
+font-size: 16px;
 font-weight: 600;
 color: #e8edf2;
 -webkit-text-fill-color: #e8edf2;
@@ -401,6 +409,7 @@ width: 100%;
 -webkit-appearance: none;
 appearance: none;
 transition: border-color 0.15s;
+touch-action: manipulation;
 }
 .field input:focus,
 .field select:focus { border-color: #c8a050; }
@@ -569,7 +578,7 @@ border: 1px solid #2e3e58;
 border-radius: 4px;
 padding: 5px 8px;
 font-family: ‘JetBrains Mono’, monospace;
-font-size: 13px;
+font-size: 16px;
 font-weight: 600;
 color: #e8edf2;
 -webkit-text-fill-color: #e8edf2;
@@ -579,6 +588,7 @@ outline: none;
 -webkit-appearance: none;
 appearance: none;
 transition: border-color 0.15s;
+touch-action: manipulation;
 }
 .wage-input:focus { border-color: #c8a050; }
 .wage-input::placeholder { color: #4e6278; -webkit-text-fill-color: #4e6278; }
@@ -855,21 +865,22 @@ white-space: nowrap;
 }
 .m-wage-input {
 flex: 1;
-background: var(–bg-input);
-background-color: var(–bg-input);
-border: 1px solid var(–border-hi);
+background: #0d1620;
+background-color: #0d1620;
+border: 1px solid #2e3e58;
 border-radius: 4px;
 padding: 7px 10px;
 font-family: ‘JetBrains Mono’, monospace;
-font-size: 13px;
+font-size: 16px;
 font-weight: 600;
-color: var(–tx-primary);
--webkit-text-fill-color: var(–tx-primary);
+color: #e8edf2;
+-webkit-text-fill-color: #e8edf2;
 text-align: right;
 outline: none;
 -webkit-appearance: none;
 appearance: none;
 transition: border-color 0.15s;
+touch-action: manipulation;
 }
 .m-wage-input:focus { border-color: var(–gold); }
 .m-wage-input::placeholder { color: var(–tx-muted); -webkit-text-fill-color: var(–tx-muted); }
@@ -1068,9 +1079,9 @@ html.light .m-cap { color: #a0a8b0; -webkit-text-fill-color: #a0a8b0; }
     <div class="privacy-bar">
       <span class="privacy-bar-label">🖥 Computer type — controls whether data is saved:</span>
       <span class="privacy-status public" id="privStatus">Public / Shared — not saving</span>
-      <div class="pill-toggle" id="privToggle">
+      <button class="pill-toggle" id="privToggle" aria-label="Toggle private mode">
         <div class="pill-knob"></div>
-      </div>
+      </button>
       <span class="privacy-bar-note">Private</span>
     </div>
   </div>
@@ -1326,11 +1337,11 @@ birthYear = CURRENT_YEAR - age;
 document.getElementById(‘birthYear’).value = birthYear || ‘’;
 
 const emptyMsg = ‘Enter your current age above to populate the earnings table.’;
-if (!age || age < 18 || age > 85) {
+if (!age || age < 16 || age > 85) {
 document.getElementById(‘tableBody’).innerHTML =
-`<tr><td colspan="5" style="text-align:center;padding:28px;color:var(--tx-muted);font-size:13px">${emptyMsg}</td></tr>`;
+`<tr><td colspan="5" style="text-align:center;padding:28px;color:#4e6278;font-size:13px">${emptyMsg}</td></tr>`;
 document.getElementById(‘mobileRows’).innerHTML =
-`<div style="padding:24px;text-align:center;color:var(--tx-muted);font-size:13px">${emptyMsg}</div>`;
+`<div style="padding:24px;text-align:center;color:#4e6278;font-size:13px">${emptyMsg}</div>`;
 clearResults(); return;
 }
 
@@ -1563,18 +1574,22 @@ if (prefs.theme === ‘light’) applyTheme(true);
 if (prefs.private) setPrivacyMode(true);
 
 const ageInput = document.getElementById(‘currentAge’);
+let ageTimer;
 function onAgeChange() {
 const a = parseInt(ageInput.value) || 0;
 document.getElementById(‘birthYear’).value = a ? (CURRENT_YEAR - a) : ‘’;
-if (a >= 18 && a <= 85) {
+clearTimeout(ageTimer);
+ageTimer = setTimeout(() => {
 buildTable(null);
 debounceSave();
-} else if (!a) {
-buildTable(null); // clears table
+}, a >= 18 ? 400 : 0);
 }
-}
+ageInput.addEventListener(‘input’,  onAgeChange);
 ageInput.addEventListener(‘change’, onAgeChange);
-ageInput.addEventListener(‘blur’,   onAgeChange);
+ageInput.addEventListener(‘blur’,   () => {
+const a = parseInt(ageInput.value) || 0;
+if (a >= 18 && a <= 85) { buildTable(null); debounceSave(); }
+});
 document.getElementById(‘raiseRate’).addEventListener(‘change’, debounceSave);
 document.getElementById(‘futureWage’).addEventListener(‘input’, debounceSave);
 
