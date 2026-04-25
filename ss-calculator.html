@@ -18,10 +18,11 @@
 
 :root {
 /* DARK MODE — solid colors, Safari-safe */
+color-scheme: dark;
 –bg:           #111d2c;
 –bg-mid:       #192840;
 –bg-raised:    #243552;
-–bg-input:     #0d1825;
+–bg-input:     #1a2a3e;
 –gold:         #d4aa50;
 –gold-light:   #ecc96a;
 –text-hi:      #f0ece2;
@@ -41,6 +42,7 @@
 }
 
 body.light {
+color-scheme: light;
 –bg:           #f7f4ee;
 –bg-mid:       #ffffff;
 –bg-raised:    #edeae2;
@@ -98,8 +100,8 @@ header {
 display: flex;
 align-items: flex-start;
 gap: 24px;
-margin-bottom: 48px;
-padding-bottom: 28px;
+margin-bottom: 24px;
+padding-bottom: 20px;
 border-bottom: 1px solid var(–border);
 }
 
@@ -327,26 +329,35 @@ font-weight: 500;
 
 .field-group input, .field-group select {
 background: var(–bg-input);
+background-color: var(–bg-input);
 border: 1px solid var(–border);
 border-radius: 4px;
 color: var(–text-hi);
+-webkit-text-fill-color: var(–text-hi);
 font-family: ‘IBM Plex Mono’, monospace;
 font-size: 1rem;
 font-weight: 600;
 padding: 10px 14px;
-transition: border-color 0.2s, box-shadow 0.2s;
+transition: border-color 0.2s;
 outline: none;
 width: 100%;
 -webkit-appearance: none;
 appearance: none;
+box-shadow: none;
 }
 
 .field-group input:focus, .field-group select:focus {
 border-color: var(–gold);
-box-shadow: 0 0 0 2px #3a2c08;
+outline: none;
+box-shadow: none;
 }
 
-.field-group select option { background: var(–bg-input); color: var(–text-hi); }
+.field-group select option {
+background: var(–bg-input);
+background-color: var(–bg-input);
+color: var(–text-hi);
+-webkit-text-fill-color: var(–text-hi);
+}
 
 /* EARNINGS TABLE */
 .earnings-section {
@@ -495,8 +506,9 @@ td:not(:first-child):not(:last-child) { text-align: right; }
 .wage-input {
 background: transparent;
 border: none;
-border-bottom: 1px solid transparent;
+border-bottom: 1px solid var(–border);
 color: var(–text-hi);
+-webkit-text-fill-color: var(–text-hi);
 font-family: ‘IBM Plex Mono’, monospace;
 font-size: 0.88rem;
 font-weight: 600;
@@ -504,15 +516,18 @@ text-align: right;
 width: 130px;
 padding: 3px 4px;
 outline: none;
-transition: border-color 0.2s, color 0.2s;
+-webkit-appearance: none;
+appearance: none;
+transition: border-color 0.2s;
 }
 
 .wage-input:focus {
 border-bottom-color: var(–gold);
+-webkit-text-fill-color: var(–gold);
 color: var(–gold);
 }
 
-.wage-input::placeholder { color: var(–text-muted); }
+.wage-input::placeholder { color: var(–text-muted); -webkit-text-fill-color: var(–text-muted); }
 
 td.indexed-val {
 font-family: ‘IBM Plex Mono’, monospace;
@@ -1252,7 +1267,7 @@ function buildTable(savedWages) {
     const savedVal = savedWages && savedWages[yr] ? savedWages[yr] : '';
     const inputAttrs = `class="wage-input" type="number" inputmode="numeric" min="0" max="${wageBase}" step="100"
       data-year="${yr}" data-future="${isFuture ? 1 : 0}"
-      placeholder="0" value="${savedVal}"`;
+      placeholder="" value="${savedVal}"`;
 
     // ── Desktop table row ──
     const tr = document.createElement('tr');
@@ -1286,7 +1301,7 @@ function buildTable(savedWages) {
         <span class="m-input-label">SS-Taxed $</span>
         <input class="m-wage-input wage-input" type="number" inputmode="numeric" min="0" max="${wageBase}" step="100"
           data-year="${yr}" data-future="${isFuture ? 1 : 0}"
-          placeholder="0" value="${savedVal}">
+          placeholder="" value="${savedVal}">
         <span style="font-family:'IBM Plex Mono',monospace;font-size:0.65rem;color:var(--text-muted);white-space:nowrap">max $${(wageBase/1000).toFixed(0)}k</span>
       </div>
     `;
