@@ -1,0 +1,1105 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SmartBudget — Personal Finance Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f2ed;
+    --bg2: #edeae3;
+    --bg3: #e4e0d8;
+    --card: #ffffff;
+    --card2: #faf9f7;
+    --border: #d8d3c8;
+    --border2: #c8c2b5;
+    --text: #1a1714;
+    --text2: #4a4540;
+    --text3: #7a726a;
+    --accent: #c4521a;
+    --accent2: #e8733d;
+    --accent-bg: #fdf0e8;
+    --green: #2d7a4f;
+    --green-bg: #e8f5ee;
+    --blue: #1a5fa8;
+    --blue-bg: #e8f0fa;
+    --red: #c41a1a;
+    --red-bg: #fae8e8;
+    --yellow: #a07820;
+    --yellow-bg: #faf4e0;
+    --shadow: 0 2px 16px rgba(0,0,0,0.08);
+    --shadow2: 0 4px 32px rgba(0,0,0,0.12);
+    --radius: 14px;
+    --radius-sm: 8px;
+    --summary-height: 130px;
+    --font-display: 'DM Serif Display', Georgia, serif;
+    --font-body: 'DM Sans', system-ui, sans-serif;
+  }
+
+[data-theme=“dark”] {
+–bg: #121110;
+–bg2: #1a1917;
+–bg3: #222019;
+–card: #1e1c1a;
+–card2: #252220;
+–border: #38342e;
+–border2: #4a4438;
+–text: #f0ece4;
+–text2: #c0b9ae;
+–text3: #857c70;
+–accent: #e8733d;
+–accent2: #f59060;
+–accent-bg: #2a1a0e;
+–green: #4ab870;
+–green-bg: #0e1f15;
+–blue: #5b9de0;
+–blue-bg: #0e1829;
+–red: #e05555;
+–red-bg: #1f0e0e;
+–yellow: #c9a030;
+–yellow-bg: #1f1a08;
+–shadow: 0 2px 20px rgba(0,0,0,0.4);
+–shadow2: 0 4px 40px rgba(0,0,0,0.6);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+font-family: var(–font-body);
+background: var(–bg);
+color: var(–text);
+font-size: 15px;
+line-height: 1.5;
+transition: background 0.3s, color 0.3s;
+-webkit-font-smoothing: antialiased;
+}
+
+/* ── HEADER ── */
+.header {
+background: var(–card);
+border-bottom: 1px solid var(–border);
+padding: 0 24px;
+position: sticky;
+top: 0;
+z-index: 100;
+box-shadow: var(–shadow);
+}
+.header-inner {
+max-width: 1100px;
+margin: 0 auto;
+display: flex;
+align-items: center;
+justify-content: space-between;
+height: 60px;
+gap: 16px;
+}
+.logo {
+font-family: var(–font-display);
+font-size: 1.4rem;
+color: var(–accent);
+letter-spacing: -0.02em;
+white-space: nowrap;
+}
+.logo span { color: var(–text); }
+
+.header-right { display: flex; align-items: center; gap: 14px; }
+
+/* Currency selector */
+.currency-select {
+background: var(–bg2);
+border: 1px solid var(–border);
+border-radius: var(–radius-sm);
+color: var(–text);
+font-family: var(–font-body);
+font-size: 0.85rem;
+font-weight: 500;
+padding: 6px 10px;
+cursor: pointer;
+outline: none;
+transition: border-color 0.2s;
+max-width: 120px;
+}
+.currency-select:focus { border-color: var(–accent); }
+
+/* Dark toggle */
+.theme-toggle {
+display: flex;
+align-items: center;
+gap: 8px;
+cursor: pointer;
+user-select: none;
+}
+.toggle-track {
+width: 44px;
+height: 24px;
+background: var(–bg3);
+border-radius: 12px;
+border: 1.5px solid var(–border2);
+position: relative;
+transition: background 0.3s;
+flex-shrink: 0;
+}
+[data-theme=“dark”] .toggle-track { background: var(–accent); border-color: var(–accent); }
+.toggle-thumb {
+width: 18px;
+height: 18px;
+background: var(–card);
+border-radius: 50%;
+position: absolute;
+top: 2px;
+left: 2px;
+transition: transform 0.3s;
+box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+}
+[data-theme=“dark”] .toggle-thumb { transform: translateX(20px); }
+.toggle-label { font-size: 0.8rem; color: var(–text3); display: none; }
+@media (min-width: 480px) { .toggle-label { display: block; } }
+
+/* ── MAIN LAYOUT ── */
+.main {
+max-width: 1100px;
+margin: 0 auto;
+padding: 24px 16px;
+padding-bottom: calc(var(–summary-height) + 40px);
+}
+@media (min-width: 600px) { .main { padding: 28px 20px; padding-bottom: calc(var(–summary-height) + 48px); } }
+@media (min-width: 900px) { .main { padding: 32px 24px; padding-bottom: calc(var(–summary-height) + 56px); } }
+
+/* ── SAFETY NOTICE ── */
+.notice {
+background: var(–green-bg);
+border: 1px solid var(–green);
+border-radius: var(–radius);
+padding: 12px 16px;
+display: flex;
+align-items: flex-start;
+gap: 10px;
+margin-bottom: 20px;
+font-size: 0.82rem;
+color: var(–green);
+line-height: 1.4;
+}
+.notice svg { flex-shrink: 0; margin-top: 1px; }
+
+/* ── SECTION CARDS ── */
+.card {
+background: var(–card);
+border: 1px solid var(–border);
+border-radius: var(–radius);
+padding: 20px;
+margin-bottom: 18px;
+box-shadow: var(–shadow);
+transition: background 0.3s, border-color 0.3s;
+}
+.card-title {
+font-family: var(–font-display);
+font-size: 1.1rem;
+color: var(–text);
+margin-bottom: 16px;
+display: flex;
+align-items: center;
+gap: 8px;
+}
+.card-title .dot {
+width: 8px; height: 8px;
+background: var(–accent);
+border-radius: 50%;
+flex-shrink: 0;
+}
+
+/* ── INPUTS GRID ── */
+.inputs-grid {
+display: grid;
+grid-template-columns: 1fr;
+gap: 14px;
+}
+@media (min-width: 480px) { .inputs-grid { grid-template-columns: 1fr 1fr; } }
+@media (min-width: 760px) { .inputs-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 900px) { .inputs-grid.wide { grid-template-columns: repeat(5, 1fr); } }
+
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label { font-size: 0.78rem; font-weight: 600; color: var(–text3); text-transform: uppercase; letter-spacing: 0.05em; }
+.field input[type=“number”] {
+background: var(–bg2);
+border: 1.5px solid var(–border);
+border-radius: var(–radius-sm);
+color: var(–text);
+font-family: var(–font-body);
+font-size: 1rem;
+font-weight: 500;
+padding: 9px 12px;
+outline: none;
+transition: border-color 0.2s, background 0.2s;
+width: 100%;
+-moz-appearance: textfield;
+/* Safari fix */
+-webkit-appearance: none;
+}
+.field input[type=“number”]::-webkit-inner-spin-button,
+.field input[type=“number”]::-webkit-outer-spin-button { -webkit-appearance: none; }
+.field input[type=“number”]:focus { border-color: var(–accent); background: var(–card); }
+
+/* Button group selector */
+.btn-group { display: flex; gap: 4px; flex-wrap: wrap; }
+.btn-group button {
+flex: 1;
+min-width: 60px;
+padding: 9px 10px;
+background: var(–bg2);
+border: 1.5px solid var(–border);
+border-radius: var(–radius-sm);
+color: var(–text2);
+font-family: var(–font-body);
+font-size: 0.82rem;
+font-weight: 500;
+cursor: pointer;
+transition: all 0.18s;
+white-space: nowrap;
+}
+.btn-group button:hover { border-color: var(–accent2); color: var(–text); }
+.btn-group button.active {
+background: var(–accent);
+border-color: var(–accent);
+color: #fff;
+font-weight: 600;
+}
+
+/* ── BUDGET CATEGORIES ── */
+.cat-section { margin-bottom: 10px; }
+.cat-header {
+display: flex;
+align-items: center;
+justify-content: space-between;
+padding: 12px 16px;
+background: var(–bg2);
+border: 1px solid var(–border);
+border-radius: var(–radius-sm);
+cursor: pointer;
+transition: background 0.18s;
+user-select: none;
+gap: 10px;
+}
+.cat-header:hover { background: var(–bg3); }
+.cat-header-left { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
+.cat-icon { font-size: 1.1rem; flex-shrink: 0; }
+.cat-name { font-weight: 600; font-size: 0.9rem; color: var(–text); }
+.cat-bar-wrap { flex: 1; min-width: 40px; max-width: 120px; }
+.cat-bar-bg { height: 5px; background: var(–bg3); border-radius: 3px; overflow: hidden; }
+.cat-bar-fill { height: 100%; border-radius: 3px; transition: width 0.4s ease; }
+.cat-totals { text-align: right; flex-shrink: 0; }
+.cat-total-usd { font-size: 0.82rem; font-weight: 600; color: var(–text); }
+.cat-total-fx { font-size: 0.72rem; color: var(–text3); }
+.cat-chevron { color: var(–text3); transition: transform 0.25s; flex-shrink: 0; }
+.cat-header.open .cat-chevron { transform: rotate(180deg); }
+
+.cat-body {
+display: none;
+padding: 8px 0 4px 0;
+}
+.cat-body.open { display: block; }
+
+/* Subcategory row */
+.sub-row {
+display: grid;
+grid-template-columns: 1fr auto auto;
+align-items: center;
+gap: 10px;
+padding: 7px 12px;
+border-radius: var(–radius-sm);
+transition: background 0.15s;
+}
+.sub-row:hover { background: var(–bg2); }
+.sub-label { font-size: 0.85rem; color: var(–text2); }
+.sub-input-wrap { display: flex; align-items: center; gap: 4px; }
+.sub-dollar { font-size: 0.85rem; color: var(–text3); }
+.sub-input {
+width: 90px;
+background: var(–card2);
+border: 1.5px solid var(–border);
+border-radius: 6px;
+color: var(–text);
+font-family: var(–font-body);
+font-size: 0.9rem;
+font-weight: 500;
+padding: 5px 8px;
+text-align: right;
+outline: none;
+transition: border-color 0.18s;
+-moz-appearance: textfield;
+-webkit-appearance: none;
+}
+.sub-input::-webkit-inner-spin-button,
+.sub-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+.sub-input:focus { border-color: var(–accent); }
+.sub-fx { font-size: 0.75rem; color: var(–text3); text-align: right; min-width: 70px; }
+
+/* ── FLOATING SUMMARY ── */
+.summary-bar {
+display: none;
+position: fixed;
+bottom: 0;
+left: 0;
+right: 0;
+z-index: 200;
+background: var(–card);
+border-top: 2px solid var(–accent);
+box-shadow: 0 -4px 32px rgba(0,0,0,0.15);
+padding: 12px 24px;
+transition: background 0.3s;
+}
+@media (min-width: 600px) { .summary-bar { display: block; } }
+
+.summary-inner {
+max-width: 1100px;
+margin: 0 auto;
+display: flex;
+align-items: stretch;
+gap: 0;
+}
+.sum-item {
+flex: 1;
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+padding: 4px 12px;
+border-right: 1px solid var(–border);
+gap: 2px;
+}
+.sum-item:last-child { border-right: none; }
+.sum-label { font-size: 0.68rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(–text3); }
+.sum-val { font-family: var(–font-display); font-size: 1.15rem; color: var(–text); line-height: 1.1; }
+.sum-val.positive { color: var(–green); }
+.sum-val.negative { color: var(–red); }
+.sum-fx { font-size: 0.75rem; color: var(–text3); }
+
+/* Mobile summary (inline) */
+.summary-mobile {
+background: var(–card);
+border: 1px solid var(–border);
+border-radius: var(–radius);
+padding: 16px;
+margin-top: 8px;
+box-shadow: var(–shadow);
+}
+@media (min-width: 600px) { .summary-mobile { display: none; } }
+.summary-mobile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.smob-item { display: flex; flex-direction: column; gap: 2px; }
+.smob-label { font-size: 0.68rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(–text3); }
+.smob-val { font-family: var(–font-display); font-size: 1.1rem; color: var(–text); }
+.smob-val.positive { color: var(–green); }
+.smob-val.negative { color: var(–red); }
+.smob-fx { font-size: 0.72rem; color: var(–text3); }
+
+/* ── DISCLAIMER ── */
+.disclaimer {
+background: var(–yellow-bg);
+border: 1px solid var(–yellow);
+border-radius: var(–radius);
+padding: 12px 16px;
+font-size: 0.78rem;
+color: var(–yellow);
+line-height: 1.5;
+margin-top: 8px;
+}
+
+/* ── FX STATUS ── */
+.fx-status {
+font-size: 0.72rem;
+color: var(–text3);
+text-align: center;
+margin-top: -10px;
+margin-bottom: 14px;
+}
+.fx-live { color: var(–green); font-weight: 600; }
+.fx-fallback { color: var(–yellow); }
+
+/* ── MISC ── */
+.section-divider {
+display: flex;
+align-items: center;
+gap: 10px;
+margin: 6px 0 14px;
+font-size: 0.72rem;
+font-weight: 600;
+text-transform: uppercase;
+letter-spacing: 0.08em;
+color: var(–text3);
+}
+.section-divider::before, .section-divider::after {
+content: ‘’;
+flex: 1;
+height: 1px;
+background: var(–border);
+}
+
+/* Rate fetch spinner */
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner {
+display: inline-block;
+width: 10px; height: 10px;
+border: 2px solid var(–border2);
+border-top-color: var(–accent);
+border-radius: 50%;
+animation: spin 0.7s linear infinite;
+vertical-align: middle;
+}
+
+/* Color palette for categories */
+.color-0 { background: #c4521a; }
+.color-1 { background: #1a5fa8; }
+.color-2 { background: #2d7a4f; }
+.color-3 { background: #8b4aa8; }
+.color-4 { background: #a07820; }
+.color-5 { background: #1a8080; }
+.color-6 { background: #c41a4a; }
+.color-7 { background: #4a6aa8; }
+</style>
+
+</head>
+<body data-theme="light">
+
+<!-- HEADER -->
+
+<header class="header">
+  <div class="header-inner">
+    <div class="logo">Smart<span>Budget</span></div>
+    <div class="header-right">
+      <select class="currency-select" id="currencySelect" title="Select display currency">
+        <option value="USD">$ USD</option>
+        <option value="EUR">€ EUR</option>
+        <option value="GBP">£ GBP</option>
+        <option value="CAD">CA$ CAD</option>
+        <option value="AUD">A$ AUD</option>
+        <option value="JPY">¥ JPY</option>
+        <option value="CHF">Fr CHF</option>
+        <option value="SEK">kr SEK</option>
+        <option value="NOK">kr NOK</option>
+        <option value="DKK">kr DKK</option>
+        <option value="HUF">Ft HUF</option>
+        <option value="PLN">zł PLN</option>
+        <option value="CZK">Kč CZK</option>
+        <option value="MXN">$ MXN</option>
+        <option value="BRL">R$ BRL</option>
+        <option value="INR">₹ INR</option>
+        <option value="CNY">¥ CNY</option>
+        <option value="KRW">₩ KRW</option>
+        <option value="SGD">S$ SGD</option>
+        <option value="NZD">NZ$ NZD</option>
+        <option value="ZAR">R ZAR</option>
+        <option value="AED">د.إ AED</option>
+      </select>
+      <label class="theme-toggle" id="themeToggle" title="Toggle dark/light mode">
+        <div class="toggle-track"><div class="toggle-thumb"></div></div>
+        <span class="toggle-label" id="toggleLabel">Light</span>
+      </label>
+    </div>
+  </div>
+</header>
+
+<!-- MAIN -->
+
+<main class="main">
+
+  <!-- Safety notice -->
+
+  <div class="notice">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    <div><strong>100% Private &amp; Secure.</strong> All data stays in your browser — nothing is ever sent to any server. Your budget is stored locally in browser cookies only.</div>
+  </div>
+
+  <!-- FX status -->
+
+  <div class="fx-status" id="fxStatus"><span class="spinner"></span> Fetching live exchange rates…</div>
+
+  <!-- ── PROFILE CARD ── -->
+
+  <div class="card">
+    <div class="card-title"><span class="dot"></span>Household Profile</div>
+    <div class="inputs-grid wide" id="profileGrid">
+
+```
+  <div class="field">
+    <label>Monthly Net Income</label>
+    <input type="number" id="income" min="0" step="100" value="5000" placeholder="5000">
+  </div>
+
+  <div class="field">
+    <label>Adults</label>
+    <input type="number" id="adults" min="1" max="10" step="1" value="1">
+  </div>
+
+  <div class="field">
+    <label>Children</label>
+    <input type="number" id="children" min="0" max="15" step="1" value="0">
+  </div>
+
+  <div class="field">
+    <label>Housing</label>
+    <div class="btn-group" id="housingGroup">
+      <button data-val="rent" onclick="setToggle('housing','rent',this)">Rent</button>
+      <button data-val="mortgage" onclick="setToggle('housing','mortgage',this)" class="active">Mortgage</button>
+      <button data-val="own" onclick="setToggle('housing','own',this)">Own</button>
+    </div>
+  </div>
+
+  <div class="field">
+    <label>Vehicle</label>
+    <div class="btn-group" id="vehicleGroup">
+      <button data-val="none" onclick="setToggle('vehicle','none',this)">None</button>
+      <button data-val="lease" onclick="setToggle('vehicle','lease',this)">Lease</button>
+      <button data-val="own" onclick="setToggle('vehicle','own',this)" class="active">Own</button>
+    </div>
+  </div>
+
+  <div class="field">
+    <label>Work Status</label>
+    <div class="btn-group" id="workGroup">
+      <button data-val="working" onclick="setToggle('work','working',this)" class="active">Working</button>
+      <button data-val="retired" onclick="setToggle('work','retired',this)">Retired</button>
+    </div>
+  </div>
+
+</div>
+```
+
+  </div>
+
+  <!-- ── BUDGET CATEGORIES ── -->
+
+  <div class="card">
+    <div class="card-title"><span class="dot"></span>Monthly Budget</div>
+    <div class="section-divider">Adjust each category — values in USD</div>
+    <div id="categoriesContainer"></div>
+  </div>
+
+  <!-- Mobile summary -->
+
+  <div class="summary-mobile">
+    <div class="card-title" style="margin-bottom:12px"><span class="dot"></span>Budget Summary</div>
+    <div class="summary-mobile-grid">
+      <div class="smob-item">
+        <div class="smob-label">Total Spend</div>
+        <div class="smob-val" id="mTotalSpend">$0</div>
+        <div class="smob-fx" id="mTotalSpendFx">—</div>
+      </div>
+      <div class="smob-item">
+        <div class="smob-label">Remaining</div>
+        <div class="smob-val positive" id="mRemaining">$0</div>
+        <div class="smob-fx" id="mRemainingFx">—</div>
+      </div>
+      <div class="smob-item">
+        <div class="smob-label">Cost / Person</div>
+        <div class="smob-val" id="mCostPerson">$0</div>
+        <div class="smob-fx" id="mCostPersonFx">—</div>
+      </div>
+      <div class="smob-item">
+        <div class="smob-label">Budget Used</div>
+        <div class="smob-val" id="mPct">0%</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Disclaimer -->
+
+  <div class="disclaimer">
+    ⚠️ <strong>Disclaimer:</strong> SmartBudget provides estimates for guidance and planning purposes only. It does not constitute financial advice. Actual expenses vary by location, lifestyle, and individual circumstances. Please consult a qualified financial advisor for personalized recommendations.
+  </div>
+
+</main>
+
+<!-- FLOATING SUMMARY (tablet/PC) -->
+
+<div class="summary-bar" id="summaryBar">
+  <div class="summary-inner">
+    <div class="sum-item">
+      <div class="sum-label">Total Spend</div>
+      <div class="sum-val" id="sTotalSpend">$0</div>
+      <div class="sum-fx" id="sTotalSpendFx">—</div>
+    </div>
+    <div class="sum-item">
+      <div class="sum-label">Remaining</div>
+      <div class="sum-val positive" id="sRemaining">$0</div>
+      <div class="sum-fx" id="sRemainingFx">—</div>
+    </div>
+    <div class="sum-item">
+      <div class="sum-label">Cost / Person</div>
+      <div class="sum-val" id="sCostPerson">$0</div>
+      <div class="sum-fx" id="sCostPersonFx">—</div>
+    </div>
+    <div class="sum-item">
+      <div class="sum-label">Budget Used</div>
+      <div class="sum-val" id="sPct">0%</div>
+    </div>
+    <div class="sum-item">
+      <div class="sum-label">Monthly Income</div>
+      <div class="sum-val" id="sIncome">$0</div>
+      <div class="sum-fx" id="sIncomeFx">—</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─────────────────────────────────────────
+//  DATA
+// ─────────────────────────────────────────
+const CURRENCY_SYMBOLS = {
+  USD:'$', EUR:'€', GBP:'£', CAD:'CA$', AUD:'A$', JPY:'¥', CHF:'Fr',
+  SEK:'kr', NOK:'kr', DKK:'kr', HUF:'Ft', PLN:'zł', CZK:'Kč',
+  MXN:'$', BRL:'R$', INR:'₹', CNY:'¥', KRW:'₩', SGD:'S$', NZD:'NZ$',
+  ZAR:'R', AED:'AED'
+};
+
+// Fallback rates (USD base, as of early 2025)
+const FALLBACK_RATES = {
+  USD:1, EUR:0.92, GBP:0.79, CAD:1.36, AUD:1.54, JPY:149.5, CHF:0.88,
+  SEK:10.4, NOK:10.7, DKK:6.88, HUF:358, PLN:3.95, CZK:22.8,
+  MXN:17.1, BRL:4.97, INR:83.1, CNY:7.24, KRW:1335, SGD:1.34, NZD:1.63,
+  ZAR:18.8, AED:3.67
+};
+
+let rates = {...FALLBACK_RATES};
+let ratesLive = false;
+
+const DEFAULT_CATEGORIES = [
+  {
+    id:'housing', name:'Housing & Utilities', icon:'🏠', color:0,
+    subs:[
+      {id:'rent_mortgage', label:'Rent / Mortgage', val:1500},
+      {id:'electricity', label:'Electricity', val:120},
+      {id:'gas_heat', label:'Gas & Heat', val:80},
+      {id:'water_sewer', label:'Water & Sewer', val:50},
+      {id:'internet', label:'Internet', val:60},
+      {id:'phone', label:'Phone', val:80},
+      {id:'insurance_home', label:'Home Insurance', val:100},
+      {id:'maintenance', label:'Maintenance & Repairs', val:100},
+    ]
+  },
+  {
+    id:'transport', name:'Transportation', icon:'🚗', color:1,
+    subs:[
+      {id:'car_payment', label:'Car Payment / Lease', val:400},
+      {id:'gas_fuel', label:'Gas & Fuel', val:150},
+      {id:'car_insurance', label:'Auto Insurance', val:120},
+      {id:'car_maint', label:'Maintenance & Registration', val:60},
+      {id:'parking', label:'Parking & Tolls', val:30},
+      {id:'public_transit', label:'Public Transit / Rideshare', val:40},
+    ]
+  },
+  {
+    id:'food', name:'Food & Dining', icon:'🛒', color:2,
+    subs:[
+      {id:'groceries', label:'Groceries', val:500},
+      {id:'dining_out', label:'Dining Out & Takeout', val:200},
+      {id:'coffee', label:'Coffee & Snacks', val:60},
+      {id:'meal_delivery', label:'Meal Delivery', val:60},
+    ]
+  },
+  {
+    id:'health', name:'Health & Medical', icon:'🏥', color:3,
+    subs:[
+      {id:'health_insurance', label:'Health Insurance', val:350},
+      {id:'dental_vision', label:'Dental & Vision', val:50},
+      {id:'prescriptions', label:'Prescriptions', val:40},
+      {id:'gym', label:'Gym & Fitness', val:40},
+      {id:'medical_other', label:'Doctor Visits & Other', val:50},
+    ]
+  },
+  {
+    id:'savings', name:'Savings & Investments', icon:'💰', color:4,
+    subs:[
+      {id:'emergency_fund', label:'Emergency Fund', val:200},
+      {id:'retirement', label:'Retirement (401k / IRA)', val:300},
+      {id:'investments', label:'Investments & Brokerage', val:150},
+      {id:'other_savings', label:'Other Savings Goals', val:100},
+    ]
+  },
+  {
+    id:'lifestyle', name:'Lifestyle & Entertainment', icon:'🎬', color:5,
+    subs:[
+      {id:'streaming', label:'Streaming & Subscriptions', val:50},
+      {id:'entertainment', label:'Entertainment & Hobbies', val:100},
+      {id:'clothing', label:'Clothing & Personal Care', val:100},
+      {id:'haircare', label:'Haircuts & Grooming', val:40},
+      {id:'gifts', label:'Gifts & Celebrations', val:50},
+      {id:'vacation', label:'Vacation & Travel', val:150},
+    ]
+  },
+  {
+    id:'children', name:'Children & Education', icon:'👶', color:6,
+    subs:[
+      {id:'childcare', label:'Childcare / Daycare', val:0},
+      {id:'school', label:'School & Tuition', val:0},
+      {id:'kids_activities', label:'Kids Activities & Sports', val:0},
+      {id:'school_supplies', label:'School Supplies & Clothes', val:0},
+    ]
+  },
+  {
+    id:'misc', name:'Miscellaneous & Debt', icon:'📋', color:7,
+    subs:[
+      {id:'student_loan', label:'Student Loans', val:200},
+      {id:'credit_card', label:'Credit Card / Other Debt', val:100},
+      {id:'pet', label:'Pet Care', val:60},
+      {id:'charity', label:'Charity & Donations', val:50},
+      {id:'misc_other', label:'Miscellaneous', val:80},
+    ]
+  }
+];
+
+// ─────────────────────────────────────────
+//  STATE
+// ─────────────────────────────────────────
+let state = {
+  income: 5000,
+  adults: 1,
+  children: 0,
+  housing: 'mortgage',
+  vehicle: 'own',
+  work: 'working',
+  currency: 'USD',
+  theme: 'light',
+  budgets: {}
+};
+
+// ─────────────────────────────────────────
+//  COOKIES
+// ─────────────────────────────────────────
+function setCookie(name, val, days=365) {
+  const d = new Date();
+  d.setTime(d.getTime() + days*24*60*60*1000);
+  document.cookie = `${name}=${encodeURIComponent(val)};expires=${d.toUTCString()};path=/;SameSite=Strict`;
+}
+function getCookie(name) {
+  const ca = document.cookie.split(';');
+  for(let c of ca) {
+    c = c.trim();
+    if(c.startsWith(name+'=')) return decodeURIComponent(c.substring(name.length+1));
+  }
+  return null;
+}
+function saveState() {
+  setCookie('sb_state', JSON.stringify({
+    income: state.income,
+    adults: state.adults,
+    children: state.children,
+    housing: state.housing,
+    vehicle: state.vehicle,
+    work: state.work,
+    currency: state.currency,
+    theme: state.theme,
+    budgets: state.budgets
+  }));
+}
+function loadState() {
+  const raw = getCookie('sb_state');
+  if (!raw) return;
+  try {
+    const saved = JSON.parse(raw);
+    Object.assign(state, saved);
+  } catch(e) {}
+}
+
+// ─────────────────────────────────────────
+//  TOGGLE GROUPS
+// ─────────────────────────────────────────
+const toggleState = { housing:'mortgage', vehicle:'own', work:'working' };
+window.setToggle = function(key, val, btn) {
+  toggleState[key] = val;
+  state[key] = val;
+  const group = btn.closest('.btn-group');
+  group.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  saveState();
+  recalc();
+};
+
+function applyToggleState() {
+  ['housing','vehicle','work'].forEach(key => {
+    const grpId = key+'Group';
+    const grp = document.getElementById(grpId);
+    if (!grp) return;
+    grp.querySelectorAll('button').forEach(b => {
+      b.classList.toggle('active', b.dataset.val === state[key]);
+    });
+  });
+}
+
+// ─────────────────────────────────────────
+//  CURRENCY
+// ─────────────────────────────────────────
+function fmtUSD(v) {
+  return '$' + v.toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:0});
+}
+function fmtFX(v, cur) {
+  if (cur === 'USD') return '';
+  const sym = CURRENCY_SYMBOLS[cur] || cur;
+  const converted = v * rates[cur];
+  let opts = {minimumFractionDigits:0, maximumFractionDigits:0};
+  // for currencies with high values, no decimals; for CHF/EUR etc, 0 decimals is fine
+  if (['JPY','KRW','HUF','IDR'].includes(cur)) opts = {minimumFractionDigits:0, maximumFractionDigits:0};
+  return sym + converted.toLocaleString('en-US', opts) + ' ' + cur;
+}
+
+async function fetchRates() {
+  try {
+    // Try open.er-api.com (free, no key)
+    const res = await fetch('https://open.er-api.com/v6/latest/USD', {signal: AbortSignal.timeout(4000)});
+    if (!res.ok) throw new Error('bad');
+    const data = await res.json();
+    if (data.rates) {
+      Object.keys(FALLBACK_RATES).forEach(k => {
+        if (data.rates[k]) rates[k] = data.rates[k];
+      });
+      ratesLive = true;
+      const updated = data.time_last_update_utc ? new Date(data.time_last_update_utc).toLocaleDateString() : 'today';
+      document.getElementById('fxStatus').innerHTML = `<span class="fx-live">✓ Live rates</span> as of ${updated}`;
+    }
+  } catch(e) {
+    // Try fallback API
+    try {
+      const res2 = await fetch('https://api.exchangerate-api.com/v4/latest/USD', {signal: AbortSignal.timeout(3000)});
+      const d2 = await res2.json();
+      if (d2.rates) {
+        Object.keys(FALLBACK_RATES).forEach(k => {
+          if (d2.rates[k]) rates[k] = d2.rates[k];
+        });
+        ratesLive = true;
+        document.getElementById('fxStatus').innerHTML = `<span class="fx-live">✓ Live rates</span> loaded`;
+      }
+    } catch(e2) {
+      document.getElementById('fxStatus').innerHTML = `<span class="fx-fallback">⚠ Approximate rates</span> — live fetch unavailable`;
+    }
+  }
+  recalc();
+}
+
+// ─────────────────────────────────────────
+//  BUILD CATEGORIES UI
+// ─────────────────────────────────────────
+function getBudgetVal(subId, defaultVal) {
+  return state.budgets[subId] !== undefined ? state.budgets[subId] : defaultVal;
+}
+
+function buildCategories() {
+  const container = document.getElementById('categoriesContainer');
+  container.innerHTML = '';
+  DEFAULT_CATEGORIES.forEach((cat, ci) => {
+    const section = document.createElement('div');
+    section.className = 'cat-section';
+    section.id = 'cat_' + cat.id;
+
+    const header = document.createElement('div');
+    header.className = 'cat-header';
+    header.innerHTML = `
+      <div class="cat-header-left">
+        <span class="cat-icon">${cat.icon}</span>
+        <span class="cat-name">${cat.name}</span>
+        <div class="cat-bar-wrap">
+          <div class="cat-bar-bg"><div class="cat-bar-fill color-${cat.color}" id="bar_${cat.id}" style="width:0%"></div></div>
+        </div>
+      </div>
+      <div class="cat-totals">
+        <div class="cat-total-usd" id="catTotal_${cat.id}">$0</div>
+        <div class="cat-total-fx" id="catTotalFx_${cat.id}"></div>
+      </div>
+      <svg class="cat-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    `;
+    header.addEventListener('click', () => {
+      const body = document.getElementById('body_'+cat.id);
+      const isOpen = body.classList.contains('open');
+      body.classList.toggle('open', !isOpen);
+      header.classList.toggle('open', !isOpen);
+    });
+
+    const body = document.createElement('div');
+    body.className = 'cat-body';
+    body.id = 'body_' + cat.id;
+
+    cat.subs.forEach(sub => {
+      const val = getBudgetVal(sub.id, sub.val);
+      const row = document.createElement('div');
+      row.className = 'sub-row';
+      row.innerHTML = `
+        <div class="sub-label">${sub.label}</div>
+        <div class="sub-input-wrap">
+          <span class="sub-dollar">$</span>
+          <input class="sub-input" type="number" id="sub_${sub.id}" value="${val}" min="0" step="10" data-cat="${cat.id}" data-sub="${sub.id}">
+        </div>
+        <div class="sub-fx" id="fx_${sub.id}"></div>
+      `;
+      body.appendChild(row);
+    });
+
+    section.appendChild(header);
+    section.appendChild(body);
+    container.appendChild(section);
+  });
+
+  // Attach input listeners
+  container.querySelectorAll('.sub-input').forEach(inp => {
+    inp.addEventListener('input', () => {
+      const subId = inp.dataset.sub;
+      state.budgets[subId] = parseFloat(inp.value) || 0;
+      saveState();
+      recalc();
+    });
+  });
+}
+
+// ─────────────────────────────────────────
+//  RECALC
+// ─────────────────────────────────────────
+function recalc() {
+  const cur = state.currency;
+  const income = parseFloat(document.getElementById('income').value) || 0;
+  const adults = parseInt(document.getElementById('adults').value) || 1;
+  const children = parseInt(document.getElementById('children').value) || 0;
+  const persons = adults + children * 0.5; // weight children at 0.5
+
+  let totalSpend = 0;
+  const catTotals = {};
+
+  DEFAULT_CATEGORIES.forEach(cat => {
+    let catSum = 0;
+    cat.subs.forEach(sub => {
+      const inp = document.getElementById('sub_'+sub.id);
+      if (!inp) return;
+      const v = parseFloat(inp.value) || 0;
+      catSum += v;
+      // FX display
+      const fxEl = document.getElementById('fx_'+sub.id);
+      if (fxEl) fxEl.textContent = fmtFX(v, cur);
+    });
+    catTotals[cat.id] = catSum;
+    totalSpend += catSum;
+    // Update category total
+    const totEl = document.getElementById('catTotal_'+cat.id);
+    if (totEl) totEl.textContent = fmtUSD(catSum);
+    const fxEl2 = document.getElementById('catTotalFx_'+cat.id);
+    if (fxEl2) fxEl2.textContent = fmtFX(catSum, cur);
+  });
+
+  // Update bars (relative to largest category)
+  const maxCat = Math.max(...Object.values(catTotals), 1);
+  DEFAULT_CATEGORIES.forEach(cat => {
+    const bar = document.getElementById('bar_'+cat.id);
+    if (bar) bar.style.width = Math.round((catTotals[cat.id]/maxCat)*100)+'%';
+  });
+
+  const remaining = income - totalSpend;
+  const costPerPerson = persons > 0 ? totalSpend / persons : totalSpend;
+  const pct = income > 0 ? Math.round((totalSpend / income) * 100) : 0;
+
+  const remClass = remaining >= 0 ? 'positive' : 'negative';
+
+  // Desktop summary
+  ['sTotalSpend','mTotalSpend'].forEach((id,i) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = fmtUSD(totalSpend);
+  });
+  ['sTotalSpendFx','mTotalSpendFx'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = fmtFX(totalSpend, cur);
+  });
+  ['sRemaining','mRemaining'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.textContent = (remaining>=0?'+':'')+fmtUSD(remaining).replace('$',remaining<0?'-$':'$'); el.className = el.className.replace(/positive|negative/,'') + ' ' + remClass; }
+  });
+  ['sRemainingFx','mRemainingFx'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = cur!=='USD' ? fmtFX(Math.abs(remaining), cur) : '';
+  });
+  ['sCostPerson','mCostPerson'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = fmtUSD(costPerPerson);
+  });
+  ['sCostPersonFx','mCostPersonFx'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = fmtFX(costPerPerson, cur);
+  });
+  ['sPct','mPct'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.textContent = pct+'%'; el.style.color = pct>100 ? 'var(--red)' : pct>90 ? 'var(--yellow)' : 'var(--green)'; }
+  });
+  const sIncome = document.getElementById('sIncome');
+  if (sIncome) sIncome.textContent = fmtUSD(income);
+  const sIncomeFx = document.getElementById('sIncomeFx');
+  if (sIncomeFx) sIncomeFx.textContent = fmtFX(income, cur);
+}
+
+// ─────────────────────────────────────────
+//  THEME
+// ─────────────────────────────────────────
+function applyTheme(theme) {
+  document.body.setAttribute('data-theme', theme);
+  document.getElementById('toggleLabel').textContent = theme === 'dark' ? 'Dark' : 'Light';
+}
+
+// ─────────────────────────────────────────
+//  INIT
+// ─────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  loadState();
+
+  // Apply theme
+  applyTheme(state.theme);
+
+  // Theme toggle
+  document.getElementById('themeToggle').addEventListener('click', () => {
+    state.theme = state.theme === 'dark' ? 'light' : 'dark';
+    applyTheme(state.theme);
+    saveState();
+  });
+
+  // Currency select
+  const currSel = document.getElementById('currencySelect');
+  currSel.value = state.currency || 'USD';
+  currSel.addEventListener('change', () => {
+    state.currency = currSel.value;
+    saveState();
+    recalc();
+  });
+
+  // Profile inputs
+  const incomeEl = document.getElementById('income');
+  const adultsEl = document.getElementById('adults');
+  const childrenEl = document.getElementById('children');
+  incomeEl.value = state.income || 5000;
+  adultsEl.value = state.adults || 1;
+  childrenEl.value = state.children || 0;
+
+  [incomeEl, adultsEl, childrenEl].forEach(el => {
+    el.addEventListener('input', () => {
+      state[el.id] = parseFloat(el.value) || 0;
+      saveState();
+      recalc();
+    });
+  });
+
+  // Apply toggle states
+  applyToggleState();
+
+  // Build categories (uses state.budgets)
+  buildCategories();
+
+  // Fetch rates then recalc
+  recalc();
+  fetchRates();
+
+  // Open first category by default
+  const firstBody = document.querySelector('.cat-body');
+  const firstHeader = document.querySelector('.cat-header');
+  if (firstBody && firstHeader) {
+    firstBody.classList.add('open');
+    firstHeader.classList.add('open');
+  }
+});
+</script>
+
+</body>
+</html>
