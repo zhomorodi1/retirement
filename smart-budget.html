@@ -706,82 +706,57 @@ function paintButtons() {
 
 // ─────────────────────────────────────────
 //  SMART PRESETS
-//  Suggested values per status — only applied if user hasn't manually
-//  edited that field (i.e. it still matches a known preset value)
+//  Always applied on explicit toggle — user's deliberate choice.
+//  Fields the user has manually edited are tracked in userEdited Set
+//  and skipped so personal customisations are preserved.
 // ─────────────────────────────────────────
 const HOUSING_PRESETS = {
-  rent:     { rent_mortgage: 1800, insurance_home: 0,   maintenance: 30  },
-  mortgage: { rent_mortgage: 1500, insurance_home: 100, maintenance: 100 },
-  own:      { rent_mortgage: 0,    insurance_home: 80,  maintenance: 150 },
+  rent:     { rent_mortgage:1800, insurance_home:0,   maintenance:30  },
+  mortgage: { rent_mortgage:1500, insurance_home:100, maintenance:100 },
+  own:      { rent_mortgage:0,    insurance_home:80,  maintenance:150 },
 };
 const VEHICLE_PRESETS = {
-  none:  { car_payment: 0,   gas_fuel: 30,  car_insurance: 0,   car_maint: 0,   parking: 10, public_transit: 100 },
-  lease: { car_payment: 450, gas_fuel: 130, car_insurance: 140, car_maint: 30,  parking: 40, public_transit: 20  },
-  own:   { car_payment: 350, gas_fuel: 150, car_insurance: 110, car_maint: 70,  parking: 35, public_transit: 20  },
+  none:  { car_payment:0,   gas_fuel:30,  car_insurance:0,   car_maint:0,  parking:10, public_transit:100 },
+  lease: { car_payment:450, gas_fuel:130, car_insurance:140, car_maint:30, parking:40, public_transit:20  },
+  own:   { car_payment:350, gas_fuel:150, car_insurance:110, car_maint:70, parking:35, public_transit:20  },
 };
 const WORK_PRESETS = {
-  working: { retirement: 300, student_loan: 200, gym: 40, streaming: 50, vacation: 150 },
-  retired: { retirement: 0,   student_loan: 0,   gym: 50, streaming: 60, vacation: 250 },
+  working: { retirement:300, investments:150, emergency_fund:200, other_savings:100, vacation:150, student_loan:200 },
+  retired:  { retirement:0,   investments:100, emergency_fund:150, other_savings:50,  vacation:250, student_loan:0   },
 };
 
-// Track which preset values were last applied so we only overwrite
-// fields the user hasn't personally customised
-let lastHousingPreset = null;
-let lastVehiclePreset = null;
-let lastWorkPreset    = null;
+// Track sub IDs the user has manually typed into — skip those in presets
+const userEdited = new Set();
 
-function applyPreset(presetMap, lastPresetRef, newKey) {
-  const newPreset = presetMap[newKey];
-  if (!newPreset) return;
-
-  Object.entries(newPreset).forEach(([subId, newVal]) => {
+function applyPreset(presetMap, newKey) {
+  const preset = presetMap[newKey];
+  if (!preset) return;
+  Object.entries(preset).forEach(([subId, newVal]) => {
+    if (userEdited.has(subId)) return;
+    // Always write to state — works even if section is collapsed and input not in DOM
+    state.budgets[subId] = newVal;
+    // Update DOM input if it exists (section open)
     const inp = document.getElementById('sub_' + subId);
-    if (!inp) return;
-
-    // Only overwrite if the current value matches the OLD preset value
-    // (meaning the user hasn't customised it), or if there was no previous preset
-    const currentVal = parseFloat(inp.value) || 0;
-    const oldPreset  = presetMap[lastPresetRef];
-    const oldVal     = oldPreset ? (oldPreset[subId] ?? null) : null;
-
-    if (oldVal === null || currentVal === oldVal) {
-      inp.value = newVal;
-      state.budgets[subId] = newVal;
-      // Flash the field to signal it changed
-      flashInput(inp);
-    }
+    if (inp) { inp.value = newVal; flashInput(inp); }
   });
 }
 
 function flashInput(inp) {
   const t = T();
-  inp.style.borderColor = t.accent;
   inp.style.transition = 'border-color 0s';
-  setTimeout(() => {
-    inp.style.transition = 'border-color 0.6s';
-    inp.style.borderColor = t.border;
-  }, 400);
+  inp.style.borderColor = t.accent;
+  setTimeout(() => { inp.style.transition = 'border-color 0.7s'; inp.style.borderColor = t.border; }, 350);
 }
 
 // ─────────────────────────────────────────
 //  TOGGLE GROUPS
 // ─────────────────────────────────────────
 window.setToggle = function(key, val) {
-  const prev = state[key];
   state[key] = val;
   paintButtons();
-
-  if (key === 'housing') {
-    applyPreset(HOUSING_PRESETS, prev, val);
-    lastHousingPreset = val;
-  } else if (key === 'vehicle') {
-    applyPreset(VEHICLE_PRESETS, prev, val);
-    lastVehiclePreset = val;
-  } else if (key === 'work') {
-    applyPreset(WORK_PRESETS, prev, val);
-    lastWorkPreset = val;
-  }
-
+  if (key === 'housing') applyPreset(HOUSING_PRESETS, val);
+  if (key === 'vehicle') applyPreset(VEHICLE_PRESETS, val);
+  if (key === 'work')    applyPreset(WORK_PRESETS, val);
   saveState();
   recalc();
 };
@@ -845,8 +820,8 @@ const CATS = [
     {id:'student_loan', label:'Student Loans', val:200},
     {id:'credit_card', label:'Credit Card / Other Debt', val:100},
     {id:'pet', label:'Pet Care', val:60},
-    {id:'charity', label:'Charity &amp; Donations', val:50},
-    {id:'misc_other', label:'Miscellaneous', val:80},
+    {id:'charity', label:'Charity &amp; Donations', val:0},
+    {id:'misc_other', label:'Miscellaneous', val:0},
   ]},
 ];
 
@@ -920,16 +895,13 @@ function buildCategories() {
   container.querySelectorAll('.sub-input').forEach(inp => {
     const subId = inp.id.replace('sub_', '');
     inp.addEventListener('input', () => {
+      userEdited.add(subId); // mark as manually edited — presets won't overwrite
       state.budgets[subId] = parseFloat(inp.value) || 0;
       saveState();
       recalc();
     });
-    inp.addEventListener('focus', () => {
-      inp.style.borderColor = T().accent;
-    });
-    inp.addEventListener('blur', () => {
-      inp.style.borderColor = T().border;
-    });
+    inp.addEventListener('focus', () => { inp.style.borderColor = T().accent; });
+    inp.addEventListener('blur',  () => { inp.style.borderColor = T().border; });
   });
 }
 
@@ -939,10 +911,10 @@ function buildCategories() {
 function recalc() {
   const t = T();
   const cur = state.currency;
-  const income = parseFloat(document.getElementById('income').value) || 0;
-  const adults = parseInt(document.getElementById('adults').value) || 1;
-  const children = parseInt(document.getElementById('children').value) || 0;
-  const persons = Math.max(adults + children * 0.5, 1);
+  const income   = parseFloat(document.getElementById('income').value) || state.income || 0;
+  const adults   = Math.max(parseInt(document.getElementById('adults').value)   || 0, state.adults  || 1, 1);
+  const children = Math.max(parseInt(document.getElementById('children').value) || 0, state.children|| 0, 0);
+  const persons  = adults + children * 0.5;
 
   let totalSpend = 0;
   const catTotals = {};
@@ -951,11 +923,14 @@ function recalc() {
     let catSum = 0;
     cat.subs.forEach(sub => {
       const inp = document.getElementById('sub_' + sub.id);
-      if (!inp) return;
-      const v = parseFloat(inp.value) || 0;
+      // Use DOM value if available, else fall back to state.budgets, else default
+      const v = inp ? (parseFloat(inp.value) || 0)
+                    : (state.budgets[sub.id] !== undefined ? state.budgets[sub.id] : sub.val);
       catSum += v;
-      const fxEl = document.getElementById('fx_' + sub.id);
-      if (fxEl) fxEl.textContent = fmtFX(v, cur);
+      if (inp) {
+        const fxEl = document.getElementById('fx_' + sub.id);
+        if (fxEl) fxEl.textContent = fmtFX(v, cur);
+      }
     });
     catTotals[cat.id] = catSum;
     totalSpend += catSum;
@@ -1013,10 +988,6 @@ function setText(id, text, color) {
 // ─────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   loadState();
-  // Seed preset trackers so first toggle knows what the "old" values were
-  lastHousingPreset = state.housing || 'mortgage';
-  lastVehiclePreset = state.vehicle || 'own';
-  lastWorkPreset    = state.work    || 'working';
 
   // Theme toggle
   document.getElementById('themeToggle').addEventListener('click', () => {
@@ -1040,9 +1011,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!el) return;
     el.value = state[id] !== undefined ? state[id] : (id==='income'?5000:id==='adults'?1:0);
     el.addEventListener('focus', () => el.style.borderColor = T().accent);
-    el.addEventListener('blur', () => el.style.borderColor = T().border);
+    el.addEventListener('blur',  () => el.style.borderColor = T().border);
     el.addEventListener('input', () => {
-      state[id] = parseFloat(el.value) || 0;
+      if (id === 'income') state.income = parseFloat(el.value) || 0;
+      else if (id === 'adults') state.adults = Math.max(parseInt(el.value) || 1, 1);
+      else if (id === 'children') state.children = Math.max(parseInt(el.value) || 0, 0);
       saveState(); recalc();
     });
   });
