@@ -459,10 +459,10 @@ const THEMES = {
 //  CURRENCY
 // ─────────────────────────────────────────
 const CURRENCY_SYMBOLS = {
-  USD:'$',EUR:'€',GBP:'£',CAD:'CA$',AUD:'A$',JPY:'¥',CHF:'Fr',
-  SEK:'kr',NOK:'kr',DKK:'kr',HUF:'Ft',PLN:'zł',CZK:'Kč',
-  MXN:'$',BRL:'R$',INR:'₹',CNY:'¥',KRW:'₩',SGD:'S$',NZD:'NZ$',
-  ZAR:'R',AED:'AED'
+  USD:'$',EUR:'€',GBP:'£',CAD:'CA$ ',AUD:'A$ ',JPY:'¥',CHF:'Fr ',
+  SEK:'kr ',NOK:'kr ',DKK:'kr ',HUF:'Ft ',PLN:'zł ',CZK:'Kč ',
+  MXN:'$',BRL:'R$ ',INR:'₹ ',CNY:'¥',KRW:'₩ ',SGD:'S$ ',NZD:'NZ$ ',
+  ZAR:'R ',AED:'AED '
 };
 const FALLBACK_RATES = {
   USD:1,EUR:0.92,GBP:0.79,CAD:1.36,AUD:1.54,JPY:149.5,CHF:0.88,
@@ -708,18 +708,18 @@ function paintButtons() {
 //  SMART PRESETS
 // ─────────────────────────────────────────
 const HOUSING_PRESETS = {
-  rent:     { rent_mortgage:1800, insurance_home:0,   maintenance:30  },
+  rent:     { rent_mortgage:1800, insurance_home:100, maintenance:30  },
   mortgage: { rent_mortgage:1500, insurance_home:100, maintenance:100 },
-  own:      { rent_mortgage:0,    insurance_home:80,  maintenance:150 },
+  own:      { rent_mortgage:0,    insurance_home:100,  maintenance:100 },
 };
 const VEHICLE_PRESETS = {
-  none:  { car_payment:0, gas_fuel:0, car_insurance:0, car_maint:0, parking:10, public_transit:100 },
-  lease: { car_payment:450, gas_fuel:130, car_insurance:140, car_maint:30, parking:40, public_transit:20 },
-  own:   { car_payment:350, gas_fuel:150, car_insurance:110, car_maint:70, parking:35, public_transit:20 },
+  none:  { car_payment:0, gas_fuel:0, car_insurance:0, car_maint:0, parking:0, public_transit:100 },
+  lease: { car_payment:500, gas_fuel:150, car_insurance:140, car_maint:30, parking:40, public_transit:20 },
+  own:   { car_payment:0, gas_fuel:150, car_insurance:110, car_maint:30, parking:40, public_transit:20 },
 };
 const WORK_PRESETS = {
-  working: { retirement:300, investments:150, emergency_fund:200, other_savings:100, vacation:150, student_loan:200 },
-  retired: { retirement:0,   investments:100, emergency_fund:150, other_savings:50,  vacation:250, student_loan:0   },
+  working: { retirement:300, investments:150, emergency_fund:200, other_savings:100, vacation:150, student_loan:0 },
+  retired: { retirement:0,   investments:100, emergency_fund:150, other_savings:0,  vacation:250, student_loan:0   },
 };
 
 // Sub IDs the user has manually typed — presets skip these
@@ -770,34 +770,34 @@ window.setToggle = function(key, val) {
 const CATS = [
   { id:'housing', name:'Housing &amp; Utilities', icon:'&#127968;', color:0, subs:[
     {id:'rent_mortgage', label:'Rent / Mortgage', val:1500},
-    {id:'electricity', label:'Electricity', val:120},
-    {id:'gas_heat', label:'Gas &amp; Heat', val:80},
+    {id:'electricity', label:'Electricity', val:150},
+    {id:'gas_heat', label:'Gas &amp; Heat', val:100},
     {id:'water_sewer', label:'Water &amp; Sewer', val:50},
-    {id:'internet', label:'Internet', val:60},
-    {id:'phone', label:'Phone', val:80},
+    {id:'internet', label:'Internet', val:80},
+    {id:'phone', label:'Phone', val:50},
     {id:'insurance_home', label:'Home Insurance', val:100},
     {id:'maintenance', label:'Maintenance &amp; Repairs', val:100},
   ]},
   { id:'transport', name:'Transportation', icon:'&#128663;', color:1, subs:[
-    {id:'car_payment', label:'Car Payment / Lease', val:400},
+    {id:'car_payment', label:'Car Payment / Lease', val:500},
     {id:'gas_fuel', label:'Gas &amp; Fuel', val:150},
-    {id:'car_insurance', label:'Auto Insurance', val:120},
-    {id:'car_maint', label:'Maintenance &amp; Registration', val:60},
+    {id:'car_insurance', label:'Auto Insurance', val:100},
+    {id:'car_maint', label:'Maintenance &amp; Registration', val:50},
     {id:'parking', label:'Parking &amp; Tolls', val:30},
-    {id:'public_transit', label:'Public Transit / Rideshare', val:40},
+    {id:'public_transit', label:'Public Transit / Rideshare', val:10},
   ]},
   { id:'food', name:'Food &amp; Dining', icon:'&#128717;', color:2, subs:[
     {id:'groceries', label:'Groceries', val:500},
     {id:'dining_out', label:'Dining Out &amp; Takeout', val:200},
     {id:'coffee', label:'Coffee &amp; Snacks', val:60},
-    {id:'meal_delivery', label:'Meal Delivery', val:60},
+    {id:'meal_delivery', label:'Meal Delivery', val:20},
   ]},
   { id:'health', name:'Health &amp; Medical', icon:'&#127973;', color:3, subs:[
     {id:'health_insurance', label:'Health Insurance', val:350},
     {id:'dental_vision', label:'Dental &amp; Vision', val:50},
-    {id:'prescriptions', label:'Prescriptions', val:40},
-    {id:'gym', label:'Gym &amp; Fitness', val:40},
-    {id:'medical_other', label:'Doctor Visits &amp; Other', val:50},
+    {id:'prescriptions', label:'Prescriptions', val:20},
+    {id:'gym', label:'Gym &amp; Fitness', val:0},
+    {id:'medical_other', label:'Doctor Visits &amp; Other', val:15},
   ]},
   { id:'savings', name:'Savings &amp; Investments', icon:'&#128176;', color:4, subs:[
     {id:'emergency_fund', label:'Emergency Fund', val:200},
@@ -820,7 +820,7 @@ const CATS = [
     {id:'school_supplies', label:'School Supplies &amp; Clothes', val:0},
   ]},
   { id:'misc', name:'Miscellaneous &amp; Debt', icon:'&#128203;', color:7, subs:[
-    {id:'student_loan', label:'Student Loans', val:200},
+    {id:'student_loan', label:'Student Loans', val:0},
     {id:'credit_card', label:'Credit Card / Other Debt', val:100},
     {id:'pet', label:'Pet Care', val:60},
     {id:'charity', label:'Charity &amp; Donations', val:0},
@@ -922,11 +922,11 @@ function buildCategories() {
 const PERSON_SCALED = {
   // food
   groceries:    { base:400, perPerson:120 },  // $400 + $120/person
-  dining_out:   { base:100, perPerson:60  },
-  coffee:       { base:30,  perPerson:20  },
-  meal_delivery:{ base:30,  perPerson:20  },
+  dining_out:   { base:140, perPerson:60  },
+  coffee:       { base:40,  perPerson:20  },
+  meal_delivery:{ base:10,  perPerson:10  },
   // health
-  health_insurance: { base:200, perPerson:120 },
+  health_insurance: { base:100, perPerson:120 },
   prescriptions:    { base:20,  perPerson:15  },
   medical_other:    { base:20,  perPerson:20  },
   gym:              { base:20,  perPerson:20  },
