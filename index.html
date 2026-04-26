@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Retirement Planning Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet"/>
+
+  <style>
+    /* ── CSS Reset & Root ────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:          #0d1117;
+      --bg2:         #161b22;
+      --bg3:         #1c2330;
+      --border:      rgba(255,255,255,0.08);
+      --text:        #e6edf3;
+      --muted:       #8b949e;
+      --accent:      #58a6ff;
+      --accent2:     #3fb950;
+      --accent3:     #f0883e;
+      --accent4:     #bc8cff;
+      --gold:        #d4a843;
+      --gold-light:  #f0c96a;
+      --danger:      #f85149;
+      --card-shadow: 0 8px 32px rgba(0,0,0,0.5);
+      --radius:      12px;
+      --radius-lg:   20px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 16px;
+      line-height: 1.6;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Starfield Background ─────────────────────────────────────── */
+    .starfield {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    .starfield::before, .starfield::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,0.4) 0%, transparent 100%),
+        radial-gradient(1px 1px at 25% 40%, rgba(255,255,255,0.25) 0%, transparent 100%),
+        radial-gradient(1.5px 1.5px at 40% 8%, rgba(255,255,255,0.35) 0%, transparent 100%),
+        radial-gradient(1px 1px at 55% 60%, rgba(255,255,255,0.2) 0%, transparent 100%),
+        radial-gradient(1px 1px at 70% 30%, rgba(255,255,255,0.3) 0%, transparent 100%),
+        radial-gradient(1.5px 1.5px at 82% 75%, rgba(255,255,255,0.25) 0%, transparent 100%),
+        radial-gradient(1px 1px at 92% 20%, rgba(255,255,255,0.4) 0%, transparent 100%),
+        radial-gradient(1px 1px at 15% 85%, rgba(255,255,255,0.2) 0%, transparent 100%),
+        radial-gradient(1.5px 1.5px at 63% 90%, rgba(255,255,255,0.3) 0%, transparent 100%),
+        radial-gradient(1px 1px at 48% 50%, rgba(255,255,255,0.15) 0%, transparent 100%);
+    }
+
+    /* Gradient mesh background */
+    .bg-mesh {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(ellipse 80% 50% at 10% 0%, rgba(88,166,255,0.07) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 60% at 90% 100%, rgba(212,168,67,0.06) 0%, transparent 60%),
+        radial-gradient(ellipse 70% 40% at 50% 50%, rgba(63,185,80,0.03) 0%, transparent 60%);
+    }
+
+    /* ── Layout ───────────────────────────────────────────────────── */
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* ── Header / Nav ─────────────────────────────────────────────── */
+    header {
+      position: relative;
+      z-index: 10;
+      padding: 20px 0;
+      border-bottom: 1px solid var(--border);
+      background: rgba(13,17,23,0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+    }
+    .nav-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+    .logo-icon {
+      width: 38px;
+      height: 38px;
+      background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 4px 16px rgba(212,168,67,0.3);
+    }
+    .logo-text {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.2rem;
+      color: var(--text);
+      line-height: 1.2;
+    }
+    .logo-text span {
+      display: block;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 500;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .nav-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(88,166,255,0.1);
+      border: 1px solid rgba(88,166,255,0.2);
+      border-radius: 50px;
+      padding: 4px 12px 4px 8px;
+      font-size: 0.75rem;
+      color: var(--accent);
+      font-weight: 500;
+    }
+    .nav-badge::before {
+      content: '';
+      width: 7px;
+      height: 7px;
+      background: var(--accent2);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.85); }
+    }
+
+    /* ── Hero ─────────────────────────────────────────────────────── */
+    .hero {
+      padding: 80px 0 60px;
+      text-align: center;
+      position: relative;
+    }
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(212,168,67,0.1);
+      border: 1px solid rgba(212,168,67,0.25);
+      border-radius: 50px;
+      padding: 5px 16px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--gold-light);
+      margin-bottom: 28px;
+    }
+    .hero-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(2.6rem, 6vw, 4.5rem);
+      line-height: 1.1;
+      color: var(--text);
+      margin-bottom: 20px;
+    }
+    .hero-title em {
+      font-style: italic;
+      color: var(--gold-light);
+    }
+    .hero-sub {
+      font-size: 1.15rem;
+      color: var(--muted);
+      max-width: 580px;
+      margin: 0 auto 48px;
+      font-weight: 300;
+      line-height: 1.7;
+    }
+
+    /* ── Disclaimer Banner ────────────────────────────────────────── */
+    .disclaimer-banner {
+      background: rgba(248,81,73,0.08);
+      border: 1px solid rgba(248,81,73,0.2);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 60px;
+      text-align: left;
+      animation: fadeSlideUp 0.6s ease 0.2s both;
+    }
+    .disclaimer-icon {
+      font-size: 1.3rem;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .disclaimer-text {
+      font-size: 0.88rem;
+      color: #ffa5a0;
+      line-height: 1.6;
+    }
+    .disclaimer-text strong {
+      color: #ff8a80;
+      font-weight: 600;
+    }
+
+    /* ── Tool Cards ───────────────────────────────────────────────── */
+    .tools-section {
+      margin-bottom: 80px;
+    }
+    .section-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 28px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .tool-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    .tool-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      text-decoration: none;
+      color: inherit;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+      animation: fadeSlideUp 0.5s ease both;
+    }
+    .tool-card:nth-child(1) { animation-delay: 0.1s; }
+    .tool-card:nth-child(2) { animation-delay: 0.2s; }
+    .tool-card:nth-child(3) { animation-delay: 0.3s; }
+
+    .tool-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      border-radius: var(--radius-lg);
+    }
+    .tool-card:hover::before { opacity: 1; }
+    .tool-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--card-shadow);
+    }
+
+    /* Card accent colors */
+    .tool-card.budget {
+      --card-accent: var(--accent2);
+      --card-glow: rgba(63,185,80,0.08);
+    }
+    .tool-card.budget::before {
+      background: radial-gradient(ellipse 80% 60% at 0% 0%, rgba(63,185,80,0.06) 0%, transparent 70%);
+    }
+    .tool-card.budget:hover {
+      border-color: rgba(63,185,80,0.35);
+      box-shadow: 0 8px 32px rgba(63,185,80,0.12);
+    }
+
+    .tool-card.ss {
+      --card-accent: var(--accent);
+      --card-glow: rgba(88,166,255,0.08);
+    }
+    .tool-card.ss::before {
+      background: radial-gradient(ellipse 80% 60% at 0% 0%, rgba(88,166,255,0.06) 0%, transparent 70%);
+    }
+    .tool-card.ss:hover {
+      border-color: rgba(88,166,255,0.35);
+      box-shadow: 0 8px 32px rgba(88,166,255,0.12);
+    }
+
+    .tool-card.k401 {
+      --card-accent: var(--gold);
+      --card-glow: rgba(212,168,67,0.08);
+    }
+    .tool-card.k401::before {
+      background: radial-gradient(ellipse 80% 60% at 0% 0%, rgba(212,168,67,0.06) 0%, transparent 70%);
+    }
+    .tool-card.k401:hover {
+      border-color: rgba(212,168,67,0.35);
+      box-shadow: 0 8px 32px rgba(212,168,67,0.12);
+    }
+
+    .card-icon-wrap {
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      flex-shrink: 0;
+    }
+    .budget .card-icon-wrap  { background: rgba(63,185,80,0.12);  border: 1px solid rgba(63,185,80,0.2); }
+    .ss     .card-icon-wrap  { background: rgba(88,166,255,0.12); border: 1px solid rgba(88,166,255,0.2);}
+    .k401   .card-icon-wrap  { background: rgba(212,168,67,0.12); border: 1px solid rgba(212,168,67,0.2);}
+
+    .card-header { display: flex; align-items: center; gap: 14px; }
+
+    .card-title-group {}
+    .card-tag {
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 2px;
+    }
+    .budget .card-tag  { color: var(--accent2); }
+    .ss     .card-tag  { color: var(--accent); }
+    .k401   .card-tag  { color: var(--gold-light); }
+
+    .card-name {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.25rem;
+      color: var(--text);
+      line-height: 1.2;
+    }
+
+    .card-desc {
+      font-size: 0.9rem;
+      color: var(--muted);
+      line-height: 1.65;
+      flex: 1;
+    }
+
+    .card-features {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .card-feature {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+    .card-feature::before {
+      content: '';
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .budget .card-feature::before  { background: var(--accent2); }
+    .ss     .card-feature::before  { background: var(--accent); }
+    .k401   .card-feature::before  { background: var(--gold-light); }
+
+    .card-cta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+    .card-cta-label {
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+    .budget .card-cta-label  { color: var(--accent2); }
+    .ss     .card-cta-label  { color: var(--accent); }
+    .k401   .card-cta-label  { color: var(--gold-light); }
+
+    .card-arrow {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      transition: transform 0.25s ease;
+    }
+    .budget .card-arrow  { background: rgba(63,185,80,0.12);  color: var(--accent2); }
+    .ss     .card-arrow  { background: rgba(88,166,255,0.12); color: var(--accent); }
+    .k401   .card-arrow  { background: rgba(212,168,67,0.12); color: var(--gold-light);}
+    .tool-card:hover .card-arrow { transform: translateX(4px); }
+
+    /* ── Stats Row ────────────────────────────────────────────────── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 80px;
+    }
+    .stat-cell {
+      background: var(--bg2);
+      padding: 24px 20px;
+      text-align: center;
+    }
+    .stat-num {
+      font-family: 'DM Serif Display', serif;
+      font-size: 2rem;
+      color: var(--gold-light);
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+    .stat-label {
+      font-size: 0.78rem;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    /* ── Resources Section ────────────────────────────────────────── */
+    .resources-section { margin-bottom: 80px; }
+
+    .resources-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 14px;
+    }
+
+    .resource-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      text-decoration: none;
+      color: inherit;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .resource-card:hover {
+      border-color: rgba(88,166,255,0.3);
+      background: var(--bg3);
+    }
+    .resource-badge {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+    }
+    .resource-info {}
+    .resource-name {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 2px;
+    }
+    .resource-desc {
+      font-size: 0.78rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+    .resource-url {
+      font-size: 0.72rem;
+      color: var(--accent);
+      margin-top: 4px;
+      display: block;
+    }
+
+    /* ── How It Works ─────────────────────────────────────────────── */
+    .how-section { margin-bottom: 80px; }
+    .steps-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .step {
+      display: flex;
+      gap: 20px;
+      padding: 24px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .step:last-child { border-bottom: none; }
+    .step-num {
+      font-family: 'DM Serif Display', serif;
+      font-size: 2.5rem;
+      color: rgba(255,255,255,0.06);
+      line-height: 1;
+      flex-shrink: 0;
+      width: 48px;
+      text-align: right;
+      padding-top: 2px;
+    }
+    .step-body {}
+    .step-title {
+      font-weight: 600;
+      font-size: 1rem;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .step-desc {
+      font-size: 0.88rem;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    /* ── Privacy Note ─────────────────────────────────────────────── */
+    .privacy-note {
+      background: rgba(63,185,80,0.06);
+      border: 1px solid rgba(63,185,80,0.18);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 80px;
+    }
+    .privacy-icon { font-size: 1.5rem; flex-shrink: 0; }
+    .privacy-text { font-size: 0.88rem; color: #8bc48a; line-height: 1.6; }
+    .privacy-text strong { color: var(--accent2); }
+
+    /* ── Footer ───────────────────────────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 40px 0;
+      text-align: center;
+    }
+    .footer-logo {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.4rem;
+      color: var(--gold-light);
+      margin-bottom: 10px;
+    }
+    .footer-tagline {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-bottom: 28px;
+    }
+    .footer-links {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px 24px;
+      margin-bottom: 28px;
+    }
+    .footer-link {
+      font-size: 0.82rem;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .footer-link:hover { color: var(--text); }
+    .footer-sep {
+      color: var(--border);
+    }
+    .footer-disclaimer {
+      font-size: 0.75rem;
+      color: rgba(139,148,158,0.6);
+      max-width: 600px;
+      margin: 0 auto 16px;
+      line-height: 1.7;
+    }
+    .footer-copy {
+      font-size: 0.75rem;
+      color: rgba(139,148,158,0.4);
+    }
+
+    /* ── Animations ───────────────────────────────────────────────── */
+    @keyframes fadeSlideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .hero-eyebrow  { animation: fadeSlideUp 0.5s ease 0.05s both; }
+    .hero-title    { animation: fadeSlideUp 0.5s ease 0.12s both; }
+    .hero-sub      { animation: fadeSlideUp 0.5s ease 0.2s both; }
+
+    /* ── Responsive ───────────────────────────────────────────────── */
+    @media (max-width: 640px) {
+      .hero { padding: 50px 0 40px; }
+      .hero-title { font-size: 2.2rem; }
+      .stats-row { grid-template-columns: 1fr 1fr; }
+      .step-num { font-size: 1.8rem; width: 36px; }
+    }
+  </style>
+
+</head>
+<body>
+
+  <!-- Background layers -->
+
+  <div class="starfield"></div>
+  <div class="bg-mesh"></div>
+
+  <!-- ── Header ──────────────────────────────────────────────────── -->
+
+  <header>
+    <div class="container">
+      <div class="nav-inner">
+        <a href="/retirement/" class="logo">
+          <div class="logo-icon">🌅</div>
+          <div class="logo-text">
+            RetireSmart
+            <span>Planning Hub</span>
+          </div>
+        </a>
+        <div class="nav-badge">🔒 Privacy-first · No data stored</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── Main ────────────────────────────────────────────────────── -->
+
+  <main>
+    <div class="container">
+
+```
+  <!-- ── Hero ──────────────────────────────────────────────────── -->
+  <section class="hero">
+    <div class="hero-eyebrow">📊 Free Retirement Estimation Tools</div>
+    <h1 class="hero-title">
+      Plan your future<br/>with <em>clarity</em>
+    </h1>
+    <p class="hero-sub">
+      Three interconnected calculators to help you estimate your retirement income,
+      Social Security benefits, and monthly budget — all in one place.
+    </p>
+  </section>
+
+  <!-- ── Disclaimer ─────────────────────────────────────────────── -->
+  <div class="disclaimer-banner">
+    <div class="disclaimer-icon">⚠️</div>
+    <div class="disclaimer-text">
+      <strong>For estimation and educational purposes only.</strong>
+      These tools provide projections based on assumptions you supply and simplified models.
+      They are <strong>not</strong> a substitute for professional financial, tax, or legal advice.
+      Do not make retirement, investment, or Social Security claiming decisions based solely on
+      these estimates. Always consult a qualified CPA, CFP®, or retirement advisor before taking action.
+    </div>
+  </div>
+
+  <!-- ── Quick Stats ─────────────────────────────────────────────── -->
+  <div class="stats-row">
+    <div class="stat-cell">
+      <div class="stat-num">3</div>
+      <div class="stat-label">Estimation Tools</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-num">0</div>
+      <div class="stat-label">Data Collected</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-num">100%</div>
+      <div class="stat-label">Browser-Based</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-num">Free</div>
+      <div class="stat-label">No Account Needed</div>
+    </div>
+  </div>
+
+  <!-- ── Tool Cards ─────────────────────────────────────────────── -->
+  <section class="tools-section">
+    <div class="section-label">Retirement Planning Tools</div>
+
+    <div class="tool-cards">
+
+      <!-- Budget Estimator -->
+      <a href="/retirement/smart-budget.html" class="tool-card budget">
+        <div class="card-header">
+          <div class="card-icon-wrap">💰</div>
+          <div class="card-title-group">
+            <div class="card-tag">Step 1</div>
+            <div class="card-name">Smart Budget Estimator</div>
+          </div>
+        </div>
+        <p class="card-desc">
+          Map out your monthly income and expenses to understand how much you'll
+          need in retirement. Build a realistic spending baseline before you project
+          your savings.
+        </p>
+        <div class="card-features">
+          <div class="card-feature">Income vs. expenses breakdown</div>
+          <div class="card-feature">Retirement spending adjustments</div>
+          <div class="card-feature">Monthly surplus / shortfall</div>
+          <div class="card-feature">Inflation-adjusted projections</div>
+        </div>
+        <div class="card-cta">
+          <span class="card-cta-label">Open Budget Estimator →</span>
+          <div class="card-arrow">→</div>
+        </div>
+      </a>
+
+      <!-- Social Security Estimator -->
+      <a href="/retirement/ss-calculator.html" class="tool-card ss">
+        <div class="card-header">
+          <div class="card-icon-wrap">🏛️</div>
+          <div class="card-title-group">
+            <div class="card-tag">Step 2</div>
+            <div class="card-name">Social Security Estimator</div>
+          </div>
+        </div>
+        <p class="card-desc">
+          Estimate your monthly Social Security benefit based on your earnings
+          history and target claiming age. See the impact of claiming early, at FRA,
+          or delaying to 70.
+        </p>
+        <div class="card-features">
+          <div class="card-feature">AIME & PIA calculation model</div>
+          <div class="card-feature">Early vs. delayed claiming comparison</div>
+          <div class="card-feature">Spousal benefit estimation</div>
+          <div class="card-feature">Break-even age analysis</div>
+        </div>
+        <div class="card-cta">
+          <span class="card-cta-label">Open SS Estimator →</span>
+          <div class="card-arrow">→</div>
+        </div>
+      </a>
+
+      <!-- 401k Projector -->
+      <a href="/retirement/401k-withdrawal-planner.html" class="tool-card k401">
+        <div class="card-header">
+          <div class="card-icon-wrap">📈</div>
+          <div class="card-title-group">
+            <div class="card-tag">Step 3</div>
+            <div class="card-name">401(k) Withdrawal Projector</div>
+          </div>
+        </div>
+        <p class="card-desc">
+          Project your 401(k) or IRA balance over 40 years with market growth
+          scenarios, RMD rules, Social Security offsets, and tiered withdrawal
+          phases built right in.
+        </p>
+        <div class="card-features">
+          <div class="card-feature">Multi-phase withdrawal modeling</div>
+          <div class="card-feature">RMD calculations (IRS Uniform Lifetime Table)</div>
+          <div class="card-feature">Market stress-test scenarios</div>
+          <div class="card-feature">Federal tax bracket estimation</div>
+        </div>
+        <div class="card-cta">
+          <span class="card-cta-label">Open 401(k) Projector →</span>
+          <div class="card-arrow">→</div>
+        </div>
+      </a>
+
+    </div>
+  </section>
+
+  <!-- ── How to Use ─────────────────────────────────────────────── -->
+  <section class="how-section">
+    <div class="section-label">Suggested Workflow</div>
+    <div class="steps-list">
+      <div class="step">
+        <div class="step-num">01</div>
+        <div class="step-body">
+          <div class="step-title">Start with your budget</div>
+          <div class="step-desc">Use the Smart Budget Estimator to understand your current monthly cash flow and project what your spending will look like in retirement. This gives you a target monthly income number to work backwards from.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <div class="step-body">
+          <div class="step-title">Estimate your Social Security benefit</div>
+          <div class="step-desc">Run the Social Security Estimator to see how much guaranteed monthly income you can expect. Try different claiming ages to understand the trade-offs. Your full retirement age (FRA) depends on your birth year — the SSA sets this between 66 and 67 for most current workers.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <div class="step-body">
+          <div class="step-title">Project your 401(k) or IRA</div>
+          <div class="step-desc">Take your budget target, subtract your estimated Social Security income, and use that gap as your withdrawal target in the 401(k) Projector. Model different market scenarios to understand longevity risk.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">04</div>
+        <div class="step-body">
+          <div class="step-title">Consult a professional</div>
+          <div class="step-desc">These estimates are a starting point, not a plan. Take your results to a certified financial planner (CFP®) or CPA who can account for your full tax picture, estate considerations, healthcare costs, and more.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Privacy Note ───────────────────────────────────────────── -->
+  <div class="privacy-note">
+    <div class="privacy-icon">🔐</div>
+    <div class="privacy-text">
+      <strong>Your data never leaves your browser.</strong>
+      All calculations happen locally on your device using JavaScript. Nothing you enter
+      is transmitted to any server, stored in a database, or shared with third parties.
+      You can use these tools with full confidence in your privacy.
+    </div>
+  </div>
+
+  <!-- ── External Resources ─────────────────────────────────────── -->
+  <section class="resources-section">
+    <div class="section-label">Authoritative External Resources</div>
+    <div class="resources-grid">
+
+      <a href="https://www.ssa.gov/myaccount/" target="_blank" rel="noopener" class="resource-card">
+        <div class="resource-badge">🏛️</div>
+        <div class="resource-info">
+          <div class="resource-name">My Social Security (SSA)</div>
+          <div class="resource-desc">View your official earnings history and get a personalized benefit estimate directly from the Social Security Administration.</div>
+          <span class="resource-url">ssa.gov/myaccount</span>
+        </div>
+      </a>
+
+      <a href="https://www.ssa.gov/benefits/retirement/planner/agereduction.html" target="_blank" rel="noopener" class="resource-card">
+        <div class="resource-badge">📅</div>
+        <div class="resource-info">
+          <div class="resource-name">SSA Claiming Age Guide</div>
+          <div class="resource-desc">Official SSA explanation of how claiming age affects your monthly benefit — from 62 to 70.</div>
+          <span class="resource-url">ssa.gov — Retirement Planner</span>
+        </div>
+      </a>
+
+      <a href="https://www.irs.gov/retirement-plans/plan-participant-employee/retirement-topics-required-minimum-distributions-rmds" target="_blank" rel="noopener" class="resource-card">
+        <div class="resource-badge">📋</div>
+        <div class="resource-info">
+          <div class="resource-name">IRS — Required Minimum Distributions</div>
+          <div class="resource-desc">Official IRS guidance on RMD rules, deadlines, and calculation tables for IRAs and 401(k) plans.</div>
+          <span class="resource-url">irs.gov — RMDs</span>
+        </div>
+      </a>
+
+      <a href="https://www.irs.gov/taxtopics/tc559" target="_blank" rel="noopener" class="resource-card">
+        <div class="resource-badge">💸</div>
+        <div class="resource-info">
+          <div class="resource-name">IRS — 401(k) Early Withdrawal</div>
+          <div class="resource-desc">Tax rules for early 401(k) distributions, the 10% penalty, and qualified exceptions.</div>
+          <span class="resource-url">irs.gov — Topic 559</span>
+        </div>
+      </a>
+
+      <a href="https://www.irs.gov/newsroom/irs-announces-2025-retirement-related-cost-of-living-adjustments" target="_blank" rel="noopener" class="resource-card">
+        <div class="resource-badge">📊</div>
+        <div class="resource-info">
+          <div class="resource-name">IRS 2025 Retirement Limits</div>
+          <div class="resource-desc">Current IRS contribution limits for 401(k), IRA, and catch-up contributions for the 2025 tax year.</div>
+          <span class="resource-url">irs.gov — COLA Adjustments</span>
+        </div>
+      </a>
+
+      <a href="https://www.dol.gov/agencies/ebsa/about-ebsa/our-activities/resource-center/publications/top-10-ways-to-prepare-for-retirement" target="_blank" rel="noopener" class="resource-card">
+        <div class="resource-badge">⚖️</div>
+        <div class="resource-info">
+          <div class="resource-name">DOL — Top 10 Retirement Tips</div>
+          <div class="resource-desc">Department of Labor guide on key steps to prepare for a financially secure retirement.</div>
+          <span class="resource-url">dol.gov — EBSA</span>
+        </div>
+      </a>
+
+      <a href="https://www.consumerfinance.gov/consumer-tools/retirement/" target="_blank" rel="noopener" class="resource-card">
+        <div class="resource-badge">🏦</div>
+        <div class="resource-info">
+          <div class="resource-name">CFPB Retirement Resources</div>
+          <div class="resource-desc">Consumer Financial Protection Bureau tools and guides on planning, saving, and managing retirement income.</div>
+          <span class="resource-url">consumerfinance.gov</span>
+        </div>
+      </a>
+
+      <a href="https://www.medicare.gov/basics/costs/medicare-costs" target="_blank" rel="noopener" class="resource-card">
+        <div class="resource-badge">🏥</div>
+        <div class="resource-info">
+          <div class="resource-name">Medicare Cost Overview</div>
+          <div class="resource-desc">Official Medicare.gov breakdown of Part A, B, C, and D premiums, deductibles, and coinsurance to factor into your retirement budget.</div>
+          <span class="resource-url">medicare.gov</span>
+        </div>
+      </a>
+
+      <a href="https://www.cfp.net/find-a-cfp-professional" target="_blank" rel="noopener" class="resource-card">
+        <div class="resource-badge">🎓</div>
+        <div class="resource-info">
+          <div class="resource-name">Find a CFP® Professional</div>
+          <div class="resource-desc">Search the CFP Board's directory to locate a certified financial planner in your area for personalized advice.</div>
+          <span class="resource-url">cfp.net</span>
+        </div>
+      </a>
+
+    </div>
+  </section>
+
+</div><!-- /container -->
+```
+
+  </main>
+
+  <!-- ── Footer ──────────────────────────────────────────────────── -->
+
+  <footer>
+    <div class="container">
+      <div class="footer-logo">🌅 RetireSmart</div>
+      <div class="footer-tagline">Retirement estimation tools — free, private, browser-based</div>
+
+```
+  <div class="footer-links">
+    <a href="/retirement/smart-budget.html" class="footer-link">Budget Estimator</a>
+    <span class="footer-sep">·</span>
+    <a href="/retirement/ss-calculator.html" class="footer-link">Social Security Estimator</a>
+    <span class="footer-sep">·</span>
+    <a href="/retirement/401k-withdrawal-planner.html" class="footer-link">401(k) Projector</a>
+  </div>
+
+  <p class="footer-disclaimer">
+    These tools are provided for <strong>educational and estimation purposes only</strong> and do not constitute financial,
+    tax, legal, or investment advice. Projections are based on simplified models and user-supplied assumptions.
+    Actual results may differ materially. Consult a qualified financial professional before making any retirement decisions.
+    Federal tax estimates use simplified bracket assumptions and may not reflect your actual tax liability.
+    Social Security projections are estimates only and may differ from actual SSA-calculated benefits.
+  </p>
+
+  <div class="footer-copy">
+    No data is collected, stored, or transmitted. All calculations run locally in your browser.
+  </div>
+</div>
+```
+
+  </footer>
+
+</body>
+</html>
